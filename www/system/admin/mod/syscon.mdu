@@ -1,0 +1,601 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+if (straw_get_rights($mod, 'write')) { $yaw = 1; } else { $yaw = 0; }
+$config = array(); // reset configs
+include config_file; // look in te file
+// ********************************************************************************
+// System Configuration
+// ********************************************************************************
+
+if (empty($action)){
+    echoheader('options', t('Настройки системы'));
+
+  $sys_con_gmtoffset_arr = array('-720' => 'GMT -12:00', '-660' => 'GMT -11:00', '-600' => 'GMT -10:00', '-570' => 'GMT -9:30', '-540' => 'GMT -9:00', '-510' => 'GMT -8:30', '-480' => 'GMT -8:00', '-420' => 'GMT -7:00', '-360' => 'GMT -6:00', '-300' => 'GMT -5:00', '-240' => 'GMT -4:00', '-210' => 'GMT -3:30', '-180' => 'GMT -3:00', '-120' => 'GMT -2:00', '-60' => 'GMT -1:00', '0' => 'GMT +00:00', '60' => 'GMT +01:00', '120' => 'GMT +02:00', '180' => 'GMT +03:00', '210' => 'GMT +03:30', '240' => 'GMT +04:00', '270' => 'GMT +04:30', '300' => 'GMT +05:00', '330' => 'GMT +05:30', '360' => 'GMT +06:00', '390' => 'GMT +06:30', '420' => 'GMT +07:00', '480' => 'GMT +08:00', '540' => 'GMT +09:00', '570' => 'GMT +09:30', '600' => 'GMT +10:00', '630' => 'GMT +10:30', '660' => 'GMT +11:00', '690' => 'GMT +11:30', '720' => 'GMT +12:00', '780' => 'GMT +13:00', '840' => 'GMT +14:00');
+  $sys_con_charset_arr   = array('X-MAC-ARABIC' => 'Arabic (Macintosh)', 'windows-1256' => 'Arabic (Windows)', 'iso-8859-2' => 'Central European (ISO-8859-2)', 'X-MAC-CENTRALEURROMAN' => 'Central European (MacCE)', 'windows-1250' => 'Central European (Windows-1250)', 'iso-8859-5' => 'Cyrillic (ISO-8859-5)', 'KOI8-R' => 'Cyrillic (KOI8-R)', 'x-mac-cyrillic' => 'Cyrillic (MacCyrillic)', 'windows-1251' => 'Cyrillic (Windows-1251)', 'iso-8859-7' => 'Greek (ISO-8859-7)', 'x-mac-greek' => 'Greek (MacGreek)', 'windows-1253' => 'Greek (Windows-1253)', 'X-MAC-HEBREW' => 'Hebrew (Macintosh)', 'windows-1255' => 'Hebrew (Windows)', 'Shift_JIS' => 'Japanese (Shift_JIS)', 'EUC-JP' => 'Japanese (EUC)', 'ISO-2022-JP' => 'Japanese (JIS)', 'EUC-KR' => 'Korean (EUC-KR)', 'gb2312' => 'Simplified Chinese (gb2312)', 'big5' => 'Traditional Chinese (big5)', 'X-MAC-THAI' => 'Thai (Macintosh)', 'Windows' => 'Thai (Windows)', 'iso-8859-5' => 'Turkish (Latin5)', 'X-MAC-TURKISH' => 'Turkish (Macintosh)', 'windows-1254' => 'Turkish (Windows)', 'utf-8' => 'UTF-8', 'iso-8859-1' => 'Western (Latin1)', 'macintosh' => 'Western (Macintosh)', 'windows-1252' => 'Western (Windows 1252)');
+    
+### скин админЦентра
+$handle = opendir(admin_skins_directory);
+    while ($file_arr = readdir($handle)){
+        if ($file_arr != '.' and $file_arr != '..' and is_dir(admin_skins_directory.'/'.$file_arr)){
+            $sys_con_skins_arr[$file_arr] = $file_arr;
+        }
+    }
+
+### скин Сайта
+    $handle = opendir(themes_directory);
+    while ($file = readdir($handle)){
+        if ($file != '.' and $file != '..' and is_dir(themes_directory.'/'.$file)){
+            $sys_con_theme_arr[$file] = $file;
+        }
+    }
+
+### главный Модуль
+    $handle = opendir(modul_directory);
+    while ($file = readdir($handle)){
+        if ($file != '.' and $file != '..' and is_dir(modul_directory.'/'.$file)){
+            $sys_con_modul_arr[$file] = $file;
+        }
+    }
+
+### Язык системы
+    $handle = opendir(languages_directory);
+    while ($file = readdir($handle)){
+        if ($file != '.' and $file != '..' and is_dir(languages_directory.'/'.$file)){
+            $sys_con_lang_arr[$file] = strtoupper($file);
+        }
+    }
+    
+### Шрифт PIN
+$handle = opendir(font_directory);
+while ($file = readdir($handle)){
+        if (strtolower(end(explode('.', $file))) == "ttf"){
+        $sys_con_pin_arr[$file] = $file;
+        }
+}
+
+$groups_list= array();
+foreach ($usergroups as $row){
+$groups_list[$row['id']] = $row['name'];
+}
+
+// System Configurations
+if (!empty($config['cuplace']) and $config['cuplace'] == 1) {
+$com_u = "checked";
+$com_d = "";
+$com_ud = "";
+$com_n = "";
+} elseif (!empty($config['cuplace']) and $config['cuplace'] == 2)  {
+$com_u = "";
+$com_d = "checked";
+$com_ud = "";
+$com_n = "";
+} elseif (!empty($config['cuplace']) and $config['cuplace'] == 3) {
+$com_u = "";
+$com_d = "";
+$com_ud = "checked";
+$com_n = "";
+} else {
+$com_u = "";
+$com_d = "";
+$com_ud = "";
+$com_n = "checked";
+}
+############ RULE TEXT
+$ruleres = file_read(rule_file);
+############ RSS CATEGORIES
+$where_mas = explode(",", $config['rss_cat']);
+
+  if (!empty($categories) and count($categories) > 20){
+   $style = "style=\"overflow: scroll; width: 100%; height: 100px; display: block;\"";
+  } else {
+   $style = "";
+  }
+  
+$rc = "<table border=\"0\" cellpadding=\"1\" cellspacing=\"0\" align=\"center\" width=\"100%\"><tr>";
+$a = 1;
+
+
+$arr_c = $db->sql_query("SELECT * FROM ".$config['dbprefix']."categories WHERE modul='news' ORDER BY numb ASC");
+while ($scrow=$db->sql_fetchrow($arr_c)) {
+		  $cel = "";
+		foreach ($where_mas as $val) {
+		  if ($val == $scrow['numb']) $cel="checked";
+		}
+		  $rc .= "\n<td><input type=\"checkbox\" name=\"catwhere[]\" value=\"".$scrow['numb']."\" ".$cel."></td><td width=\"50%\">".$scrow['name']."</td>";
+		if ($a == 2) {
+		   $rc .= "\n</tr><tr>";
+		   $a = 1;
+		} else {
+		   $a++;
+		}
+}
+
+
+$rc .= "\n</tr></table>\n";
+$rss_categories = "<span ".$style.">".$rc."</span>";
+############ // RSS CATEGIRIES
+
+############ Def Dop Fields
+$where_mas_f = explode("<>", $config['dop_fields_def']);
+
+  if ($config['dop_fields'] > 5) {
+  $fld_style = "style=\"overflow: scroll; width: 100%; height: 200px; display: block;\"";
+  } else {
+  $fld_style = "";
+  }
+  
+$fld_def = "<table border=\"0\" cellpadding=\"1\" cellspacing=\"0\" align=\"center\" width=\"100%\">";
+$fa = 0;
+
+for ($fc = 1; $fc <= $config['dop_fields']; $fc++){
+$fld_def .= "\n<tr><td>".t('Имя поля №%np', array('np'=>$fc)).":<br><input type=\"text\" name=\"flddef[".$fc."]\" value=\"".$where_mas_f[$fa]."\" size=\"40\"></td></tr>";
+$fa++;
+}
+
+$fld_def .= "\n</table>\n";
+
+$dop_fields_def = "<span ".$fld_style.">".$fld_def."</span>";
+############ // Def Dop Fields
+
+?>
+
+<form method="post" action="" enctype="multipart/form-data">
+<table cellspacing="0" cellpadding="0" width="100%" border="0">
+<tr><td class="content" valign="top">
+
+<div id="masterdiv">
+<?php
+
+$marr = array('1' => t("Интерфейс"), '2' => t("Система"), '3' => t("Информация"), '4' => t("Комментарии"), '5' => t("Пользователи"), '6' => t("Файлы"), '7' => t("PIN"), '8' => t("База"));
+
+$menushka = "<table cellspacing=\"0\" cellpadding=\"0\" width=\"100%\" border=\"0\">
+<tr class=\"menu\">";
+$mi=1;
+foreach ($marr as $mk => $mv) {
+$mn = (($mi < 2) ? "mnon" : "mnoff");
+$menushka .= "<th class=\"".$mn."\" style=\"width:".intval(100/8)."%;\" onclick=\"sm_bg('t".$mk."');OpenTab('sub".($mk-1)."')\" id=\"t".$mk."\">".$mv."</th>\n";
+$mi++;
+}
+
+$menushka .= "</tr>
+</table>";
+echo $menushka;
+?>
+<!-- 0 -->
+<div id="sub0" style="display: block;" class="submenu">
+<table cellspacing="0" cellpadding="0" width="100%" border="0">
+<tr class="menu">
+<td colspan="3" align="center"><hr width="96%"> - <?php echo t("НАСТРОЙКИ ИНТЕРФЕЙСА"); ?> - <hr width="96%"></td>
+</tr>
+<?php
+showRow(t('Название сайта:'), t('Например: "Strawberry homepage"'), '<input type="text" name="save_con[home_title]" value="'.$config['home_title'].'" size="40">');
+showRow(t('Автор или владелец сайта:'), t('Например: "Вася Пупкин"'), '<input type="text" name="save_con[home_author]" value="'.$config['home_author'].'" size="40">');
+showRow(t('Делитель:'), t('Этот символ будет отделять категории в заголовке страницы &lt;title&gt;'), '<input type="text" name="save_con[delitel]" value="'.$config['delitel'].'" size="10">');
+showRow(t('Кейворды сайта:'), t('Кейворды сайта по-умолчанию. Каждое слово через запятую, например "Strawberry, goodgirl, CutePHP"'), '<input type="text" name="save_con[keywords]" value="'.$config['keywords'].'" size="40">');
+showRow(t('Описание сайта:'), t('Описание сайта по-умолчанию. Например: "Strawberry 1.2 самый лучшый новостной скрипт!"'), '<input type="text" name="save_con[description]" value="'.$config['description'].'" size="40">');
+showRow(t('Приглашение робота:'), t('Периодичность посещений поисковиков в днях'), '<input type="text" name="save_con[revisit]" maxlength="2" value="'.$config['revisit'].'" size="3">');
+
+showRow(t('Скин АдминЦентра:'), t('Выбирите скин для АдминЦентра'), makeDropDown($sys_con_skins_arr, 'save_con[skin]', $config['skin']));
+showRow(t('Скин Сайта:'), t('Выбирите скин для Сайта'), makeDropDown($sys_con_theme_arr, 'save_con[mytheme]', $config['mytheme']));
+showRow(t('Смена темы:'), t('Возможность пользователям менять оформление сайта'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[use_sel_theme]', $config['use_sel_theme']));
+
+showRow(t('Убрать html комментарии'), t('Убирает из html кода все тэги лишних комментариев (кроме системных) &lt;!-- <i>комментарий</i> --&gt;'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[html_comment]', $config['html_comment']));
+showRow(t('Убрать html мусор'), t('Убирает из html кода всё лишнее, например двойные пробелы, пробелы в начале строк и др.'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[html_shlak]', $config['html_shlak']));
+showRow(t('Убрать переносы строк в html'), t('Убирает из html все переносы строк. Возможно, что <u>применение этой функции вызовет ошибку в некоторых JavaScript</u> сценариях которые вписаны в код страницы. Используйте подключение скриптов через JS Включения'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[html_nl]', $config['html_nl']));
+showRow(t('<a href="index.php?mod=rss">RSS потоки</a>'), t('Добавляет в мета данные rss потоки сайта'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[rss_potok]', $config['rss_potok']));
+showRow(t('<a href="index.php?mod=js">JS Включения</a>'), t('Использовать безопасное подключение скриптов'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[js_potok]', $config['js_potok']));
+showRow(t('<a href="index.php?mod=go_link">GO Link!</a>'), t('Использовать безопасные переходы по ссылкам'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[go_link]', $config['go_link']));
+
+showRow(t('Время генерирования:'), t('В нижнем html комментарии выводится время генерирования странички'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[tload]', $config['tload']));
+showRow(t('Действие защиты:'), t('В нижнем html комментарии выводится действие защиты'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[stepen]', $config['stepen']));
+showRow(t('Запросы в базу:'), t('В нижнем html комментарии выводится количество запросов к базе MySQL'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[coun_my_sql]', $config['coun_my_sql']));
+
+showRow(t('Жизнь сайта:'), t('Счетчик дней жизни сайта'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[sitelife]', $config['sitelife']));
+showRow(t('Статистика сайта:'), t('Учет хитов и хостов за сегодня и всего'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[stat]', $config['stat']));
+showRow(t('Онлайн:'), t('Выводит число посетителей на сайте в данный момент. Выводить переменной $tpl[\'online\']'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[online]', $config['online']));
+
+showRow(t('Who Is?:'), t('Укажите адрес сайта для проверки IP. Например:<br> http://legacytools.dnsstuff.com/tools/whois.ch?tool_id=66&ip=<i>сюда_подставляется_ip</i>'), '<input type="text" name="save_con[whois]" value="'.$config['whois'].'" size="40">');
+
+?>
+</table>
+</div>
+<!-- //0 -->
+
+
+<!-- 1 -->
+<div id="sub1" class="submenu">
+<table cellspacing="0" cellpadding="0" width="100%" border="0">
+<tr class="menu">
+<td colspan="3" align="center"><hr width="96%"> - <?php echo t("СИСТЕМНЫЕ НАСТРОЙКИ"); ?> - <hr width="96%"></td>
+</tr>
+<?php
+
+showRow(t('Полный путь к директории, где установлена Strawberry:'), t('Например: http://example.com/system'), '<input type="text" name="save_con[http_script_dir]" value="'.$config['http_script_dir'].'" size="40">');
+showRow(t('Корень сайта:'), t('Например: http://example.com или http://example.ru/strawberry - без слеша "/" в конце!'), '<input type="text" name="save_con[http_home]" value="'.$config['http_home'].'" size="40">');
+showRow(t('Главный файл сайта:'), t('Например: news.php. Внимание! Если вы используете Strawberry как CMS, то желательно использовать index.php'), '<input type="text" name="save_con[home_page]" value="'.$config['home_page'].'" size="40">');
+showRow(t('Путь к директории для загрузки картинок:'), t('Например: http://example.com/images/upimages'), '<input type="text" name="save_con[path_image_upload]" value="'.$config['path_image_upload'].'" size="40">');
+showRow(t('Путь к папке картинок относительно главной страницы:'), t('Например: images/upimages'), '<input type="text" name="save_con[path_image_by_main]" value="'.$config['path_image_by_main'].'" size="40" disabled>');
+showRow(t('Показать превью в модуле картинок?'), t('Поможет вам сэкономить трафик'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[adm_image_prev_show]', $config['adm_image_prev_show']));
+showRow(t('Максимальная ширина превью в модуле картинок:'), t('Если активированы превью'), '<input type="text" name="save_con[adm_image_prev_w]" value="'.$config['adm_image_prev_w'].'" size="10"> px');
+showRow(t('Максимальная высота превью в модуле картинок:'), t('Если активированы превъю'), '<input type="text" name="save_con[adm_image_prev_h]" value="'.$config['adm_image_prev_h'].'" size="10"> px');
+
+showRow(t('Кодировка:'), t('Кодировка должна соответствовать кодировки всего сайта, так как в этой кодировке данные будут записываться в базу; учтите, смена кодировки может привести к превращению старых данных (записанных в другой кодировке) в абру-кадабру (это не относится к символам на латинице, ибо почти все, если не все, кодировки поддерживают латиницу)'), makeDropDown($sys_con_charset_arr, 'save_con[charset]', $config['charset']));
+showRow(t('Кодировка базы данных:'), t('Указывайте кодировку только в случае проблем с кодировкой базы MySQL; например: cp1251'), '<input type="text" name="save_con[dbcharset]" value="'.$config['dbcharset'].'" size="40">');
+
+showRow(t('ЧПУ (mod_rewrite):'), t('Эта опция необходима для возможности настройки и использования ЧПУ'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[mod_rewrite]', $config['mod_rewrite']).' '.t('Функция mod_rewrite').' '.((function_exists('apache_get_modules')) ? ((array_search("mod_rewrite", apache_get_modules())) ? t('доступна') : t('не доступна')) : t('не могу определить')));
+showRow(t('ЧПУ (mod_rewrite_light):'), t('Автоматическое создание ЧПУ. Данный метод не требует настроек'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[mod_rewrite_lite]', $config['mod_rewrite_lite']).' '.t('Функция mod_rewrite').' '.((function_exists('apache_get_modules')) ? ((array_search("mod_rewrite", apache_get_modules())) ? t('доступна') : t('не доступна')) : t('не могу определить')));
+
+showRow(t('Кэширование:'), t('Использование кэша снизит нагрузку на сервер (раз в десять). Кеширование происходит на сервере'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[cache]', $config['cache']));
+showRow(t('Кэширование полное:'), t('Кэширование страниц целиком. Этот метод является альтернативой для предыдущего метода и работает только в режиме CMS. Кеширование происходит на сервере'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[cache_full]', $config['cache_full']));
+showRow(t('Кэширование в память:'), t('Кэширование на машине посетителя. Браузер кэширует всю возможную информацию на длительный срок'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[cacher]', $config['cacher']));
+showRow(t('ДеКэширование:'), t('Полное отключение кэширования. Работает только при отключенных Кешированиях'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[decacher]', $config['decacher']));
+
+showRow(t('Язык системы:'), t('Выбирите язык'), makeDropDown($sys_con_lang_arr, 'save_con[lang]', $config['lang']));
+showRow(t('Выбор языка:'), t('Позволить пользователям самостоятельно выбрать язык системы'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[multilang]', $config['multilang']));
+showRow(t('E-mail администратора:'), t('E-mail на который присылать различные уведомления'), '<input type="text" name="save_con[admin_mail]" value="'.$config['admin_mail'].'" size="40">');
+showRow(t('Коррекция временных зон:'), t('На летнее время (плюс час) и обратно на зимнее по идее само переходит'), makeDropDown($sys_con_gmtoffset_arr, 'save_con[gmtoffset]', $config['gmtoffset']).'<br /><small>'.t('Время на сайте: %time (GMT)<br>Время на сервере: %stimes', array('time' => langdate('d M Y - H:i'), 'stimes' => date('d M Y - H:i'))).'</small>');
+
+showRow(t('Префикс кукисов:'), t('Имеется в виду префикс cookie браузера и базы данных MySQL; например: strwbr_'), '<input type="text" name="save_con[cookie_prefix]" value="'.$config['cookie_prefix'].'" size="40">');
+
+showRow(t('Время сессий:'), t('Время, в течении которого пользователь все ещё считается присутствующем на сайте. Указывается в минутах. Рекомендовано от 5 до 20 минут'), '<input type="text" name="save_con[ses_time]" value="'.$config['ses_time'].'" size="40">');
+showRow(t('Сжатие данных:'), t('Использование сжатия данных для более быстрой загрузки. Однако, это может нагрузить сервер.'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[gzip]', $config['gzip']).' <small>Доступный метод сжатия: '.$HTTP_SERVER_VARS['HTTP_ACCEPT_ENCODING'].'</small>');
+showRow(t('Степень сжатия:'), t('Если активно сжатие данных, то можно выбрать степень сжатия данных. 0 - не сжимать, 9 - максимальное сжатие. Рекомендуемое значение 4 или 5.'), '<input type="text" name="save_con[gziper]" maxlength="1" value="'.$config['gziper'].'" size="1">');
+showRow(t('Информация о сжатии:'), t('В нижнем html комментарии будет показана информация о степени сжатия средствами '.$HTTP_SERVER_VARS['HTTP_ACCEPT_ENCODING'].'.'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[gzip_info]', $config['gzip_info']));
+
+
+showRow(t('День открытия сайта:'), t('Используется для счетчика жизни сайта. Например 2008 12 01'), 'Год: <input type="text" name="save_con[y]" maxlength="4" value="'.$config['y'].'" size="4"> Месяц: <input type="text" name="save_con[m]" maxlength="2" value="'.$config['m'].'" size="2"> День: <input type="text" name="save_con[d]" maxlength="2" value="'.$config['d'].'" size="2">');
+
+showRow(t('Закрыть сайт?'), t('Используйте для закрытия сайта на профилактику или обновление'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[close]', $config['close']));
+showRow(t('Причина закрытия'), t('Причина закрытия уже есть по умолчанию (профилактика).<br>Но можно указать и свою причину закрытия сайта'), '<input type="text" name="save_con[close_text]" value="'.$config['close_text'].'" size="40">');
+
+?>
+</table>
+</div>
+<!-- //1 -->
+
+<!-- News options --> 
+<!-- 2 -->
+<div id="sub2" class="submenu">
+<table cellspacing="0" cellpadding="0" width="100%" border="0">
+<tr class="menu">
+<td colspan="3" align="center"><hr width="96%"> - <?php echo t("ФОРМАТ ВЫВОДА ИНФОРМАЦИИ"); ?> - <hr width="96%"></td>
+</tr>
+<?php
+showRow(t('Главный модуль:'), t('Модуль на главной странице сайта поумолчанию'), makeDropDown($sys_con_modul_arr, 'save_con[modul]', $config['modul']));
+showRow(t('АвтоЗаголовок:'), t('При добавлении новости, если оставить поле заголовка пустым, то заголовком будут первые 10 символов короткой новости'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[atitle]', $config['atitle']), 'yes');
+
+showRow(t('Формат времени для новостей:'), t('<a onClick="javascript:Help(\'date\')" href="#">помощь по работе функции</a>'), '<input type="text" name="save_con[timestamp_active]" value="'.$config['timestamp_active'].'" size="40"><br />'.t('<small>Текущий формат: %format</small>', array('format' => langdate($config['timestamp_active']))));
+
+showRow(t('Групповой вывод даты:'), t('Вывод даты на несколько новостей за один день'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[date_header]', $config['date_header']), 'yes');
+
+showRow(t('Формат даты при групповом выводе:'), t('<a onClick="javascript:Help(\'date\')" href="#">помощь по работе функции</a>'), '<input type="text" name="save_con[date_headerformat]" value="'.$config['date_headerformat'].'" size="40"><br />'.t('<small>Текущий формат: %format</small>', array('format' => langdate($config['date_headerformat']))));
+
+showRow(t('Уведомления о новых новостях:'), t('отсылка оповещений администратору'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[send_mail_upon_new]', $config['send_mail_upon_new']), 'yes');
+
+showRow(t('Разбивание переключения страниц на секции:'), t('если страниц больше заданного количества, они будут разбиты на секции; напр.: 1 2 3 ... 98 99 100; 0 = не разбивать'), '<input type="text" name="save_con[pages_break]" value="'.$config['pages_break'].'" size="10">');
+
+if ($config['pages_break']){
+  showRow(t('Количество страниц в секций:'), t('если "Разбивание переключения страниц на секции" не отключено, то данная опция позволит выставить количество страниц в секции; напр.: если поставить 4 будет 1 2 3 4 ... 97 98 99 100'), '<input type="text" name="save_con[pages_section]" value="'.$config['pages_section'].'" size="10">');
+}
+
+#####################################
+showRow(t('Вывод переключения страниц:'), t('В подключаемых новостях можно указать место вывода страниц'), '<input type="radio" name="save_con[cuplace]" '.$com_u.' value="1"> Вверху<br><input type="radio" name="save_con[cuplace]" '.$com_d.' value="2"> Внизу<br><input type="radio" name="save_con[cuplace]" '.$com_ud.' value="3"> Вверху и внизу<br><input type="radio" name="save_con[cuplace]" '.$com_n.' value="0"> Не выводить');
+#####################################
+
+showRow(t('Использовать дополнительные поля?'), t('Полное включение или отключение дополнительных полей'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[use_dop_fields]', $config['use_dop_fields']));
+
+if ($config['use_dop_fields'] == 1){
+showRow(t('Дополнительные поля для контента'), t('Выводить дополнительные поля в новостях'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[use_dop_fields_n]', $config['use_dop_fields_n']), 'yes');
+showRow(t('Количество дополнительных полей:'), t('Установка количества доп полей по умолчанию. Но не более 99!'), '<input type="text" name="save_con[dop_fields]" maxlength="2" value="'.$config['dop_fields'].'" size="2">');
+showRow(t('Имена полей:'), t('Вы можете задать имена для доп полей по умолчанию. Задать можно столько имен, сколько выбрано полей по умолчанию. <br><i>Не используйте в именах делитель &lt;&gt;</i><br>Эти данные автоматически подставляются в поля имен полей при добавлении или редактировании новости'), $dop_fields_def);
+}
+
+showRow(t('Использовать rss ленту?'), t('Вывод новостей в потоке rss feed 2.0 через файл rss.php'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[use_rss]', $config['use_rss']), 'yes');
+showRow(t('Количество новостей в rss:'), t('Установка количества отображаемых новостей по умолчанию. 0 - все новости'), '<input type="text" name="save_con[rss_news]" value="'.$config['rss_news'].'" size="20">');
+showRow(t('Категории rss:'), t('Установка категорий, желаемых для просмотра в rss ленте. Если ничего не указать, то будут выводится все новостные категории!'), $rss_categories);
+showRow(t('Редактирование контента'), t('Количество контента на странице при редактировании'), '<input type="text" name="save_con[arr_news]" maxlength="3" value="'.$config['arr_news'].'" size="2">');
+showRow(t('Вывод контента'), t('Количество контента на странице модуля поумолчанию'), '<input type="text" name="save_con[out_news]" value="'.$config['out_news'].'" size="20">');
+
+showRow(t('Автоматические Мета-КлючСлова'), t('Автоматическая генерация мета - ключевых слов при сохранении новости. Правки вносятся при редактировании новости. Работает независимо от плагина "Мета информация".<br>+ Сколько слов выбирать из текста.'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[auto_keywords]', $config['auto_keywords']).' <input type="text" name="save_con[auto_keywords_col]" maxlength="3" value="'.$config['auto_keywords_col'].'" size="2">', 'yes');
+showRow(t('Автоматическое Мета-Описание'), t('Автоматическая генерация мета - описания при сохранении новости. Правки вносятся при редактировании новости.  Работает независимо от плагина "Мета информация"<br>+ Сколько слов выбирать из текста.'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[auto_description]', $config['auto_description']).' <input type="text" name="save_con[auto_description_col]" maxlength="3" value="'.$config['auto_description_col'].'" size="2">', 'yes');
+
+?>
+</table>
+</div>
+<!-- //2 -->
+
+
+<!-- Comment options -->
+<!-- 3 -->
+<div id="sub3" class="submenu">
+<table cellspacing="0" cellpadding="0" width="100%" border="0">
+<tr class="menu">
+<td colspan="3" align="center"><hr width="96%"> - <?php echo t("ФОРМАТ ВЫВОДА КОММЕНТАРИЕВ"); ?> - <hr width="96%"></td>
+</tr>
+
+<?php
+showRow(t('Активировать комментарии?'), t('Полное включение или отключение возможности комментирования и комментариев.'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[use_comm]', $config['use_comm']));
+
+showRow(t('Уведомления о новых комментариях:'), t('отсылка комментариев на Ваш e-mail'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[send_mail_upon_posting]', $config['send_mail_upon_posting']));
+showRow(t('E-mail посетителя:'), t('нужно ли просить e-mail посетителя при добавлении комментария'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[need_mail]', $config['need_mail']));
+showRow(t('Новые комментарии сверху:'), t('Новые добавленные комментарии будут показываться сверху'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[cup]', $config['cup']));
+showRow(t('Использовать аякс:'), t('Добавлять комментарии без перезагрузки страницы'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[cajax]', $config['cajax']));
+showRow(t('Комментариев на странице:'), t('сколько показывать комментариев на одной странице; 0 = не делить на страницы'), '<input type="text" name="save_con[cnumber]" value="'.$config['cnumber'].'" size="10">');
+
+showRow(t('Автоматическое разделение слова:'), t('если слово в комментарии превышает заданное число символов оно разделяется пробелом; 0 = не разделять'), '<input type="text" name="save_con[auto_wrap]" value="'.$config['auto_wrap'].'" size="10">');
+showRow(t('Защита от флуда:'), t('указывается в секундах; 0 = защиты нет'), '<input type="text" name="save_con[flood_time]" value="'.$config['flood_time'].'" size="10">');
+
+showRow(t('Смайлики:'), t('разделяются запятыми (<b>,</b>)'), '<input type="text"  name="save_con[smilies]" value="'.$config['smilies'].'" size="40">');
+showRow(t('Смайликов на одной линии:'), t('0 = все смайлики будут в одну линию'), '<input type="text"  name="save_con[smilies_line]" value="'.$config['smilies_line'].'" size="10">');
+
+showRow(t('BB-Теги:'), t('BB-Теги для форматирования комментария (например [b]<b>жирный текст</b>[/b])'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[bb]', $config['bb']));
+showRow(t('BB-Тегов на одной линии:'), t('0 = все теги будут в одну линию'), '<input type="text"  name="save_con[bb_line]" value="'.$config['bb_line'].'" size="10">');
+
+showRow(t('Комментарии для зарегистрированных:'), t('"Да" - комментировать могут только зарегистрированные пользователи'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[only_registered_comment]', $config['only_registered_comment']));
+showRow(t('Длинна комментариев:'), t('Ограничение количества символов в комментариях'), '<input type="text"  name="save_con[comment_max_long]" value="'.$config['comment_max_long'].'" size="10">');
+
+if ($config['only_registered_comment'] == 0){
+showRow(t('Длинна комментариев для гостей:'), t('Ограничение количества символов в комментариях для гостей'), '<input type="text"  name="save_con[comment_max_long_guest]" value="'.$config['comment_max_long_guest'].'" size="10">');
+}
+
+showRow(t('Формат времени для комментариев:'), t('<a onClick="javascript:Help(\'date\')" href="#">помощь по работе функции</a>'), '<input type="text" name="save_con[timestamp_comment]" value="'.$config['timestamp_comment'].'" size="40"><br /><small>Текущий формат: '.langdate($config['timestamp_comment']).'</small>');
+showRow(t('Разбивание переключения страниц комментариев на секции:'), t('если страниц больше заданного количества, они будут разбиты на секции; напр.: 1 2 3 ... 98 99 100; 0 = не разбивать'), '<input type="text" name="save_con[cpages_break]" value="'.$config['cpages_break'].'" size="10">');
+
+if ($config['cpages_break']){
+  showRow(t('Количество страниц в секций:'), t('если "Разбивание переключения страниц комментариев на секции" не отключено, то данная опция позволит выставить количество страниц в секции; напр.: если поставить 4 будет 1 2 3 4 ... 97 98 99 100'), '<input type="text" name="save_con[cpages_section]" value="'.$config['cpages_section'].'" size="10">');
+}
+?>
+</table>
+</div>
+<!-- //3 -->
+
+
+<!-- Users options -->
+<!-- 4 -->
+<div id="sub4" class="submenu">
+<table cellspacing="0" cellpadding="0" width="100%" border="0">
+<tr class="menu">
+<td colspan="3" align="center"><hr width="96%"> - <?php echo t("ОПЦИИ ДЛЯ ПОЛЬЗОВАТЕЛЕЙ"); ?> - <hr width="96%"></td>
+</tr>
+<?php
+showRow(t('Разбивка списка пользователей:'), t('По сколько юзеров показывать на странице в списке'), '<input type="text" name="save_con[users_on_page]" value="'.$config['users_on_page'].'" size="10">');
+
+if ($config['use_dop_fields'] == 1){
+showRow(t('Дополнительные поля для пользователей'), t('Разрешить пользователям указывать дополнительную информацию. Причем, какая это информация, они будут решать сами, т.к. сами укажут название текущего поля'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[use_dop_fields_u]', $config['use_dop_fields_u']), 'yes');
+showRow(t('Вывод дополнительных полей для пользователей'), t('Выводить дополнительные поля в просмотре информации о пользователе'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[use_dop_fields_u_out]', $config['use_dop_fields_u_out']), 'yes');
+}
+
+showRow(t('Разрешить загрузку аватаров:'), t('"Да" - разрешается пользователю загружать свой аватар'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[user_avatar]', $config['user_avatar']));
+
+showRow(t('Путь к директории для загрузки аватаров:'), t('например: http://example.com/news/data/userpics'), '<input type="text" name="save_con[path_userpic_upload]" value="'.$config['path_userpic_upload'].'" size="40">');
+
+showRow(t('Путь к директории для загрузки аватаров относительно главной страницы:'), t('например: news/data/userpics'), '<input type="text" name="save_con[userpic_upload]" value="'.$config['userpic_upload'].'" size="40" disabled>');
+
+showRow(t('Папки пользовательских картинок:'), t('"Да" - каждому пользователю своя папка'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[use_images_uf]', $config['use_images_uf']));
+
+showRow(t('Максимальная ширина аватара:'), t('оптимальная ширина - 100 пикс.'), '<input type="text" name="save_con[avatar_w]" value="'.$config['avatar_w'].'" size="10">');
+
+showRow(t('Максимальная высота аватара:'), t('оптимальная длина - 100 пикс.'), '<input type="text" name="save_con[avatar_h]" value="'.$config['avatar_h'].'" size="10">');
+
+showRow(t('АнтиФлуд регистрирования:'), t('Запрещает многократные мгновенные регистрации (например, если лезет бот)'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[preventRegFlood]', $config['preventRegFlood']));
+showRow(t('Время паузы регистрации:'), t('По истечении скольких секунд будет доступна следующая регистрация'), '<input type="text" name="save_con[RegDelay]" value="'.$config['RegDelay'].'" size="10">');
+showRow(t('Бан регистрации:'), t('После указанного числа предупреждений, настырный посетитель блокируется по его ip'), '<input type="text" name="save_con[banOnWarns]" value="'.$config['banOnWarns'].'" size="5">');
+showRow(t('Уровень регистрации:'), t('Указывается группа, к которой пользователи будут принадлежать при регистрации поумолчанию'), makeDropDown($groups_list, 'save_con[regLevel]', $config['regLevel']));
+showRow(t('Использовать правила проекта:'), t('Вывод правил проекта при регистрации с последующим подтверждением'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[uterms]', $config['uterms']));
+
+?>
+<tr class="disabled">
+<td colspan="3" class="opt-title" valign="top" width="100%" height="20">&nbsp;<b><?php echo t('Правила проекта'); ?>:</b><br>
+<textarea name="rule" style="width: 100%; height: 100px;"><?php echo replace_comment('admin', $ruleres); ?></textarea></td>
+</tr>
+</table>
+</div>
+<!-- //4 -->
+
+
+
+
+
+
+
+
+
+
+<!-- Fles options -->
+<!-- 5 -->
+<div id="sub5" class="submenu">
+<table cellspacing="0" cellpadding="0" width="100%" border="0">
+<tr class="menu">
+<td colspan="3" align="center"><hr width="96%"> - <?php echo t("ОПЦИИ ДЛЯ ФАЙЛОВ"); ?> - <hr width="96%"></td>
+</tr>
+<?php
+
+showRow(t('Права на файлы'), t('Chmod для создаваемых файлов на сервере поумолчанию'), '0<input type="text" name="save_con[chm_file]" maxlength="3" value="'.$config['chm_file'].'" size="3">');
+showRow(t('Права на папки'), t('Chmod для создаваемых папок на сервере поумолчанию'), '0<input type="text" name="save_con[chm_dir]" maxlength="3" value="'.$config['chm_dir'].'" size="3">');
+
+echo "<tr class=\"menu\"><td colspan=\"3\" align=\"center\">Adepto Fastload (".t("плагин").")</td></tr>";
+
+if (!empty($config['path_upload'])) {
+$htaccess = straw_parse_url($config['path_upload']);
+} else {
+$htaccess = straw_parse_url($config['http_home']."/attach");
+}
+$htacces_a = $htaccess['abs'].'/.htaccess';
+$htacces_b = $config['http_home'].'/attach';
+
+showRow(t('Путь к директории загрузки файлов'), t('Например: http://example.com/attach'), '<input type="text" name="save_con[path_upload]" maxlength="3" value="'.(!empty($config['path_upload']) ? $config['path_upload'] : $htacces_b).'" size="40">');
+showRow(t('Удаление'), t('Удалять файлы при удалении новости'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[delete_files]', (!empty($config['delete_files']) ? 1 : 0)));
+showRow(t('Запрещённые расширения'), t('Эти файлы будут интерпретироваться сервером, как обычные текстовые файлы (text/plain); проверьте, есть ли у файла <b><small>%htaccess</small></b> права 0666 или 0777<br>Рекомендованы для обязательного запрета: %bft', array('htaccess' => $htacces_a, 'bft' => '.cgi .pl .shtml .shtm .php .php3 .php4 .php5 .phtml .phtm .phps .htm .html .js .perl .asp')), '<input type="text" name="save_con[deny_files]" value="'.(!empty($config['deny_files']) ? $config['deny_files'] : ".cgi .pl .shtml .shtm .php .php3 .php4 .php5 .phtml .phtm .phps .htm .html").'" size="40">');
+showRow(t('Файлы без расширения'), t('Разрешить загружать файлы без расширения?'), makeDropDown(array(t('Да'), t('Нет')), 'save_con[notype]', $config['notype']));
+
+?>
+</table>
+</div>
+<!-- //5 -->
+
+
+
+<!-- Captcha options -->
+<!-- 6 -->
+<div id="sub6" class="submenu">
+<table cellspacing="0" cellpadding="0" width="100%" border="0">
+<tr class="menu">
+<td colspan="3" align="center"><hr width="96%"> - <?php echo t("PIN НАСТРОЙКИ"); ?> - <hr width="96%"></td>
+</tr>
+<?php
+showRow(t('Использовать PIN?'), t('<b>PIN</b> - система проверки против ботов. Активирует проверку в форме комментариев, гостевой книге и в прочих модулях'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[pin]', $config['pin']));
+
+showRow(t('Шрифт PIN:'), t('Шрифт для изображения PIN кода'), makeDropDown($sys_con_pin_arr, 'save_con[pin_font]', $config['pin_font']));
+showRow(t('Качество PIN. Рекомендуется от 25 до 99'), t('Четкость символов'), '<input type="text" name="save_con[quality]" maxlength="2" value="'.$config['quality'].'" size="2">');
+showRow(t('Размер шрифта. Рекомендуется от 10 до 14'), t('Размер символов кода. Используется, если шрифт предполагает размер больше чем стандартный'), '<input type="text" name="save_con[pin_font_size]" maxlength="2" value="'.$config['pin_font_size'].'" size="2">');
+
+
+showRow(t('PIN-авторизация:'), t('Использовать проверку кодом при авторизации на сайте и в АдминПанели? Это увеличит безопасность'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[pin_auth]', $config['pin_auth']));
+?>
+</table>
+</div>
+<!-- //6 -->
+
+
+<!-- Database -->
+<!-- 7 -->
+<div id="sub7" class="submenu">
+<table cellspacing="0" cellpadding="0" width="100%" border="0">
+<tr class="menu">
+<td colspan="3" align="center"><hr width="96%"> - <?php echo t("База Данных"); ?> <?php echo $config['database']; ?> - <hr width="96%"></td>
+</tr>
+<?php
+if (!empty($member['usergroup']) and $member['usergroup'] == 1 and !empty($yaw)) {
+showRow(t('Имя базы:'), t('Имя базы днных для хранения информации. Например: "strawberry".'), '<input type="text" name="save_con[dbname]" value="'.$config['dbname'].'" size="40" />');
+
+showRow(t('Пользователь базы:'), t('Имя пользователя для подключения к базе.'), '<input type="text" name="save_con[dbuser]" value="'.$config['dbuser'].'" size="40" />');
+
+showRow(t('Пароль:'), t('Пароль пользователя для подключения.'), '<input type="password" name="save_con[dbpassword]" value="'.$config['dbpassword'].'" size="40" />');
+
+showRow(t('Префикс:'), t('Префикс в названиях таблиц. Например: "str_".'), '<input type="text" name="save_con[dbprefix]" value="'.$config['dbprefix'].'" size="40" />');
+
+showRow(t('Сервер данных:'), t('Адрес сервера с базой данных. Обычно это "localhost".'), '<input type="text" name="save_con[dbserver]" value="'.$config['dbserver'].'" size="40" />');
+
+showRow('Class SQL()', t('Использовать для совместимости плагинов и модулей с использованием класса sql().'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[cl_sql]', (!empty($config['cl_sql']) ? 1 : 0)));
+}
+?>
+</table>
+</div>
+<!-- //6 -->
+
+
+
+
+<?php
+#echo "<hr width=\"96%\">";
+ #echo $menushka; 
+?>
+
+</div></div>
+<?php
+if ($yaw) {
+?>
+<input type="hidden" name="mod" value="syscon">
+<input type="hidden" name="action" value="dosavesyscon">
+<br>
+<input type="submit" value="<?php echo t('Сохранить'); ?>" accesskey="s">
+<?php
+}
+?>
+</td></tr>
+</table>
+</form>
+<?php
+echo on_page();
+  echofooter();
+}
+
+// ********************************************************************************
+// Save System Configuration
+// ********************************************************************************
+if (!empty($action) and $action == 'dosavesyscon' and !empty($yaw)){
+
+$save_con = $_POST['save_con']; // переприсваивание.
+
+		if (isset($_POST['catwhere'])) {
+			$catwhere = $_POST['catwhere'];
+			$which = "";
+			if ($which == "") {
+				while(list($key, $val) = each($catwhere)) {
+					$which .= "{$val},";
+		}}} else {
+		$which = 0;
+		}
+
+
+
+		if (isset($_POST['flddef'])) {
+			$fld_where = $_POST['flddef'];
+			$fwhich = "";
+			if ($fwhich == "") {
+				while(list($fkey, $fval) = each($fld_where)) {
+					$fwhich .= "{$fval}<>";
+		}}
+		} else {
+		$fwhich = "000";
+		}
+
+
+
+foreach ($save_con as $k => $v){
+  $save_con['rss_cat'] = substr($which, 0, -1);
+  $save_con['dop_fields_def'] = substr($fwhich, 0, -2);
+ if (get_magic_quotes_gpc()){
+  $save_con[$k] = stripslashes($save_con[$k]);
+ }
+}
+
+  $save_con['database']            = $config['database'];
+//  $save_con['dbname']              = $config['dbname'];
+//  $save_con['dbuser']              = $config['dbuser'];
+//  $save_con['dbpassword']          = $config['dbpassword'];
+//  $save_con['dbprefix']            = $config['dbprefix'];
+//  $save_con['dbserver']            = $config['dbserver'];
+  $save_con['version_name']        = $config['version_name'];
+  $save_con['version_id']          = $config['version_id'];
+  $save_con['charset']             = strtolower($save_con['charset']);
+  $save_con['dbcharset']           = strtolower($save_con['dbcharset']);
+  $save_con['http_script_dir']     = preg_replace('/([\/]+)$/', '', $save_con['http_script_dir']);
+  $save_con['http_home']       = preg_replace('/([\/]+)$/', '', $save_con['http_home']);
+  
+
+$save_con['home_page'] = !empty($save_con['home_page']) ? preg_replace('/([\/]+)$/', '', $save_con['home_page']) : 'index.php';
+$save_con['http_home_url'] = $save_con['http_home'].'/'.$save_con['home_page']; 
+  
+######################
+if (!is_writable(rule_file)){
+@chmod(rule_file, 0666);
+}
+$ruletext = $_POST['rule'];
+file_write(rule_file, $ruletext);
+@chmod(rule_file, 0444);
+######################
+
+$save_con['path_image_upload']   = preg_replace('/([\/]+)$/', '', $save_con['path_image_upload']);
+$im_folder = straw_parse_url($save_con['path_image_upload']);
+$save_con['path_image_by_main']  = preg_replace('/([\/]+)$/', '', $im_folder['path']);
+$save_con['comment_max_long_guest'] = !empty($save_con['comment_max_long_guest']) ? $save_con['comment_max_long_guest'] : 600;
+$save_con['dop_fields'] = !empty($save_con['dop_fields']) ? $save_con['dop_fields'] : 6;
+$save_con['out_news'] = !empty($save_con['out_news']) ? $save_con['out_news'] : 6;
+$save_con['path_userpic_upload'] = preg_replace('/([\/]+)$/', '', $save_con['path_userpic_upload']);
+$av_folder = straw_parse_url($save_con['path_userpic_upload']);
+$save_con['userpic_upload'] = preg_replace('/([\/]+)$/', '', $av_folder['path']);
+
+## Уникальный хэшкод
+$hco = rand(1, 16);
+$hcd = rand(16, 32);
+$hct = rand($hco, $hcd);
+$save_con['sitekey'] = uniqid($hco).uniqid($hcd).uniqid($hct);
+
+  save_config($save_con);
+
+  msg('info', t('Настройки сохранены'), t('Настройки системы были успешно сохранены.'), $PHP_SELF.'?mod=syscon');
+  
+}
+?>

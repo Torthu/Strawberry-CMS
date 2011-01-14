@@ -1,0 +1,322 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+
+
+
+if (empty($action) or !empty($_POST['fldsum_go']) or (!empty($_POST['go_news']) and empty($_POST['short_story']))){
+    echoheader('addnews', t('Добавить новость'));
+
+if (!empty($_POST['fld'])) {
+$cpp = "checked";
+} else {
+$cpp = "";
+}
+    $short_story = !empty($_POST['short_story']) ? $_POST['short_story'] : '';
+    $full_story = !empty($_POST['full_story']) ? $_POST['full_story'] : '';
+    $title = !empty($_POST['title']) ? $_POST['title'] : ((!empty($config['atitle']) and !empty($short_story)) ? substr($short_story, 0, 10).'...' : '');
+
+?>
+
+<form method="post" name="addnews" action="" enctype="multipart/form-data">
+
+
+<table border="0" width="100%" cellspacing="0" cellpadding="0">
+
+<tr>
+ <td colspan="2" class="panel" height="33"><b><?php echo t('Для разделения текста на страницы используйте тег %t', array('t'=>'&lt;!--nextpage--&gt;')); ?></b></td>
+</tr>
+<tr>
+ <td colspan="2" height="20"></td>
+</tr>
+
+<tr>
+<td valign="top">
+
+
+<!-- заголовок -->
+<fieldset id="title"><legend><?php echo t('Заголовок'); ?></legend>
+<input type="text" name="title" value="<?php echo $title; ?>">
+<?php if (!empty($config['atitle'])) { ?>
+<br><small><?php echo t('Если поле заголовка оставить пустым, то заголовком будут первые 10 символов короткой новости.'); ?></small>
+<?php } ?>
+</fieldset>
+
+<!-- короткая -->
+<fieldset id="short"><legend><?php echo t('Короткая новость'); ?></legend>
+<?php
+echo run_filters('new-advanced-options', 'short'); 
+echo cnops(15, 'short');
+?>
+<textarea name="short_story"><?php echo $short_story; ?></textarea><br><small><?php echo t('Внимание! Короткая новость обязательна к заполнению!'); ?></small>
+</fieldset>
+
+
+
+<?php
+if (empty($full_story)) {
+$fa = "onclick=\"javascript:ShowOrHide('fulln')\" style=\"cursor: pointer;\"";
+$fb = "<div id=\"fulln\" style=\"display: none;\">";
+$fc = "</div>";
+} else {
+$fa = "";
+$fb = "";
+$fc = "";
+}
+?>
+
+<!-- полная -->
+<fieldset id="full"><legend <?php echo $fa; ?>>
+<?php echo t('Полная новость'); ?> (<?php echo t(!empty($fa) ? 'добавить' : 'редактировать'); ?>)</legend>
+<?php
+echo $fb;
+echo run_filters('edit-advanced-options', 'full'); 
+echo cnops(15, 'full');
+?>
+<textarea name="full_story"><?php echo $full_story; ?></textarea>
+<?php echo $fc; ?>
+</fieldset>
+
+
+
+
+
+
+
+
+<?php
+
+if (!empty($config['use_dop_fields'])) {
+?>
+<!-- Доп поля -->
+<!-- Mr.Miksar Fields development -->
+<fieldset id="full"><legend><?php echo t('Дополнительные поля'); ?></legend>
+<div id="masterfild">
+<?php echo t('Использовать дополнительные поля здесь?'); ?> <input type="checkbox" name="fld" <?php echo $cpp; ?> OnClick="sm('sub0')" > Да<br>
+<?php
+$skoka = (!empty($_POST['fldsum']) and is_numeric($_POST['fldsum'])) ? $_POST['fldsum'] : $config['dop_fields'];
+######################## Запихнуть бы в функцию
+$ddf_c = explode("<>", $config['dop_fields_def']);
+for ($c = 0; $c < $skoka; $c++) {
+
+$display = "style=\"display:none;\"";
+if ($c == 0) {
+$additions = "<tr><td bgcolor=\"#ffffff\">".t("Сколько полей вам нужно?")." <input type=\"text\" name=\"fldsum\" maxlength=\"2\" size=\"2\" value=\"".$skoka."\"> <input type=\"submit\" name=\"fldsum_go\" value=\"".t('Изменить')."\"></td></tr>";
+$endded = "";
+} else {
+$additions = "";
+$endded = "</div>";
+}
+$f = $c + 1;
+$b = $c + 2;
+echo "\n\n<div id=\"sub".$c."\" ".$display.">\n";
+echo "<input type=\"hidden\" name=\"add_field[".$f."]\" value=\"".$f."\">\n";
+echo "<table width=\"100%\" border=\"0\" cellspacing=\"1\" cellpadding=\"2\" ".straw_that().">\n"
+.$additions
+."<tr><td><b>".t('Имя поля')." <u>№".$f."</u>:</b><br><input type=\"text\" name=\"fname".$f."\" size=\"50\" value=\"".(!empty($_POST['fname'.$f]) ? $_POST['fname'.$f] : (!empty($ddf_c[$c]) ? $ddf_c[$c] : ""))."\"></td></tr>\n"
+."<tr><td>".t('Заполнение поля').":<br><textarea type=\"text\" name=\"fvalue".$f."\" style=\"width:100%; height:50px;\"></textarea></td></tr>\n";
+if ($f < $skoka) echo "<tr><td align=\"right\" OnClick=\"sm('sub".$f."')\" style=\"cursor:pointer;\">".t('Добавить поле № %b / Убрать поле № %b ?', array('b'=>$b))."</td></tr>";
+echo "</table>\n";
+echo $endded."\n\n";
+	}
+######################## Запихнуть бы в функцию
+
+?>
+</div></div><hr>
+<small><?php echo t('Внимание! Если вы "спрятали" заполненное поле, то оно все равно добавится. Если поле не нужно - его следует очистить!'); ?></small>
+</fieldset>
+<!-- Mr.Miksar Fields development -->
+<?php 
+} 
+?>
+
+
+
+
+
+
+
+<!-- кнопки -->
+<fieldset id="actions"><legend><?php echo t('Действие'); ?></legend>
+<input type="submit" name="go_news" value="<?php echo t('Добавить'); ?>" accesskey="s">
+<!-- <input type="button" onclick="preview('addnews');" value="<?php echo t('Предварительный просмотр'); ?>" accesskey="p"> -->
+</fieldset>
+
+
+</td>
+<td valign="top" width="200" class="main">
+
+
+<fieldset id="options"><legend><?php echo t('Настройки'); ?></legend>
+<?php echo run_actions('new-advanced-options'); ?>
+</fieldset>
+
+
+</td>
+</tr>
+</table>
+
+
+<input type="hidden" name="mod" value="addnews">
+<input type="hidden" name="action" value="doaddnews">
+</form>
+
+
+<?php
+echo on_page();
+echofooter();
+
+
+
+
+
+
+
+
+
+
+
+
+} elseif (!empty($_POST['go_news']) and !empty($_POST['short_story'])){
+
+
+
+
+
+
+
+
+
+
+## id последней текущей новости.
+$id = ($sql->last_insert_id('news', '', 'id')) + 1;
+
+
+## если даты нет, то добавляем текущую
+if (($added_time = strtotime($_POST['day'].' '.$_POST['month'].' '.$_POST['year'].' '.$_POST['hour'].':'.$_POST['minute'].':'.$_POST['second'])) == -1){
+$added_time = time;
+}
+
+
+####################################################################################################
+   run_actions('new-save-entry'); // обрабатывает входящие данные типа $category - которая комбинируется из массива $_POST['category'].
+    
+    $title = !empty($_POST['title']) ? replace_news('add', $_POST['title']) : ((!empty($config['atitle']) and !empty($short_story)) ? substr($short_story, 0, 10).'...' : '');
+    $short_story = !empty($_POST['short_story']) ? replace_news('add', $_POST['short_story']) : '';
+    $full_story = !empty($_POST['full_story']) ? replace_news('add', $_POST['full_story']) : '';
+    $author = ((!empty($_POST['author']) and is_admin()) ? $_POST['author'] : (!empty($member['username']) ? $member['username'] : t('Неизвестный')));
+    $strlen_short_story = strlen($short_story);
+    $strlen_full_story = !empty($full_story) ? strlen($full_story) : 0;
+    $n_category = !empty($category) ? $category : '';
+    $url = !empty($_POST['url']) ? straw_namespace(totranslit($_POST['url'])) : straw_namespace(totranslit($title));
+    $approve_news = straw_get_rights('approve_news');
+    $sticky_post = !empty($_POST['sticky_post']) ? 1 : 0;
+    $n_template = !empty($_POST['template']) ? $_POST['template'] : '';
+    $bookmark = !empty($_POST['bookmark']) ? 1 : 0;
+
+// мета заголовок, кейворды и описание, которые сохраняются из спец формы при добавлении текста
+    $meta_info_title = !empty($_POST['meta_info_title']) ? replace_news('add', $_POST['meta_info_title']) : $title;
+    $meta_info_keywords = !empty($_POST['meta_info_keywords']) ? replace_news('add', $_POST['meta_info_keywords']) : '';
+    $meta_info_description = !empty($_POST['meta_info_description']) ? replace_news('add', $_POST['meta_info_description']) : '';
+
+// мета кейворды и описание, которые генерируются автоматом из сохраняемого текста
+    if (!empty($config['auto_keywords']) or !empty($config['auto_description'])) {
+    $keyworker = array();
+    $keyworker = create_meta((!empty($full_story) ? $_POST['full_story'] : $_POST['short_story']), $meta_info_keywords, $meta_info_description);
+    $meta_info_keywords = !empty($config['auto_keywords']) ? $keyworker['keywords'] : $meta_info_keywords;
+    $meta_info_description = !empty($config['auto_description']) ? $keyworker['description'] : $meta_info_description;
+    }
+    
+// тип поста (плагин)
+    if (!empty($pt_values) and is_array($pt_values)) {
+    $pt_type = !empty($pt_values['type']) ? $pt_values['type'] : "";
+    $pt_password = !empty($pt_values['password']) ? $pt_values['password'] : "";
+    $pt_parent = !empty($pt_values['parent']) ? intval($pt_values['parent']) : 0;
+    $pt_level = !empty($pt_values['level']) ? intval($pt_values['level']) : 0;
+    } else {
+    $pt_type = $pt_password = "";
+    $pt_parent = $pt_level = 0;
+    }
+
+
+
+/**/
+// добавление в базу
+ $db->sql_query("INSERT INTO ".$config['dbprefix']."news VALUES ('".$added_time."', '".$author."', '".$title."', '".$strlen_short_story."', '".$strlen_full_story."', '', '".$n_category."', '".$url."', NULL, '0', '0', '".$approve_news."', '".$sticky_post."', '', '".$pt_type."', '".$pt_parent."', '".$pt_level."', '".$pt_password."', '0', '0', '".$n_template."', '".$bookmark."')");
+ $db->sql_query("INSERT INTO ".$config['dbprefix']."story (post_id, short, full, metatitle, metakeywords, metadescription, ico, add_comm, stop_comm, format) VALUES (NULL, '$short_story', '$full_story', '$meta_info_title', '".$meta_info_keywords."', '".$meta_info_description."', '".(!empty($_POST['news_ico']) ? $_POST['news_ico'] : '')."', '".(!empty($_POST['endiscomments']) ? 'on' : 'no')."', '".(!empty($_POST['stopcomments']) ? 'on' : 'no')."', '".(!empty($_POST['fs_format']) ? $_POST['fs_format'] : 'html_with_br')."')");
+ $db->sql_query("UPDATE ".$config['dbprefix']."users SET publications=publications+1 WHERE id='".$member['id']."' ");
+
+
+
+
+
+##################################################################################################
+###################### ADD FIELD
+if (!empty($_POST['fld']) and !empty($config['use_dop_fields'])) {
+
+## Считаем, сколько полей активно...
+$b = count($_POST['add_field']);
+$a = 0;
+
+## Пока цикл не достигнет числа полей, добавление не остановится...
+ while ($a<$b) {
+ $a++;
+ 
+## Содержание полей
+ $fnom = $_POST['add_field'][$a];
+ $fvalue = !empty($_POST['fvalue'.$a]) ? comm_in($_POST['fvalue'.$a]) : '';
+ $fname = !empty($_POST['fname'.$a]) ? comm_in($_POST['fname'.$a]) : (($config['atitle'] and !empty($fvalue)) ? substr($fvalue, 0, 10).'...' : '');
+
+## Если величина поля есть, то добавляем поле
+   if (!empty($fvalue)) {
+   $db->sql_query("INSERT INTO ".$config['dbprefix']."fields VALUES (NULL, 'news', '$id', '$fname', '$fvalue', '$fnom', '1', '0', '0')");
+   }
+   
+ }
+}
+###################### ADD FIELD
+##################################################################################################
+
+
+
+
+
+
+
+
+
+##################################################################
+## отправим весточку на родину...
+	if (!empty($config['send_mail_upon_new']) and !empty($config['admin_mail'])){
+	
+        ob_start();
+        include mails_directory.'/new_post.tpl';
+        $tpl['body'] = ob_get_contents();
+        ob_end_clean();
+        
+        preg_match('/Subject:(.*)/i', $tpl['body'], $tpl['subject']);
+        preg_match('/Attachment:(.*)/i', $tpl['body'], $tpl['attachment']);
+        
+        $tpl['body']       = preg_replace('/Subject:(.*)/i', '', $tpl['body']);
+        $tpl['body']       = preg_replace('/Attachment:(.*)/i', '', $tpl['body']);
+        $tpl['body']       = trim($tpl['body']);
+        $tpl['subject']    = trim($tpl['subject'][1]);
+        $tpl['attachment'] = (!empty($tpl['attachment'][1]) ? trim($tpl['attachment'][1]) : '');
+        straw_mail($config['admin_mail'], $tpl['subject'], $tpl['body'], $tpl['attachment']);
+	}
+##################################################################
+
+
+
+
+
+
+## итоговое сообщение
+msg('info', t('Новость добавлена'), t('Новость <b>%title</b> была успешно добавлена<br><br><a href="%url">Отредактировать новость</a>', array('title' => $title, 'url' => $PHP_SELF.'?mod=editnews&id='.$id)));
+} 
+else
+{
+echo "Oh My God! It is some thing wrong!";
+}
+?>

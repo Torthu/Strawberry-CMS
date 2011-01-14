@@ -1,0 +1,51 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+// из Регистра
+function R_au($url, $host){
+
+	if (stristr ($url, "://")) return $url;
+	if (stristr ($host, "://")) $host=substr($host, strpos ($host, "://")+3);
+	$url = $host."/".$url;
+	$url = str_replace("/./", "/", $url);
+	while (stristr ($url, "//")) $url=str_replace ("//", "/", $url);
+	while (preg_match ("/\/([^\/\.]{1,})\/\.\.\//", $url)) $url=preg_replace ("/\/([^\/\.]{1,})\/\.\.\//", "/", $url);
+	$url="http://".$url;
+
+return $url;
+}
+
+function R_absurl($text, $host){
+
+	$text = preg_replace("/(href=[\"]{0,1})([^ \">]*)/ie", "'\\1'.R_au('\\2', \$host)", $text);
+	$text = preg_replace("/(src=[\"]{0,1})([^ \">]*)/ie", "'\\1'.R_au ('\\2', \$host)", $text);
+	$text = preg_replace("/(background=[\"]{0,1})([^ \">]*)/ie", "'\\1'.R_au ('\\2', \$host)", $text);
+	$text = stripslashes($text);
+
+return $text;
+}
+
+$need_css       = file_get_contents($config['http_home_url']);
+$http_home_url  = straw_parse_url($config['http_home_url']);
+$http_home_url  = $http_home_url['scheme'].'://'.$http_home_url['host'].'/'.$http_home_url['path'];
+
+preg_match_all('/\<link(.*?)\>/i', $need_css, $match);
+//preg_match_all('/<style(.*?)<\/style>/i', $need_css, $match);
+
+foreach ($match[0] as $k => $v){
+	echo R_absurl($v, $http_home_url);
+}
+
+if (($_POST['date'] = strtotime($_POST['day'].' '.$_POST['month'].' '.$_POST['year'].' '.$_POST['hour'].':'.$_POST['minute'].':'.$_POST['second'])) == -1){
+    $_POST['date'] = (time() + $config['date_adjust'] * 60);
+}
+
+$_POST['id']    = 10000000000;
+$_POST['short'] = $_POST['short_story'];
+$_POST['full']  = $_POST['full_story'];
+$post           = $_POST;
+
+
+include root_directory.'/show_news.php';
+?>

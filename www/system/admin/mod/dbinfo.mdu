@@ -1,0 +1,233 @@
+<?php
+#_strawberry
+// (c) Chaser <coderunnerz@gmail.com>
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+$adfile = "index";
+
+function DBNavi() {
+global $config, $db, $currentlang, $adfile, $modul;
+echo "<center><h5>[ ";
+if (!straw_get_rights($modul, 'read') or !straw_get_rights($modul, 'write')) {
+echo t("меню недоступно");
+} else {
+	echo "<a href=\"".$adfile.".php?mod=dbinfo\">".t("Главная")."</a>"
+	." | <a href=\"".$adfile.".php?mod=dbinfo&amp;act=do_db\">".t("Операции")."</a>";
+	}
+echo " ]</h5></center>";	
+}
+
+
+function show_db() {
+global $config, $db, $currentlang, $adfile, $modul;
+
+
+
+if (!straw_get_rights($modul, 'read')) {
+msg('error', t('Ошибка'), t('Вам запрещён доступ к этому модулю!'));
+} else {
+if (straw_get_rights($modul, 'write')) { $yaw = 1; } else { $yaw = 0; }
+
+
+echoheader('options', t('База Данных'));
+DBNavi();
+
+ //   mysql_select_db($config['dbname']);
+ //   $output = mysql_query("SHOW TABLE STATUS");
+    
+$output = $db->sql_query("SHOW TABLE STATUS FROM ".$config['dbname']."");
+		
+
+	
+
+
+?>
+<table cellspacing="1" cellpadding="5" border="0" align="center" width="100%">
+<tr>
+ <td colspan="8" class="panel" height="33" width="321"><b><?php echo t('Сведения о вашей базе данных %bd', array('bd'=>$config['dbname'])); ?></b></td>
+</tr>
+<tr>
+ <td colspan="8" height="20"></td>
+</tr>
+
+  <tr class="panel">
+    <th><b><?php echo t('Имя таблицы'); ?></b></th>
+    <th><b><?php echo t('Записи'); ?></b></th>
+    <th><b><?php echo t('Длина ряда'); ?></b></th>
+    <th><b><?php echo t('Данные'); ?></b></th>
+    <th><b><?php echo t('Индекс'); ?></b></th>
+    <th><b><?php echo t('Размер'); ?></b></th>
+    <th><b><?php echo t('Изменения'); ?></b></th>
+    <th><b><?php echo t('Кодировка'); ?></b></th>
+  </tr>
+ 
+<?php
+$totalsize = 0;
+
+   // while($table = mysql_fetch_array($output))
+       while ($table = $db->sql_fetchrow($output)) {
+
+       extract($table);
+
+            $Total_length = $Data_length + $Index_length;
+            $totalsize += $Total_length;
+
+	    $Avg_row_length = formatsize($Avg_row_length);
+            $Data_length = formatsize($Data_length);
+            $Index_length = formatsize($Index_length);
+            $Total_length = formatsize($Total_length);
+
+?>
+  <tr <?php echo straw_that(); ?>>
+    <td><?php echo $Name; ?></td>
+    <td><?php echo $Rows; ?></td>
+    <td><?php echo $Avg_row_length; ?></td>
+    <td><?php echo $Data_length; ?></td>
+    <td><?php echo $Index_length; ?></td>
+    <td><b><?php echo $Total_length; ?></b></td>
+    <td><?php echo $Update_time; ?></td>
+    <td><?php echo $Collation; ?></td>
+  </tr>
+<?php
+    }
+?>
+  <tr>
+    <td colspan="7"><?php echo t('Общий размер базы данных'); ?>: <b><?php echo formatsize($totalsize);?></b></td>
+  </tr>
+</table>
+<?php
+
+}
+echofooter();
+}
+
+
+
+
+
+
+
+
+
+function do_db() {
+	global $config, $db, $currentlang, $adfile, $modul;
+	
+	$totaltotal = 0;
+	$totalfree = 0;
+	$i = 0;
+	$content3 = "";
+	$content4 = "";
+	
+	$result = $db->sql_query("SHOW TABLES FROM ".$config['dbname']."");
+	$content = "";
+	while (list($name) = $db->sql_fetchrow($result)) $content .= "<option value=\"".$name."\" selected>".$name."</option>";
+
+if (!straw_get_rights($modul, 'read')) {
+msg('error', t('Ошибка'), t('Вам запрещён доступ к этому модулю!'));
+} else {
+if (straw_get_rights($modul, 'write')) { $yaw = 1; } else { $yaw = 0; }
+
+
+echoheader('options', t('Операции над Базой Данных'));
+DBNavi();
+	
+	echo "<table border=\"0\" cellspacing=\"0\" cellpadding=\"3\" align=\"center\">
+	<tr>
+ <td colspan=\"2\" class=\"panel\" height=\"33\"><b>".t('Операции с вашей базой данных %db', array('db'=>$config['dbname'])).".</b> ".t('Вы можете выполнить оптимизацию, ремонт базы. Или выполнить запрос в базу.')."</td>
+</tr>
+	"
+	."<form method=\"post\" action=\"\">"
+	."<tr><td><select name=\"datatable[]\" size=\"10\" multiple=\"multiple\">".$content."</select></td><td>"
+	."<table border=\"0\" cellspacing=\"0\" cellpadding=\"3\">"
+	."<tr><td valign=\"top\"><input type=\"radio\" name=\"type\" value=\"optimize\" checked=\"checked\"></td><td>".t('Оптимизация базы данных')."<br><font class=\"small\">".t('Производя оптимизацию базы данных, Вы уменьшаете её размер и соответственно с этим ускоряете её работу. Рекомендуется использовать данную функцию минимум один раз в неделю.')."</font></td></tr>"
+	."<tr><td valign=\"top\"><input type=\"radio\" name=\"type\" value=\"repair\"></td><td>".t('Ремонт базы данных')."<br><font class=\"small\">".t('При неожиданной остановке MySQL сервера, во время выполнения каких-либо действий, может произойти повреждение структуры таблиц базы данных, использование этой функции произведёт ремонт повреждённых таблиц.')."</font></td></tr></table>"
+	."</td></tr>"
+	."<tr><td colspan=\"2\" align=\"center\"><br>
+	<input type=\"hidden\" name=\"mod\" value=\"dbinfo\">
+	<input type=\"hidden\" name=\"act\" value=\"do_db\">
+	<input type=\"submit\" value=\"".t('Выполнить операцию')."\" class=\"fbutton\"></td></tr></form></table>";
+
+
+	echo "<br><br><h1>".t('Запрос в базу данных')."</h1>"
+	."<form method=\"post\" action=\"\">"
+	."<div align=\"center\"><textarea name=\"string\" rows=\"5\"></textarea></div>"
+	."<div align=\"center\">
+	<input type=\"hidden\" name=\"mod\" value=\"dbinfo\">
+	<input type=\"hidden\" name=\"act\" value=\"do_db\">
+	<input type=\"hidden\" name=\"type\" value=\"dump\">
+	<input type=\"submit\" value=\"".t('Выполнить запрос')."\" class=\"fbutton\"></div></form>";
+
+
+	if (!empty($_POST['type']) and $_POST['type'] == "optimize" and $yaw) {
+
+		$result = $db->sql_query("SHOW TABLE STATUS FROM ".$config['dbname']."");
+		while ($row = $db->sql_fetchrow($result)) {
+			$total = $row['Data_length'] + $row['Index_length'];
+			$totaltotal += $total;
+			$free = ($row['Data_free']) ? $row['Data_free'] : 0;
+			$totalfree += $free;
+			$i++;
+			$otitle = (!$free) ? "<font color=\"#FF0000\">".t('Не нуждается')."</font>" : "<font color=\"#009900\">".t('Оптимизирована')."</font>";
+			$db->sql_query("OPTIMIZE TABLE ".$row[0]."");
+			$content3 .= "<tr><td align=\"center\">".$i."</td><td>".$row[0]."</td><td>".formatsize($total)."</td><td align=\"center\">".$otitle."</td><td align=\"center\">".formatsize($free)."</td></tr>";
+		}
+
+
+		echo "<center><hr><font class=\"option\">".t('Оптимизация базы').": ".$config['dbname']."<br>".t('Общий размер базы').": ".formatsize($totaltotal)."<br>".t('Общие накладные расходы').": ".formatsize($totalfree)."<br><br>"
+		."<table border=\"0\" cellpadding=\"3\" cellspacing=\"1\" class=\"bgcolor4\" width=\"100%\"><tr><th>№</th><th>".t('Таблица')."</th><th>".t('Размер')."</th><th>".t('Статус')."</th><th>".t('Накладные расходы')."</th></tr>"
+		."".$content3."</table>";
+
+
+	} elseif (!empty($_POST['type']) and $_POST['type'] == "repair" and $yaw) {
+		$result = $db->sql_query("SHOW TABLE STATUS FROM ".$config['dbname']."");
+		while ($row = $db->sql_fetchrow($result)) {
+			$total = $row['Data_length'] + $row['Index_length'];
+			$totaltotal += $total;
+			$i++;
+			$rresult = $db->sql_query("REPAIR TABLE ".$row[0]."");
+			$otitle = (empty($rresult)) ? "<font color=\"#FF0000\">".t('Ошибка')."</font>" : "<font color=\"#009900\">".t('Ок')."</font>";
+			$content4 .= "<tr><td align=\"center\">".$i."</td><td>".$row[0]."</td><td>".formatsize($total)."</td><td align=\"center\">".$otitle."</td></tr>";
+		}
+
+
+		echo "<center><hr><font class=\"option\">".t('Восстанавливаемая база').": ".$config['dbname']."<br>".t('Общий размер базы').": ".formatsize($totaltotal)."<br><br>"
+		."<table border=\"0\" cellpadding=\"3\" cellspacing=\"1\" width=\"100%\"><tr><th>".t('№')."</th><th>".t('Таблица')."</th><th>".t('Размер')."</th><th>".t('Статус')."</th></tr>"
+		."".$content4."</table>";
+
+
+	} elseif (!empty($_POST['type']) and $_POST['type'] == "dump" and $yaw) {
+		$string = explode(";", $_POST['string']);
+		foreach ($string as $var) {
+			if ($var != "") {
+				$stringdb = str_replace("{pref}", $prefix, $var);
+				$id = $db->sql_query(stripslashes($stringdb));
+				if (preg_match("/CREATE|ALTER|DELETE|DROP|UPDATE/i", $stringdb)) {
+					$table = explode("`", $stringdb);
+					$info .= "".t('Таблица').": ".$table[1]." - ".(($id) ? "<font color=\"green\">".t('Ок')."</font>" : "<font color=\"red\">".t('Ошибка')."</font>")."</font><br>";
+				}
+			}
+		}
+		if (!empty($info)) echo "<hr>".t('Запрос в базу данных')."<br><br>".$info;
+	}
+
+}
+echofooter();
+}
+
+
+
+
+
+
+switch ($act) {
+	default:
+	show_db();
+	break;
+
+	case "do_db":
+	do_db();
+	break;
+}
+
+
+?>

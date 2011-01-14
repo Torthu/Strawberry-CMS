@@ -1,0 +1,121 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+
+
+$adfile = "index";
+
+function onl_nav() {
+	global $adfile;
+	echo "<center><h5>[ <a href=\"".$adfile.".php?mod=online\">".t('Обновить')."</a> | <a href=\"".$adfile.".php?mod=online&amp;act=destroy\">".t('Очистить список')."</a> ]</h5></center>";
+}
+
+
+function onl() {
+	global $config, $db, $currentlang, $conf, $adfile, $modul, $lsort, $order, $number, $pnum, $lnk, $oskip, $allrobots;
+echoheader('online', t('Онлайн посетители'));	
+if (!straw_get_rights($modul, 'read')) {
+msg('error', t('Ошибка'), t('Вам запрещён доступ к этому модулю!'));
+} else {
+if (straw_get_rights($modul, 'write')) { $yaw = 1; } else { $yaw = 0; }
+ if (!empty($config['online'])) {
+
+	onl_nav();
+
+
+echo "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" width=\"100%\">"
+."<tr>
+ <td colspan=\"6\" height=\"33\" class=\"panel\"><b>".t('Посетители, находящиеся на сайте в настоящий момент.')." +/- ".$config['ses_time']." ".t('минут.')."</b></td>
+</tr>"
+
+."<tr>
+ <td colspan=\"6\" height=\"20\" align=\"right\">".straw_number(50, 1)."</td>
+</tr>"
+
+."<tr class=\"panel\">
+<th><b><a href=\"index.php?mod=".$modul."&amp;by=id".$lsort."\">№</a></b></th>
+<th><b><a href=\"index.php?mod=".$modul."&amp;by=user".$lsort."\">".t('Кто это')."</a></b></th>
+<th><b><a href=\"index.php?mod=".$modul."&amp;by=date".$lsort."\">".t('Когда пришел')."</a></b></th>
+<th><b><a href=\"index.php?mod=".$modul."&amp;by=iwh".$lsort."\">".t('Модуль')."</a></b></th>
+<th><b><a href=\"index.php?mod=".$modul."&amp;by=dop".$lsort."\">".t('Агент пользователя')."</a></b></th>
+<th><b><a href=\"index.php?mod=".$modul."&amp;by=ip".$lsort."\">".t('IP')."</a></b></th>
+<th><b>".t('Операции')."</b></th>
+</tr>";
+
+	$result = $db->sql_query("SELECT id, date, user, name, ip, iwh, dop FROM ".$config['dbprefix']."session ORDER BY ".$order." ".(!empty($number) ? " LIMIT ".((!empty($oskip) ? $oskip : 0) .", ".$number) : "")." ");
+	if ($db->sql_numrows($result) > 0) 
+{
+	$o = 0;
+	while (list($oid, $oputdate, $ouser, $oname, $oip, $oiwh, $odop) = $db->sql_fetchrow($result)) {
+$o++;
+//$onl_who = chuser($ouser);
+if ($ouser == "robot") {
+  $onl_who = $allrobots[$oname];
+} else {
+  $onl_who = chuser($oname);
+}
+
+echo "<tr ".straw_that().">";
+echo "<td align=\"center\" class=\"tabnum\">".$o."</td>";
+echo "<td align=\"center\">".$onl_who."</td>";
+//echo "<td align=\"center\"><small>".langdate("Y-m-d H:m:i", $oputdate)."</small></td>";
+echo "<td align=\"center\"><small>".$oputdate."</small></td>";
+echo "<td><small><a target=\"_blank\" href=\"../".$oiwh."\" title=\"".t('Перейти на страничку')."\">".substr(strstr($oiwh, "="), 1)."</a></small></td>";
+echo "<td><small title=\"".$odop."\">".str_stop($odop, 80)."</small></td>";
+echo "<td align=\"center\"><small>".whois_ip($oip)."</small></td>";
+echo "<td align=\"center\"><small><a href=\"".$adfile.".php?mod=ipban&amp;chto=".$oip."\" title=\"".t('Забанить!')."\"><img src=\"admin/images/icons/delete.png\" alt=\"".t('Забанить')."\"/></a></small></td>";
+echo "</tr>";
+        }
+
+        echo "</table><br><u>".t('Учет посетителей находящихся в АдминЦентре не ведется!')."</u>";
+} else {
+	echo "<table width=\"100%\"><tr><td align=\"center\">- ".t('на сайте никого нет')." -</td></tr></table>";
+}	
+
+} else {
+        echo "<table width=\"100%\"><tr><td align=\"center\">- ".t('в настоящий момент учет посетителей он-лайн отключен')." -</td></tr></table>";
+}
+}
+echo pnp("session", intval($pnum), intval($number), (!empty($template) ? $template : 'default'), (!empty($wheren) ? $wheren : ''), '', '', $lnk);
+unset($order, $lsort, $oskip, $lnk, $pnum);
+echo on_page();
+echofooter();
+}
+
+
+
+
+function onl_destroy() {
+	global $config, $db, $modul;
+echoheader('search', t('Сессии разрушены'));
+	onl_nav();
+	if (straw_get_rights($modul, 'write')) { 
+	        $db->sql_query("DELETE FROM ".$config['dbprefix']."session");
+echo "<table width=\"100%\"><tr><td align=\"center\">- ".t('вы разрушили сессии')." -</td></tr></table>";
+	  } else { 
+echo "<table width=\"100%\"><tr><td align=\"center\">- ".t('вы не можете разрушать сессии')." -</td></tr></table>";	  
+	  }
+
+        echo on_page();
+	echofooter();
+}
+
+
+
+
+
+
+
+switch($act) {
+	default:
+	onl();
+	break;
+	
+	case "destroy":
+	onl_destroy();
+	break;
+}
+
+
+?>

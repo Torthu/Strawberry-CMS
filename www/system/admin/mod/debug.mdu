@@ -1,0 +1,68 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+/*
+Description:	returns information about the PHP environment on your server.
+Version: 		0.5
+Application: 	Strawberry
+Author: 		Chaser
+Author URI:     mailto:coderunnerz@gmail.com
+*/
+
+echoheader('options', t('Отладочная информация'));
+?>
+
+<center><b>Strawberry - <?php echo t('Информация для отладки'); ?>:</b>
+<hr>
+<br>
+<?php echo t('Версия скрипта/ID'); ?>: <?php echo $config['version_name']; ?> / <?php echo $config['version_id']; ?>
+<br>
+$config['http_script_dir']: <?php echo $config['http_script_dir']; ?>
+<br>
+<br>
+<hr>
+<?php
+/*
+ob_start();
+phpinfo();
+$intext = ob_get_clean();
+$ppnf = preg_replace("#\<style (.+?)>(.+?)\</style>#is", "", $intext);
+$ppnf = preg_replace("#\<!DOCTYPE (.+?)>>#is", "", $ppnf);
+$ppnf = preg_replace("#\<head>(.+?)\</head>#is", "", $intext);
+$ppnf = str_replace("\"600\"", "\"90%\"", $ppnf);
+$ppnf = str_replace("<body>", "", $ppnf);
+$ppnf = str_replace("</body>", "", $ppnf);
+$ppnf = str_replace("<html>", "", $ppnf);
+$ppnf = str_replace("</html>", "", $ppnf);
+
+$ppnf = str_replace("&lt;", "<", $ppnf);
+$ppnf = str_replace("&gt;", ">", $ppnf);
+echo $ppnf; 
+*/
+
+	ob_start();
+	@phpinfo();
+	$phpinfo = ob_get_clean();
+	$phpinfo = trim($phpinfo);
+
+	preg_match_all('#<body[^>]*>(.*)</body>#si', $phpinfo, $output);
+
+	$output = $output[1][0];
+
+	$output = preg_replace('#<div class="center"#i', '<div class="phpinfo"', $output);	
+	$output = preg_replace('#<table[^>]+>#i', '<table border="0" cellspacing="1" cellpadding="5" style="width:100%;">', $output);
+	$output = preg_replace('#<img border="0"#i', '<img', $output);
+	$output = str_replace(array('class="e"', 'class="v"', '<hr />', '<font', '</font>'), array('class="enabled"', 'class="disabled"', '', '<span', '</span>'), $output);
+
+	echo $output;	
+
+?>
+<hr>
+<textarea cols="85" rows="24"><?php echo print_r(ini_get_all()); ?></textarea>
+<hr>
+<?php 
+echofooter();
+exit(); 
+?>
+

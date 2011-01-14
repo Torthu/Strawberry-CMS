@@ -1,0 +1,61 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+// ********************************************************************************
+// Add RSS
+// ********************************************************************************
+if ($action){
+    if (!is_writable(rss_file)){
+      @chmod(rss_file, 0777);
+    }
+$scripts = str_replace('\r', '<>\r', $_POST['rss_content']);
+$scripts = str_replace('\n', '<>\n', $scripts);
+$scripts = str_replace('\t', '<>\t', $scripts);
+file_write(rss_file, $scripts);
+}
+
+
+// ********************************************************************************
+// Show all RSS
+// ********************************************************************************
+echoheader('options', t('RSS-Потоки'));
+if (!straw_get_rights($mod, 'read')) {
+msg('error', t('Ошибка'), t('Вам запрещён доступ к этому модулю!'));
+} else {
+if (straw_get_rights($mod, 'write')) { $yaw = 1; } else { $yaw = 0; }
+?>
+
+<form method="post" action="">
+<table border="0" cellpading="0" cellspacing="0" width="100%">
+<tr>
+ <td width="321" height="33" class="panel"><b><?php echo t('RSS-Потоки'); ?></b>
+</tr>
+<tr>
+<td><?php echo t('Ссылка link с параметром %par определяет rss потоки к которым может подписаться посетитель вашего сайта.<br>Подключаются эти ссылки между тегами %ho и %hc автоматически, что избавит вас от редактирования шаблонов.<br>Дополнительные инструкции читайте ниже поля со списком rss потоков.', array('par'=>'type="application/rss+xml"', 'ho'=>'&lt;head&gt;', 'hc'=>'&lt;/head&gt;')); ?><br><?php echo t('Текущие добавленные rss потоки:'); ?></td>
+</tr>
+<tr>
+<td><textarea name="rss_content" rows="5" cols="20" onkeydown="_getElementById('rss').disabled = false;"><?php
+$res = file_read(rss_file); 
+#$res = str_replace('<>', '', $res);
+echo $res;
+?></textarea>
+</td>
+</tr>
+<?php if (!empty($yaw)) { ?>
+<tr>
+<td><input type="submit" name="rss" id="rss" value="  <?php echo t('Редактировать'); ?>  " disabled></td>
+</tr>
+<?php } ?>
+<tr>
+<td><?php echo t('Первым параметром указывается название rss потока.<br>В качестве пути (второй параметр после %par) можно указать полный урл или относительный путь к файлу с rss потоком.<br>Например <i>rss.php</i> или <i>rss.xml</i> (для этого сайта) или <i>http://strawberry.goodgirl.ru/rss.xml</i> (для внешних сайтов).<br>Каждый подключаемый rss поток должен быть с новой строки.<br>В конце каждой строки должен присутствовать делитель %par (без пробела после пути rss потока)!', array('par'=>'&lt;&gt;')); ?></td>
+</tr>
+</table>
+  <input type="hidden" name="mod" value="rss">
+  <input type="hidden" name="action" value="save">
+</form>
+<?php 
+}
+echo on_page();
+echofooter(); 
+?>

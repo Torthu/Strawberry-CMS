@@ -1,0 +1,421 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+
+
+if (!straw_get_rights($modul, 'read')) {
+msg('error', t('Ошибка'), t('Вам запрещён доступ к этому модулю!'));
+} else {
+if (straw_get_rights($modul, 'write')) { $yaw = 1; } else { $yaw = 0; }
+$edit = !empty($_POST['edit']) ? intval($_POST['edit']) : (!empty($_GET['edit']) ? intval($_GET['edit']) : 0);
+
+
+function usergroups_allow_categories($that){
+global $db, $config, $edit;
+ if (!empty($edit) and is_numeric($edit)) {
+$arr_query = $db->sql_query("SELECT * FROM ".$config['dbprefix']."usergroups WHERE id=".$edit."");
+while ($row=$db->sql_fetchrow($arr_query)) {
+    	$row['permissions'] = unserialize($row['permissions']);
+        $categories = !empty($row['permissions']['categories']) ? explode(',', $row['permissions']['categories']) : array();
+
+        if (in_array($that, $categories)){
+            return 'checked';
+        }
+}
+   } else {
+   return '';
+   }
+}
+
+
+if (!empty($action) and $action == 'add' and !empty($yaw)){
+
+
+$title = !empty($_POST['name']) ? cheker($_POST['name']) : "";
+if (!empty($title)) {
+$based_access = "";
+$based_permissions = "";
+    if (!empty($_POST['based']) and is_numeric($_POST['based'])){
+        $arr_query = $db->sql_query("SELECT * FROM ".$config['dbprefix']."usergroups WHERE id=".$_POST['based']."");
+        while ($row=$db->sql_fetchrow($arr_query)) {
+            $based_access = $row['access'];
+            $based_permissions = $row['permissions'];
+        }
+    }
+$db->sql_query("INSERT INTO ".$config['dbprefix']."usergroups (id, name, access, permissions) VALUES (NULL, '".$title."', '".$based_access."', '".$based_permissions."') ");
+header('Location: '.$PHP_SELF.'?mod=usergroups');
+} else {
+msg('error', t('Ошибка'), t('Не указано имя группы!'), $PHP_SELF.'?mod=usergroups');
+}
+
+
+} elseif (!empty($action) and $action == 'edit' and !empty($yaw)){
+
+
+$title = !empty($_POST['name']) ? cheker($_POST['name']) : "";
+if (!empty($title)) {
+$db->sql_query("update ".$config['dbprefix']."usergroups set name = '".$title."', access = '".$_POST['accesstype']."' where id = ".$edit." limit 1");
+header('Location: '.$PHP_SELF.'?mod=usergroups&edit='.$edit);
+} else {
+msg('error', t('Ошибка'), t('Имя группы не может быть пустым!'), $PHP_SELF.'?mod=usergroups&amp;edit='.$edit);
+}
+
+
+} elseif (!empty($_GET['delete']) and is_numeric($_GET['delete']) and !empty($yaw)){
+
+    if (empty($usergroups[intval($_GET['delete'])])){
+        msg('error', t('Ошибка'), t('Нет такой группы!'), $PHP_SELF.'?mod=usergroups');
+    } else {
+        $db->sql_query("DELETE FROM ".$config['dbprefix']."usergroups WHERE id=".intval($_GET['delete'])." ");
+        header('Location: '.$PHP_SELF.'?mod=usergroups');
+    }
+
+} elseif (!empty($action) and $action == 'access' and !empty($yaw)){
+
+
+
+    if (!empty($_POST['allow_categories']) and is_array($_POST['allow_categories'])){
+        foreach ($_POST['allow_categories'] as $k => $v){
+            $allow_categories[] = $k;
+        }
+
+        $_POST['permissions']['categories'] = join(',', $allow_categories);
+    }
+
+    if (!empty($_POST['fields']) and is_array($_POST['fields'])){
+    	$_POST['permissions']['fields'] = $_POST['fields'];
+    }
+
+    if (!empty($_POST['groupusers']) and is_array($_POST['groupusers'])){
+    	foreach ($_POST['groupusers'] as $user_id){
+    	$db->sql_query("update ".$config['dbprefix']."users set usergroup = '".$edit."' WHERE id = ".$user_id." ");
+    	}
+    }
+
+    $db->sql_query("update ".$config['dbprefix']."usergroups set access = '".($_POST['accesstype'] == 'full' ? 'full' : serialize(array('write' => $_POST['write'], 'read' => $_POST['read'])))."', permissions = '".serialize($_POST['permissions'])."' WHERE id = ".$edit." ");
+    header('Location: '.$PHP_SELF.'?mod=usergroups&edit='.$edit);
+}
+
+
+
+
+
+if (!empty($edit)){
+    if (empty($usergroups[$edit])){
+        msg('error', t('Ошибка'), t('Нет такой группы!'), $PHP_SELF.'?mod=usergroups');
+    }
+} else {
+    $usergroups_array[] = '...';
+    foreach ($usergroups as $row){
+        $usergroups_array[$row['id']] = $row['name'];
+    }
+}
+
+###############################################################
+###############################################################
+
+echoheader('users', t('Группы пользователей'));
+
+
+?>
+
+<form action="index.php?mod=usergroups<?php echo (!empty($edit) ? '&amp;edit='.$edit : ''); ?>" method="post">
+<table border="0">
+<tr>
+<td width="50%">
+
+<table border="0" class="panel">
+<tr>
+<td colspan="2"><b><?php echo (!empty($edit) ? t('Редактировать') : t('Добавить')); ?></b></td>
+</tr>
+<tr>
+<td><?php echo t('Название'); ?></td>
+<td><input name="name" type="text" value="<?php echo (!empty($edit) ? $usergroups[$edit]['name'] : ''); ?>"></td>
+</tr>
+<tr>
+<td><?php echo t('Доступ'); ?></td>
+<td><?php
+if (!empty($edit) and $edit == 1) {
+echo makeDropDown(array('full' => t('Полный')), 'accesstype', $usergroups[$edit]['access']);
+} else {
+echo makeDropDown(array('' => t('Настраиваемый'), 'full' => t('Полный')), 'accesstype', (!empty($edit) ? $usergroups[$edit]['access'] : ''));
+}
+ ?>
+ </td>
+</tr>
+<?php if (empty($edit)){ ?>
+
+<tr>
+<td><?php echo t('На основе'); ?></td>
+<td><?php echo makeDropDown($usergroups_array, 'based', ''); ?></td>
+</tr>
+<?php } 
+ if ($yaw) { 
+?>
+
+<tr>
+<td></td>
+<td><input type="submit" value="<?php echo (!empty($edit) ? t('Редактировать') : t('Добавить')); ?>"></td>
+</tr>
+<?php } ?>
+</table>
+
+<input name="action" type="hidden" value="<?php echo (!empty($edit) ? 'edit' : 'add'); ?>">
+
+</td>
+<td width="50%">
+
+<table border="0">
+<tr>
+<td><img border="0" src="admin/images/help_small.gif" align="absmiddle">&nbsp;<a onClick="javascript:Help('usergroups')" href="#" title="<?php echo t('Небольшая справка по группам'); ?>"><?php echo t('Что такое группы пользователей?'); ?></a></td>
+</tr>
+</table>
+
+
+
+</td>
+</tr>
+</table>
+</form>
+
+
+<br />
+
+<div style="float:left;width:49%;">
+<table border="0" style="width:99%;">
+<tr><td colspan="7"><b><?php echo t('Группы'); ?></b></td></tr>
+<?php
+$cug=0;
+foreach ($usergroups as $row){
+    if (!empty($edit) and $row['id'] == $edit){
+        $permissions = $row['permissions'];
+        $access      = $row['access'];
+    }
+$cug++;
+?>
+<tr <?php echo straw_that(); ?>>
+<td></td>
+<td style="padding: 5px;"><?php echo $row['name']; ?></td>
+<td></td>
+<?php if ($yaw) { ?>
+<td style="padding: 5px;width:16px;"><?php echo (((!empty($edit) and $edit == $row['id']) or empty($yaw)) ? t('[правка]') : '<a href="'.$PHP_SELF.'?mod=usergroups&amp;edit='.$row['id'].'" title="'.t('Правка группы').' '.$row['name'].'"><img src="admin/images/icons/edit.png" alt="'.t('Правка').'"/></a>'); ?></td>
+<td></td>
+<td style="padding: 5px;width:16px;">
+<?php if ($row['id'] != 1 and !empty($yaw)) { ?>
+<a href="javascript:confirmDelete('?mod=usergroups&amp;delete=<?php echo $row['id']; ?>')" title="<?php echo t('Удалить группу'); ?> <?php echo $row['name']; ?>"><img src="admin/images/icons/delete.png" alt="<?php echo t('Удалить'); ?>"/></a>
+<?php } ?>
+</td>
+<td></td>
+<?php } ?>
+</tr>
+<?php } ?>
+</table>
+</div>
+<?php
+
+
+if (empty($edit)){
+echo "<div style=\"float: down; clear: both;margin-top:10px;height:10px;\"></div>";
+echo on_page();
+echofooter();
+return;
+} else {
+?>
+
+
+
+
+
+<form action="<?php echo $PHP_SELF; ?>?mod=usergroups&amp;edit=<?php echo $edit; ?>" method="post">
+<input name="action" type="hidden" value="access">
+<input name="accesstype" type="hidden" value="<?php echo ($access == 'full' ? 'full' : ''); ?>">
+
+<div style="float:left;width:49%;">
+<table border="0" style="width:99%;">
+<tr><td><b><?php echo t('Пользователи'); ?></b></td></tr>
+<tr <?php echo straw_that(); ?>><td style="padding: 5px;"><select name="groupusers[]" size="7" multiple="multiple" style="width:100%;height:<?php echo (($cug >= 5) ? 23*$cug : 130); ?>px;"><?php foreach ($users as $row){ ?><option value="<?php echo $row['id']; ?>"<?php echo ($row['usergroup'] == $edit ? ' selected' : ''); ?>><?php echo $row['name'].($row['usergroup'] != $edit ? ' ('.$usergroups[$row['usergroup']]['name'].')' : ''); ?></option><?php } ?></select></td></tr>
+<tr><td style="text-align:right;"><input type="submit" value="<?php echo t('Сохранить'); ?>"></td></tr>
+</table>
+
+
+<?php
+}
+
+
+
+
+
+
+if ($access == 'full'){
+?>
+<table border="0">
+<tr>
+<td><b><?php echo t('Группа "%group" имеет <i>полный доступ</i> ко всему.', array('group' => $usergroups[$edit]['name'])); ?></b></td>
+</tr>
+<tr>
+<td><?php echo t('Прежде, чем давать пользователю такие права, хорошенько все взвесте!<br>Не забывайте делать <a href="index.php?mod=dumper" title="Сделать бэкап базы">БэкАпы</a>!'); ?></td>
+</tr>
+</table>
+</div>
+<?php
+echo "<div style=\"float: down; clear: both;margin-top:10px;height:10px;\"></div>";
+echo on_page();
+echo "";
+    echofooter();
+    return;
+} else {
+echo "</div>";
+}
+
+
+
+
+ob_start();
+include modules_directory.'/options.mdu';
+ob_clean();
+$mp = count($options);
+$options[$mp]['name'] = t('Главная страница');
+$options[$mp]['url'] = 'mod=main';
+$options[$mp]['category'] = 'tools';
+
+foreach ($options as $option){
+    $option['url'] = explode('=', $option['url']);
+    $option['url'] = explode('&', $option['url'][1]);
+    $option['url'] = $option['url'][0];
+	$mods[$option['name']] = $option;
+}
+
+ksort($mods);
+?>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div style="clear: both;height:20px;"></div>
+
+<div style="float:left;width:49%;">
+<table border="0" style="width:99%;">
+<tr>
+<td><b><?php echo t('Модули'); ?></b>
+<?php
+foreach ($mods as $mod){
+    $k = end($k = explode('=', $mod['url']));
+    $file = 'mod-'.$k;
+    $mod['name'] = ($mod['name'] ? $mod['name'].' ('.$k.')' : $k);
+?>
+<tr>
+<td <?php echo straw_that(); ?> style="padding: 5px;"><?php echo makePlusMinus($file).' '.$mod['name']; ?>
+<tr style="display: none;" id="<?php echo $file; ?>">
+<td>
+<?php echo t('запись'); ?> <?php echo makeDropDown(array(t('Нет'), t('Да')), 'write['.$k.']', $access['write'][$k]); ?><br />
+<?php echo t('чтение'); ?> <?php echo makeDropDown(array(t('Нет'), t('Да')), 'read['.$k.']', $access['read'][$k]); ?><br />
+<?php } ?>
+<tr>
+<td></td>
+</tr>
+</table>
+</div>
+
+
+
+
+
+
+
+
+
+<div style="float:left;width:49%;">
+<table border="0" style="width:99%;">
+<tr>
+<td><b><?php echo t('Права группы'); ?></b>
+
+<?php
+$array = array(
+'approve_news' => t('Предварительная модерация новостей'),
+'edit'         => t('Разрешить редактировать свои публикации'),
+'delete'       => t('Разрешить удалять свои публикации'),
+'edit_all'     => t('Разрешить редактировать чужие публикации'),
+'delete_all'   => t('Разрешить удалять чужие публикации'),
+'categories'   => t('Доступные категории'),
+'comments'     => t('Разрешить оставлять комментарии'),
+);
+
+$array = run_filters('usergroups-permissions', $array);
+
+foreach ($array as $k => $v){
+    $file = 'options-'.$k;
+?>
+
+<tr <?php echo straw_that(); ?>>
+<td style="padding: 5px;"><?php echo makePlusMinus($file).' '.$v; ?>
+<tr style="display: none;" id="<?php echo $file; ?>">
+<td>
+
+<?php    if ($k == 'categories'){
+        echo category_get_tree('&nbsp;', '<label for="cat{id}"><input type="checkbox" [php]usergroups_allow_categories({id})[/php] name="allow_categories[{id}]" id="cat{id}">&nbsp;{name}</label><br />');
+    } else {
+        echo makeDropDown(array(t('Нет'), t('Да')), 'permissions['.$k.']', $permissions[$k]);
+    }
+}
+?>
+
+<tr>
+<td style="padding: 5px;"><small>* <?php echo t('под словом "публикации" имеются в виду новости, комментарии, картинки (если создаются папки пользователей) и т.д.'); ?></small>
+</table>
+
+<br /><br />
+
+<table border="0" style="width:99%;">
+<tr>
+<td><b><?php echo t('Права на поля в добавить/редактировать новость'); ?></b>
+
+<?php
+preg_match_all('/fieldset id="(.*?)"><legend>(.*?)<\/legend>/i', run_actions('new-advanced-options'), $fields['new']);
+preg_match_all('/fieldset id="(.*?)"><legend>(.*?)<\/legend>/i', run_actions('edit-advanced-options'), $fields['edit']);
+
+$fields[1] = array_merge($fields['new'][1], $fields['edit'][1]);
+$fields[1] = array_unique($fields[1]);
+$fields[2] = array_merge($fields['new'][2], $fields['edit'][2]);
+$fields[2] = array_unique($fields[2]);
+unset($fields[0], $fields['new'], $fields['edit']);
+foreach ($fields[2] as $k => $field){
+?>
+
+<tr>
+<td <?php echo straw_that(); ?> style="padding: 5px;"><?php echo makePlusMinus($fields[1][$k]).' '.t('Разрешить установки поля "%field"', array('field' => $field)); ?>
+<tr style="display: none;" id="<?php echo $fields[1][$k]; ?>">
+<td>
+<?php echo makeDropDown(array(t('Нет'), t('Да')), 'fields['.$fields[1][$k].']', ($permissions['fields'][$fields[1][$k]] !== '0' ? 1 : 0)); ?><br />
+<?php } ?>
+
+</table>
+</div>
+
+
+
+
+<div style="clear: both;height:20px;text-align:right;padding-right:50px;"><input type="submit" value="<?php echo t('Сохранить'); ?>"></div>
+</form>
+
+
+
+
+
+<?php 
+}
+echo "<div style=\"float: down; clear: both;margin-top:10px;height:10px;\"></div>";
+echo on_page();
+echofooter(); 
+?>

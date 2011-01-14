@@ -1,0 +1,142 @@
+#_strawberry
+
+
+# Для большей безопасности ресурса рекомендуется отключить глобальные переменные
+# php_flag register_globals Off
+# отключить показ всех ошибок cкриптов
+# php_value error_reporting 1 
+# php_value display_errors On
+# максимальный размер загружаемого файла
+# php_value upload_max_filesize 10M 
+# максимальный размер передаваемой информации
+# php_value post_max_size 10M 
+# объем памяти выделенный для сайта
+# php_value memory_limit 20M 
+
+###
+#_strawbery_rewrite_begin
+
+# Index file
+DirectoryIndex /index.php
+# [user htaccess] 
+
+# Строки с адресами страниц ошибок
+ErrorDocument 401 /index.php?error=401
+ErrorDocument 402 /index.php?error=402
+ErrorDocument 403 /index.php?error=403
+ErrorDocument 404 /index.php?error=404
+ErrorDocument 500 /index.php?error=500
+ErrorDocument 501 /index.php?error=501
+ErrorDocument 502 /index.php?error=502
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+#Options +FollowSymlinks
+RewriteBase /
+
+AddEncoding gzip .gz
+RewriteCond %{HTTP:Accept-encoding} !gzip [OR]
+RewriteCond %{HTTP_USER_AGENT} Safari [OR]
+RewriteCond %{HTTP_USER_AGENT} Konqueror
+RewriteRule ^(.*)\.gz(\?.+)?$ $1 [QSA,L]
+RewriteRule ^([a-z]+)-([a-z]+)-([0-9a-z_]*)-?(.*)$	 $1-$4?$2=$3	[NC,QSA]
+RewriteRule ^([a-z]+)-?\.html$	$1.php	[NC,L,QSA]
+
+#RSS feed
+RewriteRule rss.(txt|xml) /rss.php [NC,L,QSA]
+#ATOM feed
+RewriteRule atom.(txt|xml) /atom.php [NC,L,QSA]
+#Site map
+RewriteRule sitemap.(txt|xml)$ /sitemap.php [NC,L,QSA]
+
+
+# [home] post
+RewriteRule ^mod=([_0-9a-z-]+)&id=([0-9]+)(/?)+$ /index.php?mod=$1&id=$2 [L,QSA]
+
+# [home] postadd
+RewriteRule ^mod=([_0-9a-z-]+)&act=add(/?)+$ /index.php?mod=$1 [L,QSA]
+
+# [home] category
+RewriteRule ^mod=([_0-9a-z-]+)&category=([0-9]+)(/?)+$ /index.php?mod=$1&category=$2 [L,QSA]
+
+# [home] user
+RewriteRule ^mod=account&act=users&user=(.*)(/?)+$ /index.php?user=$1 [L,QSA]
+
+# [home] day
+RewriteRule ^mod=([_0-9a-z-]+)&year=([0-9]{4})&month=([0-9]{2})&day=([0-9]{2})(/?)+$ /index.php?mod=$1&year=$2&month=$3&day=$4 [L,QSA]
+
+# [home] month
+RewriteRule ^mod=([_0-9a-z-]+)&year=([0-9]{4})&month=([0-9]{2})(/?)+$ /index.php?mod=$1&year=$2&month=$3 [L,QSA]
+
+# [home] year
+RewriteRule ^mod=([_0-9a-z-]+)&year=([0-9]{4})(/?)+$ /index.php?mod=$1&year=$2 [L,QSA]
+
+# [home] keywords
+RewriteRule ^mod=([_0-9a-z-]+)&keywords={keywords-id}(/?)+$ /index.php?mod=$1&keywords-id=$2 [L,QSA]
+
+# [home] skip
+RewriteRule ^mod=([_0-9a-z-]+)&skip=([0-9]+)(/?)+$ /index.php?mod=$1&skip=$2 [L,QSA]
+
+# [home] page
+RewriteRule ^mod=([_0-9a-z-]+)&page=([0-9]+)(/?)+$ /index.php?mod=$1&page=$2 [L,QSA]
+
+# [home] cpage
+RewriteRule ^mod=([_0-9a-z-]+)&cpage=([0-9]+)(/?)+$ /index.php?mod=$1&cpage=$2 [L,QSA]
+
+# [home] act
+RewriteRule ^mod=([_0-9a-z-]+)&act=([_0-9a-z-]+)(/?)+$ /index.php?mod=$1&act=$2 [L,QSA]
+
+# [home] mod
+RewriteRule ^mod=([_0-9a-z-]+)(/?)+$ /index.php?mod=$1 [L,QSA]
+
+# [home] pnum
+RewriteRule ^mod=([_0-9a-z-]+)&pnum={pnum}(/?)+$ /index.php?mod=$1&pnum=$2 [L,QSA]
+
+# [rss.php] post
+RewriteRule ^id=([0-9]+)(/?)+$ /rss.php?id=$1 [L,QSA]
+
+# [rss.php] category
+RewriteRule ^category=([0-9]+)(/?)+$ /rss.php?category=$1 [L,QSA]
+
+# [rss.php] user
+RewriteRule ^user=(.*)(/?)+$ /rss.php?user=$1 [L,QSA]
+
+# [print.php] post
+RewriteRule ^id=([0-9]+)(/?)+$ /print.php?id=$1 [L,QSA]
+
+# [trackback.php] post
+RewriteRule ^id=([0-9]+)(/?)+$ /system/trackback.php?id=$1 [L,QSA]
+
+# [home/rss.php] post
+RewriteRule ^id=([0-9]+)(/?)+$ rss.php/?id=$1 [L,QSA]
+
+# [home/rss.php] category
+RewriteRule ^category=([0-9]+)(/?)+$ rss.php/?category=$1 [L,QSA]
+
+# [home/rss.php] user
+RewriteRule ^user=(.*)(/?)+$ rss.php/?user=$1 [L,QSA]
+
+# [home/print.php] post
+RewriteRule ^id=([0-9]+)(/?)+$ print.php/?id=$1 [L,QSA]
+</IfModule>
+
+#_strawbery_rewrite_end
+###
+
+<IfModule mod_rewrite.c>
+#Запускаем url_rewriting
+    RewriteEngine On
+#Включаем отслеживание сим-ссылок
+    Options FollowSymLinks -Indexes -MultiViews
+    #Options FollowSymLinks -Indexes
+#Блокируем все ссылки, содержащие <script>
+    RewriteCond %{QUERY_STRING} (\<|%3C).*script.*(\>|%3E) [NC,OR]
+#Блокируем все скрипты, которые пытаются изменить переменные PHP Globals:
+    RewriteCond %{QUERY_STRING} GLOBALS(=|\[|\%[0-9A-Z]{0,2}) [OR]
+#Блокируем все скрипты, которые пытаются изменить переменную _REQUEST:
+    RewriteCond %{QUERY_STRING} _REQUEST(=|\[|\%[0-9A-Z]{0,2})
+#Перенаправляем все подобные на страницу с ошибкой 403 - запрещено
+    RewriteRule ^(.*)$ index.php [F,L]
+#Блокируем обращение к файлу .htaccess
+    RewriteRule ^.htaccess$ - [F]
+</IfModule>

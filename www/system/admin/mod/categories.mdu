@@ -1,0 +1,349 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+$query = $categories;
+if (straw_get_rights($modul, 'write')) { $yaw = 1; } else { $yaw = 0; }
+
+
+
+
+$name = (!empty($_POST['name'])) ? $_POST['name'] : '';
+$url = (!empty($_POST['url'])) ? $_POST['url'] : '';
+$parent = (!empty($_POST['parent']) and is_numeric($_POST['parent'])) ? $_POST['parent'] : 0;
+$template = (!empty($_POST['template'])) ? $_POST['template'] : '';
+$icon = (!empty($_POST['icon'])) ? $_POST['icon'] : '';
+$description = (!empty($_POST['description'])) ? $_POST['description'] : '';
+$cat_usergroups = (!empty($_POST['cat_usergroups'])) ? $_POST['cat_usergroups'] : '';
+$catid = (!empty($_POST['catid']) and is_numeric($_POST['catid'])) ? $_POST['catid'] : ((!empty($_GET['catid']) and is_numeric($_GET['catid'])) ? $_GET['catid'] : '');
+
+
+
+
+function tmp_category_selected($id, $parent){
+  if ($id == $parent){
+    return ' selected';
+  }
+}
+
+
+
+
+
+function tmp_category_menu($type = ''){
+global $row, $catid, $PHP_SELF, $query, $action, $usergroups, $yaw;
+$template = "";
+    foreach ((array)$query as $row){
+        $real[$row['id']] = $row['name'];
+
+        if (!empty($catid) and !empty($row['id']) and !empty($action) and $catid == $row['id'] and $action == 'edit'){
+        	$parent   = $row['parent'];
+        	$template = $row['template'];
+        }
+    }
+
+    if (!empty($parent)){
+		$cats_list = category_get_tree('-- ', '<option value="{id}"[php]tmp_category_selected({id}, '.$parent.')[/php]>{prefix}{name}</option>', false);
+    } else {
+		$cats_list = category_get_tree('- ', '<option value="{id}">{prefix}{name}</option>', false);
+    }
+
+	$tpls_list = array('' => '...');
+    $handle    = opendir(templates_directory);
+    while ($file = readdir($handle)){
+        if ($file != '.' and $file != '..' and $file != 'system' and is_dir(templates_directory."/".$file)){
+			$tpls_list[$file] = $file;
+        }
+    }
+
+    $tpls_list = makeDropDown($tpls_list, 'template', $template);
+
+	ob_start();
+
+	if (!empty($catid)){
+	    foreach ($query as $row){
+	        if ($catid == $row['id'] and $action == 'edit'){
+	            $id          = $row['id'];
+	            $name        = $row['name'];
+	            $url         = $row['url'];
+	            $icon        = $row['icon'];
+	            $template    = $row['template'];
+	            $description = replace_news('admin', $row['description']);
+	            $access      = $row['usergroups'];
+	            $numb      = $row['numb'];
+	            $modul      = $row['modul'];
+	        }
+	    }
+	}
+	
+?>
+
+<form action="" method="post">
+<table border="0" width="100%" cellspacing="2" cellpadding="2" class="panel">
+<tr>
+ <td width="100"><?php echo t('Название'); ?>
+ <td width="350"><input value="<?php echo (!empty($name) ? $name : ""); ?>" type="text" name="name">
+ 
+<tr>
+ <td><?php echo t('УРЛ'); ?>
+ <td><input value="<?php echo (!empty($url) ? $url : ""); ?>" type="text" name="url">
+<tr>
+ <td><?php echo t('Описание'); ?>
+ <td><textarea name="description" style="width: 300px;"><?php echo (!empty($description) ? replace_news('show', $description) : ""); ?></textarea>
+<tr>
+ <td><?php echo t('Иконка'); ?>
+ <td><input value="<?php echo (!empty($icon) ? $icon : ""); ?>" type="text" name="icon">
+<tr>
+ <td><?php echo t('Родитель'); ?>
+ <td>
+  <select size="1" name="parent">
+    <option value="">...</option>
+    <?php echo $cats_list; ?>
+  </select>
+<tr>
+ <td><?php echo t('Шаблон'); ?>
+ <td><?php echo $tpls_list; ?>
+<tr>
+ <td><?php echo t('Доступна для'); ?>
+ <td>
+  <select name="cat_usergroups[]" size="7" multiple="multiple">
+   <option value="">...</option>
+   <?php foreach ($usergroups as $usergroup){ ?>
+   <option value="<?php echo $usergroup['id']; ?>"<?php 
+   echo (in_array($usergroup['id'], explode(',', (!empty($access) ? $access : ""))) ? ' selected' : ''); 
+   ?>><?php echo $usergroup['name']; ?></option>
+   <?php } ?>
+  </select>
+  <?php if ($yaw) { ?>
+<tr>
+ <td>
+ <td><input type="submit" value="<?php echo ($action == 'edit' ? t('Редактировать') : t('Добавить')); ?>">
+ <?php } ?>
+</table>
+<input type="hidden" name="action" value="<?php echo $type; ?>">
+<input type="hidden" name="catid" value="<?php echo $catid; ?>">
+</form>
+
+<?php    
+$return = ob_get_contents();
+ob_end_clean();
+
+return $return;
+}
+
+
+
+
+
+
+
+
+
+
+
+// ********************************************************************************
+// Add New Category
+// ********************************************************************************
+if (!empty($action) and $action == 'add' and !empty($name)){
+
+if (!empty($name)) {
+
+
+    foreach ($query as $row){
+        if (($row['url'] == $url or $row['url'] == totranslit($name)) and $row['parent'] == $parent){
+        	msg('error', t('Ошибка'), t('Категория с таким именем уже существует.'), $PHP_SELF.'?mod=categories');
+        }
+    }
+
+$last = end($query);
+
+ $db->sql_query("INSERT INTO ".$config['dbprefix']."categories 
+ (id, name, icon, url, parent, level, template, description, usergroups, numb, modul) 
+ VALUES 
+ (NULL, '".$name."', '".$icon."', '".(!empty($url) ? $url : totranslit($name))."', '".$parent."', '".(!empty($parent) ? ($query[$parent]['level'] + 1) : '')."', '".$template."', '".replace_news('add', $description)."', '".(@join(',', $cat_usergroups))."', '".($last['numb'] + 1)."', 'news')");
+
+}
+
+ header('Location: '.$PHP_SELF.'?mod=categories');
+}
+
+
+
+
+
+
+
+
+
+// ********************************************************************************
+// Remove Category
+// ********************************************************************************
+if (!empty($action) and $action == 'remove' and !empty($catid)){
+
+
+
+if (!empty($_POST['dtype']) and $_POST['dtype']=="yes") {
+
+$gg=category_get_children($catid);
+$db->sql_query("delete from ".$config['dbprefix']."categories where id in (".$gg.") ");
+header('Location: '.$PHP_SELF.'?mod=categories');
+
+} elseif(!empty($_POST['dtype']) and $_POST['dtype']=="no") {
+
+$db->sql_query("delete from ".$config['dbprefix']."categories where id='".$catid."' ");
+header('Location: '.$PHP_SELF.'?mod=categories');
+
+} else {
+
+echoheader('options', t('Удалить категорию')." №".$catid);
+echo "<form method=\"post\" action=\"\"><div class=\"header\">".t('Метод удаления:')."</div><br>
+<br><fieldset id=\"dtype\"><legend><input type=\"radio\" name=\"dtype\" value=\"yes\" id=\"dtypey\"> ".t('удалить со всеми подкатегориями')."</legend>
+<br><legend><input type=\"radio\" name=\"dtype\" value=\"no\" id=\"dtypen\"> ".t('удалить только эту категорию')."</legend></fieldset>
+<input type=\"submit\" value=\"".t('Выполнить!')."\">
+</form>";
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+// ********************************************************************************
+// Edit Category
+// ********************************************************************************
+if (!empty($action) and $action == 'edit' and !empty($catid)){
+
+
+
+    foreach ($query as $row){
+        if ($row['id'] == $catid){
+        $tt = '<table border="0" cellpading="0" cellspacing="0" width="100%">
+<tr>
+ <td class="panel" height="33"><b>
+ <img border="0" src="admin/images/help_small.gif" align="left">&nbsp;<a onClick="javascript:Help(\'categories\')" href="#">'.t('Что такое категории?').'<br />&nbsp;'.t('Как их использовать?').'</a>
+ </b></td>
+</tr></table><br>';
+        	msg('options', t('Редактировать категорию'), $tt.tmp_category_menu('doedit').on_page());
+        }
+    }
+
+
+
+} elseif (!empty($action) and $action == 'doedit' and !empty($catid) and !empty($name)) {
+
+
+$db->sql_query("UPDATE ".$config['dbprefix']."categories SET name='".$name."', icon='".$icon."', url='".($url ? $url : totranslit($name))."', parent='".$parent."', level='".(!empty($parent) ? ($query[$parent]['level'] + 1) : '')."', template='".$template."', description='".replace_news('add', $description)."', usergroups='".@join(',', $cat_usergroups)."' WHERE id='".$catid."'");
+
+    header('Location: '.$PHP_SELF.'?mod=categories');
+}
+
+
+
+
+
+
+
+
+if (empty($action)){
+// ********************************************************************************
+// Show Categories
+// ********************************************************************************
+echoheader('options', t('Категории'));
+
+?>
+
+<table border="0" cellpading="0" cellspacing="0" width="100%">
+
+<tr>
+ <td class="panel" height="33"><b>
+ <img border="0" src="admin/images/help_small.gif" align="left">&nbsp;<a onClick="javascript:Help('categories')" href="#"><?php echo t('Что такое категории?'); ?><br />&nbsp;<?php echo t('Как их использовать?'); ?></a>
+ </b></td>
+</tr>
+<tr>
+ <td height="20"></td>
+</tr>
+
+
+<tr>
+ <td onclick="javascript:ShowOrHide('add_cat')"><b><a title="<?php echo t('Нажмите для раскрытия формы'); ?>" href="javascript:void(0);"><?php echo t('Добавить категорию'); ?></a></b></td>
+ </tr><tr>
+ <td><span style="display: none;" id="add_cat"><?php echo tmp_category_menu('add'); ?></span></td>
+ </tr>
+
+<?php
+if (empty($_POST['wdc_show']) or (!empty($_POST['wdc_show']) and $_POST['wdc_show']=='yes')) {
+$wdc = true;
+} elseif(!empty($_POST['wdc_show']) and $_POST['wdc_show']=='no') {
+$wdc = false;
+}
+
+$caterories_list = category_get_tree('&nbsp;', '<tr [php]straw_that()[/php]>
+	<td class="tabnum">&nbsp;<b>{id}</b></td>
+	<td><b>{parent}</b><br><small>{pname}</small></td>
+	<td>{prefix}{name}</td>
+	<td>{url}</td>
+	<td>{icon}</td>
+	<td>{template}</td>
+	<td>{description}</td>
+	<td align="center">'.(!empty($yaw) ? '<a href="?mod=categories&amp;action=edit&amp;catid={id}"><img src="admin/images/icons/edit.png" alt="'.t('Правка').'"/></a> <a href="javascript:confirmDelete(\'?mod=categories&amp;action=remove&amp;catid={id}\')"><img src="admin/images/icons/delete.png" alt="'.t('Удалить').'"/></a>' : '').'</td></tr>'.'', true, '', '', $wdc);
+//print_r($categories);
+
+if (empty($caterories_list)){
+?>
+
+<tr>
+<td height="14"><p align="center"><b><?php echo t('Категорий нет'); ?></b><br><?php echo t('Категории создаются при желании, вы можете прекрасно обойтись и без них.'); ?>
+
+<?php
+} else {
+?>
+
+<tr>
+ <td><br><b><?php echo t('Категории'); ?></b></td>
+ </tr><tr>
+ <td>
+ 
+ <?php
+ 
+ echo "<form method=\"post\" action=\"\">".t('Показывать свободные подкатегории:')."
+<br><input type=\"radio\" name=\"wdc_show\" value=\"yes\" ".(((!empty($_POST['wdc_show']) and $_POST['wdc_show']!='no') or empty($_POST['wdc_show'])) ? "checked=\"checked\"" : "")."> ".t('да')." <input type=\"radio\" name=\"wdc_show\" value=\"no\" ".((!empty($_POST['wdc_show']) and $_POST['wdc_show']=='no') ? "checked=\"checked\"" : "")."> ".t('нет')."
+<input type=\"submit\" value=\"OK\">
+</form>";
+ 
+ ?>
+ 
+ </td>
+ </tr>
+<tr>
+ <td height="1">
+  <table width="100%" cellspacing="2" cellpadding="2">
+   <tr class="panel">
+    <td width="3%">&nbsp;<b>#</b></td>
+    <td width="3%">&nbsp;<b><?php echo t('Родитель'); ?></b></td>
+    <td width="25%"><b><?php echo t('Название'); ?></b></td>
+    <td width="30%"><b><?php echo t('УРЛ'); ?></b></td>
+    <td width="5%"><b><?php echo t('Иконка'); ?></b></td>
+    <td width="5%"><b><?php echo t('Шаблон'); ?></b></td>
+    <td width="27%"><b><?php echo t('Описание'); ?></b></td>
+    <td width="5%"><b><?php echo t('Действие'); ?></b></td>
+    </tr>
+    <?php echo $caterories_list; ?>
+  </table>
+
+<?php
+}
+?>
+
+</table>
+
+<?php 
+}
+echo on_page();
+echofooter(); ?>

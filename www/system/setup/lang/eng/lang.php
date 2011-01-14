@@ -1,0 +1,97 @@
+<?php
+#_strawberry
+
+ if (!defined("str_setup")) die("Access dinaed");
+
+define ("SETUP", "Installation Strawberry 1.2.0");
+define ("_LANG", "Choose language");
+define ("_LICENSE", "the License agreement");
+define ("_CONFIG", "the Basic configurations");
+define ("_SERRORPERM", "has no necessary permissions for record on a server. <br>Establish the necessary attributes");
+define ("_NEXT", "Continue");
+define ("_LICENSE_OK", "I accept use conditions.");
+define ("_CONF_1", "Database Server");
+define ("_CONF_2", "Database Login name");
+define ("_CONF_3", "Password of the user of a database");
+define ("_CONF_4", "Database Name");
+define ("_CONF_5", "Prefix of tables of a database");
+define ("_CONF_6", "Name of a file for an input in administration department");
+define ("_TABLE", "Table");
+define ("_ADMIN", "Installation of the manager");
+define ("_CONF_FILE", "A configuration File");
+define ("_FILE", "A configuration File");
+define ("_SETUP_NEW", "New installation of system");
+define ("_SUPDATE", "System Updating");
+define ("_SUPDATE_TO", "to 1.2");
+define ("_SUPDATE_TO_TEXT", "Point \"Updating of system to 1.2\" is used if at you already MySQL a database. If it not so, <a href=\"".way("setup.php?mod=no111")."\">come here</a> and convert your text base in base MySQL.");
+define ("_SAVE_NEW", "Installation and a configuration");
+define ("_SAVE_UPDATE", "Updating and a configuration");
+define ("_PHPSETUP", "Version PHP established on your server mismatches system minimal requirements, it should be not more low PHP 5.0.0!");
+define ("_CONF_5_INFO", "With a view of safety change the standard name at a file admin.php. Rename it that you have thought up, for example: %1\$s.php also specify its new name, but without the termination «.php» in our case: %1\$s");
+define ("_SAVED", "is saved");
+define ("_OK", "is created");
+define ("_NO_OK", "is not created");
+define ("_ERROR", "error");
+define ("_ERROR2", "the Error!");
+define ("_LIC_TEXT_MENU", "If you are going to to update the system to Strawberry 1.2 and for you the system not below series CuteNews 0.2x you should execute prepreparation of the base. <br><li>Copy the files from a folder/data/from system CuteNewsRu 0.2x (0.3x) in a folder/system/setup/db/cn02x/. If at you Strawberry 1.1.1 copy files from a folder/data/db/base/in a folder/system/setup/db/strawberry/. <a href=\"".way('setup.php?mod=no111')."\">Further you need to proceed under this link</a>. After updating you should execute the following point. <br><li>if you update base MySQL you need to accept conditions of the licence and to continue updating according to installation system.");
+define ("_L_A_P_MHOLS", "Login and the password should contain only Latin symbols.");
+define ("_ADM_SETUP", "Installation of the manager");
+define ("_LOGIN", "Login:");
+define ("_PASS", "Password:");
+define ("_ADD_ADM", "Add the manager");
+define ("_ADM_CREATED", "Manager is created");
+define ("_GO_IN_ADPAN", "Go in AdminPanel");
+define ("_INSTALL_COMPLITE", "Installation is finished! <br>Thanks for your choice! <br><br>Now you can pass in the panel of administration of system. <br><br>Adjust a profile of the manager on your taste. <br>Necessarily remove files of installation from your server!");
+define ("_BACK", "Return");
+define ("_NO_ADM_LOGIN", "you have not specified a login for the manager");
+define ("_NO_ADM_PASS", "you have not specified the password for the manager");
+define ("_TXT_TO_MYSQL", "With txtSQL (text base) on MySQL");
+define ("_FROM_CN_TO_STRAW", "Moving with CuteNews. RU series 02x and 03x on Strawberry 1.1.1");
+define ("_UPD_OLD_VERS", "Updating of a database of last versions");
+define ("_UPD_OLD_VERS_TXT", "Before updating your version to Strawberry 1.2, you is necessary to update your database to base to corresponding base Strawberry 1.1.1 (MySQL). Further to choose updating to Strawberry 1.2. <br>Now you should choose the variant of updating most suitable to you. <br><br><li><a href=\"".way('setup.php?mod=no111&amp;act=mysql')."\">With txtSQL (text base) on MySQL for Strawberry 1.1.1</a> <li><a href=\"".way('setup.php?mod=no111&amp;act=02x')."\">from series CuteNews. RU 02x or series CuteNews. RU 03x on MySQL for Strawberry 1.1.1</a> <br><br>After updatings, you should execute standard procedure of updating of base Strawberry 1.1.1 to version Strawberry 1.2.<br><br>At occurrence of problems with base updating, address for the additional information on an official forum strawberry.");
+define ("_USUALY_LH", "usually localhost");
+define ("_PRIMER_PREFIX", "for example strwbr _");
+define ("_PRIMER_AUTHOR", "for example Vasja Pupkin");
+define ("_NO_SLASH", "without a slash/on the end");
+define ("_SITE_AUTHOR", "the Author of a site");
+define ("_SITE_ADDRES", "the site Address");
+define ("_CODER_SITE", "the site Coding:");
+define ("_PRIMER_CODER", "for example windows-1251");
+define ("_CREATE_TABLES", "Creation of tables.");
+define ("_IMPORT_DATA", "Import of data to tables.");
+define ("_CREATE_AND_UPD_TABLES", "Creation and updating of tables.");
+define ("_MESS_ABOUT_ERR", "In the table \"".$xprefix."news\" there can be errors since probably at you some additional plug-ins (for example such as a rating of news) already could be used.");
+define ("_CONNECT_DB", "At the given stage it will be executed connection to a database for the further creation of tables in database MySQL");
+define ("_LOGIN_DB", "DB Login");
+define ("_PASS_DB", "DB Password");
+define ("_SERVER_DB", "DB Server");
+define ("_NAME_DB", "DB Name");
+define ("_PREFIX_DB", "Prefix of tables");
+define ("_CRATE_TAB_IN_DB", "At the given stage it will be executed ñîçäàíèe tables in database MySQL");
+define ("_TABLE", "Table");
+define ("_IMPORT_IN_PREPARE_DB", "At the given stage carrying over of the information from a text database will be executed, in prepared database MySQL");
+define ("_DATA_OF_TABLE", "the Given tables");
+define ("_IT_IMPORT", "is imported");
+define ("_IT_NO_IMPORT", "is not imported");
+define ("_IT_NEXT", "Further");
+define ("_STEP", "step");
+define ("_LAST_STEP", "last");
+define ("_DB_CONVERTED_111", "your database is transferred to base MySQL. Now you need to execute a last update to version Strawberry 1.2.");
+define ("_DO_LAST_UPD_DB", "Make a base last update");
+define ("_WRITE_CAN", "Record is accessible");
+define ("_WRITE_CANT", "Record is impossible");
+define ("_CHECK_CHMOD", "Check of the rights to files");
+define ("_MOVE", "Transfer");
+define ("_USERS", "Users");
+define ("_CATS", "Categories");
+define ("_NEWS", "News");
+define ("_COMMS", "Comments");
+define ("_XFLDS", "Additional fields (XFields)");
+define ("_MOVE_USERS_MESS", "that is (with a similar login) all will be transferred from old base, except passwords");
+define ("_DB_NEWS_BEFORE", "at first it it is necessary to restore base of news");
+
+//define("", "");
+//define("", "");
+
+
+?>

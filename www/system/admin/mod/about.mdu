@@ -1,0 +1,200 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+echoheader('question', t('Что такое Strawberry 1.2?')); ?>
+
+<table border="0" cellpading="0" cellspacing="0" width="100%">
+ <tr>
+  <td valign="middle" colspan="2"><h1><?php echo t('Назад в прошлое'); ?></h1>
+<?php 
+
+
+
+
+if ($config['lang']!="ru") {
+
+echo '&nbsp;Strawberry - a powerful and easy-to-use system of publishing news, based on an original design <a title="CutePHP" target="_blank" href="http://cutephp.com/"> CutePHP Team</a> and its branches <a title="AjFORK" target="_blank" href="http://ajfork.berlios.de/">AJ-Fork</a>, used as a database text files, and currently DBMS MySQL. Strawberry can be used for the conduct of the news stream like a diary (blog) or as a real content management system, characterized by its flexibility and readability. The system is written in a fully open source, which is easy to study and modify to suit your needs.
+<br>&nbsp;Name «Strawberry» was chosen on Nov. 19, 2005. More information can be found here: <a title="Choosing a name" target="_blank" href="http://strawberry.goodgirl.ru/other/rename-cutenews-ru.html#866">http://strawberry.goodgirl.ru/other/rename-cutenews-ru.html#866</a>.'; 
+
+} else {
+
+echo ('&nbsp;Strawberry — это мощная и несложная в обращении система публикации новостей, построенная на оригинальной разработке <a title="CutePHP" target="_blank" href="http://cutephp.com/">CutePHP Team</a> и его ветки <a title="AjFORK" target="_blank" href="http://ajfork.berlios.de/">AJ-Fork</a>, использовавшая в качестве базы данных текстовые файлы, а в данный момент СУБД MySQL. Strawberry может быть использована для ведения новостной ленты, как дневник (блог) или как настоящая система управления контентом, отличающаяся своей гибкостью и понятностью. Система написана на полностью открытом коде, который легко изучать и модифицировать под собственные нужды.
+<br>&nbsp;Название «Strawberry» было выбрано 19 ноября 2005. Подробнее об этом можно найти тут: <a title="Выбираем название" target="_blank" href="http://strawberry.goodgirl.ru/other/rename-cutenews-ru.html#866">http://strawberry.goodgirl.ru/other/rename-cutenews-ru.html#866</a>.'); 
+
+}
+
+
+
+
+?><br><br></td>
+</tr>
+ <tr>
+  <td valign="top"><h1><?php echo t('Ваша клубничка'); ?></h1>
+<?php 
+
+if ($config['lang']!="ru") {
+
+
+
+echo '&nbsp;Taking the last known version of Strawberry 1.1.1, including all developments with <a title="Support forum" target="_blank" href="http://strawberry.goodgirl.ru/forum/">forum</a> and refined the "unfinished" were the basis Strawberry 1.2.
+<br>&nbsp;Current hosting company (according to our statistics on the forum) probably can not provide a sufficiently reliable storage option for data files - there are constant disruptions in the file bases, from which many users are affected. However, perhaps it was due to imperfection of the system of text databases txtSQL. Therefore decided to move the entire system to database MySQL (well, or at 98%, because some small amount of data can be stored as text files).
+<br>&nbsp;The new version uses new methods of information processing systems, statistics and other useful functions. Also, the system closer to the system CMS (Content Managment System). However, this fact does not forbid you to use that version as the last (in the method of connection in the files of your site template). Reworked some plug-ins that allows the system to work more stable and predictable. In mode CMS system supports modules, write and connect that will not make you much trouble. Everything else is supported by simple and convenient system of templates and blocks, which has become an alternative to the original Drag\'n\'Drop Blocks plugin.
+<br>&nbsp;System is improved to this day. In the development takes into account the wishes of the majority.'; 
+
+
+} else {
+
+
+echo ('&nbsp;Взяв за основу последнюю известную версию Strawberry 1.1.1, включив все наработки с <a tooltip="Форум поддержки" target="_blank" href="http://strawberry.goodgirl.ru/forum/">форума</a> и доработав «недоработанное» получили основу Strawberry 1.2.
+<br>&nbsp;Нынешние хостинговые компании (согласно нашей статистики на форуме) видимо не могут предоставлять достаточно надежный вариант хранения информации на файлах — происходят постоянные сбои в файловых базах, от чего многие пользователи страдают. Однако, возможно это было связано с неидеальностью системы текстовых баз txtSQL. Поэтому принято решение перевести всю систему на СУБД MySQL (ну или на 98%, т.к. некоторые данные небольшого объема можно хранить в виде текстовых файлов).
+<br>&nbsp;В новой версии использованы новые методы обработки информации, системы статистики и прочие удобные функции. Также система приближена к системе CMS (Content Managment System). Однако, это обстоятельство не запрещает вам использовать эту версию  как и прошлые (в методе подключения в файлы вашего шаблона сайта). Переработаны некоторые плагины, что позволяет системе работать более стабильно и ожидаемо. В режиме работы CMS система поддерживает модули, написать и подключить которые не составит вам особого труда. Ко всему прочему поддерживается простая и удобная система шаблонов и блоков, которая стала альтернативой оригинального Drag’n’Drop Blocks плагина.
+<br>&nbsp;Система совершенствуется и по сей день. В разработке учитывается большинство пожеланий.'); 
+
+
+}
+?>
+</td>
+  <td width="300" valign="top"><h1><?php echo t('Скажи им спасибо'); ?></h1><marquee id="fc" scrollAmount="2" direction="up" onmouseover="javascript:fc.stop()" onmouseout="javascript:fc.start()" height="300">
+<img src="admin/images/logotype.png" border="0" alt="Strawberry 1.2"><br><br>
+
+<?php
+if ($config['lang']!="ru") {
+
+
+
+
+
+echo '<b>Project author Strawberry:</b><br>
+<a href="http://lexa.cutenews.ru/">Lech zloy and beautiful</a> <br>
+http://lexa.cutenews.ru/<br>
+lexa@cutenews.ru <br>
+<br>
+<b>Co-author and coder of the project:</b><br>
+<a href="http://slaver.info/">Slaver</a><br>
+http://www.slaver.info/<br>
+slaver@cutenews.ru<br>
+<br>
+<b>Support Project:</b><br>
+<a href="http://www.antsoft.ru/">Ant-Soft</a> <br>
+http://www.antsoft.ru/<br>
+antsoft@yandex.ru <br>
+<br>
+<b>By assembling Strawberry 1.2.x: </b> <br>
+<a href="http://www.mgcorp.ru/"> Mr.Miksar </a> <br>
+http://www.mgcorp.ru/ <br>
+miksar@mail.ru <br>
+<br>
+<b> Official Site Strawberry 1.1.x: </b> <br>
+<a href="http://www.strawberry.goodgirl.ru/">http://strawberry.goodgirl.ru/ </a> <br>
+<br>
+<b> Official Site Strawberry 1.2.x: </b> <br>
+<a href="http://www.strawberry.mgcorp.ru/">http://strawberry.mgcorp.ru/ </a> <br>
+<br>
+<br>
+<b> Our mascot (symbol) </b> <br>
+Icons series Rabits XP from Yulia Nikolaeva, known as <a href="http://www.flameia.com/" title="Maskot for site" target="_blank"> Flameia </a>.<br>
+<a href="http://flameia.com" title="Maskot for site" target="_blank"><img border="0" src="data/banners/flameia/fla-large.gif" alt="Mascot for the site" width="179" height="21"></a><br>
+http://www.flameia.com <br>
+flameia@zerobias.com <br>
+<br>
+<b> Our media player UpPod </b> <br>
+<a href="http://uppod.ru" title="Player for site" target="_blank"> <img border="0" src="data/banners/uppod/uppod.gif" alt="Player for the website" width="164" height="55"> </a> <br>
+<br>
+<b> Our Counter LiteCounter 0.9. </b> <br>
+http://www.softtime.ru/<br>
+softtime@softtime.ru<br>
+<br>
+<b> Sypex Dumper Lite 1.0.8.</b><br>
+System backup and restore data byzy<br>
+http://sypex.net <br>
+<br>
+<b>Kolobok</b><br>
+In my opinion - the most successful emoticons. <br>
+http://kolobok.ru <br>
+<br>
+<b> Support development: </b> <br>
+Any contribution will be a joy and desire to work on the system increases, too! <br>
+WME E105703622794 <br>
+WMR R384153503405 <br>
+WMU U362627513446 <br>
+WMZ Z251356712799 <br>
+<br> <br>
+<b> Thank you </b> to all who helped test and update the system!';
+
+
+
+} else {
+
+
+
+
+echo '<b>Автор проекта Strawberry:</b><br>
+<a href="http://lexa.cutenews.ru/">Леха zloy и красивый</a><br>
+http://lexa.cutenews.ru/<br>
+lexa@cutenews.ru<br>
+<br>
+<b>Соавтор и кодер проекта:</b><br>
+<a href="http://slaver.info/">Slaver</a><br>
+http://slaver.info/<br>
+slaver@cutenews.ru<br>
+<br>
+<b>Поддержка проекта:</b><br>
+<a href="http://www.antsoft.ru/">Ant-Soft</a><br>
+http://www.antsoft.ru/<br>
+antsoft@yandex.ru<br>
+<br>
+<b>Автор сборки Strawberry 1.2.x:</b><br>
+<a href="http://www.mgcorp.ru/">Mr.Miksar</a><br>
+http://www.mgcorp.ru/<br>
+miksar@mail.ru<br>
+<br>
+<b>Официальный сайт Strawberry 1.1.x:</b><br>
+<a href="http://strawberry.goodgirl.ru/">http://strawberry.goodgirl.ru/</a><br>
+<br>
+<b>Официальный сайт Strawberry 1.2.x:</b><br>
+<a href="http://strawberry.mgcorp.ru/">http://strawberry.mgcorp.ru/</a><br>
+<br>
+<br>
+<b>Наш маскот (символ)</b><br>
+Иконки серии Rabits XP от Юлии Николаевой, известной как <a href="http://www.flameia.com/" title="Маскот для сайта" target="_blank">Flameia</a>.<br>
+<a href="http://flameia.com" title="Маскот для сайта" target="_blank"><img border="0" src="data/banners/flameia/fla-large.gif" alt="Маскот для сайта" width="179" height="21"></a><br>
+http://www.flameia.com<br>
+flameia@zerobias.com<br>
+<br>
+<b>Наш медиа-плеер UpPod</b><br>
+<a href="http://uppod.ru" title="Плеер для сайта" target="_blank"><img border="0" src="data/banners/uppod/uppod.gif" alt="Плеер для сайта" width="164" height="55"></a><br>
+<br>
+<b>Наш счетчик посещений LiteCounter 0.9.</b><br>
+http://www.softtime.ru/<br>
+softtime@softtime.ru<br>
+<br>
+<b>Sypex Dumper Lite 1.0.8.</b><br>
+Система резервирования и восстановления бызы данных<br>
+http://sypex.net<br>
+<br>
+<b>Kolobok</b><br>
+На мой взгляд - самые удачные смайлики.<br>
+http://kolobok.ru<br>
+<br>
+<b>Поддержите развитие:</b><br>
+Любой взнос будет в радость и желание работать над системой увеличивается тоже!<br>
+WME E105703622794<br>
+WMR R384153503405<br>
+WMU U362627513446<br>
+WMZ Z251356712799<br>
+<br><br>
+<b>Спасибо</b> Всем кто помогал тестировать и обновлять систему!';
+
+
+
+}
+?>
+<br>
+</marquee></td>
+</tr>
+</table>
+
+<?php 
+echo on_page();
+echofooter(); ?>

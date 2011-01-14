@@ -1,0 +1,79 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+if (straw_get_rights($mod, 'write')) { $yaw = 1; } else { $yaw = 0; }
+
+// ********************************************************************************
+// Plugins
+// ********************************************************************************
+echoheader('options', t('Плагины'));
+
+$available_plugins = available_plugins();
+
+function SortByName($a, $b){
+return ($a['name'] > $b['name'] ? 1 : -1);
+}
+
+uasort($available_plugins, 'SortByName');
+
+if (!empty($_GET['enable']) and $yaw){
+    $id = stripslashes($_GET['enable']) - 1;
+    $filename = $available_plugins[$id]['file'];
+    enable_plugin($filename);
+?>
+
+<p><?php echo t('Включён плагин: <b>%plugin</b>', array('plugin' => $available_plugins[$id]['name'])); ?></p>
+
+<?php
+}
+
+if (!empty($_GET['disable']) and $yaw){
+    $id = stripslashes($_GET['disable']) - 1;
+    $filename = $available_plugins[$id]['file'];
+    disable_plugin($filename);
+?>
+
+<p><?php echo t('Отключён плагин: <b>%plugin</b>', array('plugin' => $available_plugins[$id]['name'])); ?></p>
+
+<?php
+}
+?>
+
+<table id="plugins">
+<tr>
+  <th>№</th>
+  <th><?php echo t('Название'); ?></th>
+  <th><?php echo t('Версия'); ?></th>
+  <th><?php echo t('Описание'); ?></th>
+  <th><?php echo t('Автор'); ?></th>
+  <th><?php echo t('Действие'); ?></th>
+</tr>
+<?php
+$a=0;
+//rsort($available_plugins);
+foreach ($available_plugins as $id => $plugin){
+    $id      = ($id + 1);
+    $enabled = plugin_enabled($plugin['file']);
+    $class   = (!empty($plugin['compatible']) ? ($enabled ? 'penabled' : 'pdisabled') : 'incompatible');
+?>
+
+ <tr class="<?php echo $class; ?>"<?php echo (!empty($plugin['compatible']) ? '' : ' title="Framework: '.$plugin['framework'].'"'); ?>'>
+  <td align="center" class="tabnum"><?php echo $id; ?></td>
+  <td><b><?php echo (!empty($plugin['uri']) ?  '<a href="'.$plugin['uri'].'">'.t($plugin['name']).'</a>' : t($plugin['name'])); ?></b></td>
+  <td align="center"><?php echo $plugin['version']; ?></td>
+  <td><?php echo run_filters('plugin-description', $plugin['description']); ?></td>
+  <td><?php echo (!empty($plugin['author_uri']) ?  '<a href="'.$plugin['author_uri'].'">'.t($plugin['author']).'</a>' : t($plugin['author'])); ?></td>
+  <td align="center">
+  <?php  if ($yaw) {
+ echo (!empty($plugin['compatible']) ? (!empty($enabled) ? '<a href="?mod=plugins&amp;disable='.$id.'"><img src="admin/images/icons/connect.png" alt="'.t('Отключить').'"/></a>' : '<a href="?mod=plugins&amp;enable='.$id.'"><img src="admin/images/icons/disconnect.png" alt="'.t('Включить').'"/></a>') : t('Несовместим')); 
+ }
+echo "</td></tr>";
+	}
+?>
+
+</table>
+
+<?php
+echo on_page();
+echofooter();
+?>

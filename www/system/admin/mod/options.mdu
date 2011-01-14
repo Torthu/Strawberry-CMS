@@ -1,0 +1,252 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+// ********************************************************************************
+// Options
+// ********************************************************************************
+$options = array(
+            array(
+            'name'     => t('Личные настройки'),
+            'url'      => 'mod=personal',
+            'category' => 'users'
+            ),
+
+            array(
+            'name'     => t('Блокировка IP'),
+            'url'      => 'mod=ipban',
+            'category' => 'tools'
+            ),
+            
+            array(
+            'name'     => t('Кто On-Line?'),
+            'url'      => 'mod=online',
+            'category' => 'news'
+            ),
+
+            array(
+            'name'     => t('Настройка системы'),
+            'url'      => 'mod=syscon',
+            'category' => 'options'
+            ),
+            
+            array(
+            'name'     => t('О системе'),
+            'url'      => 'mod=about',
+            'category' => 'options'
+            ),
+            
+            array(
+            'name'     => t('Управление блоками'),
+            'url'      => 'mod=sblocks',
+            'category' => 'options'
+            ),
+
+            array(
+            'name'     => t('Шаблоны'),
+            'url'      => 'mod=templates',
+            'category' => 'templates'
+            ),
+
+            array(
+            'name'     => t('Пользователи'),
+            'url'      => 'mod=editusers',
+            'category' => 'users'
+            ),
+
+            array(
+            'name'     => t('Управление картинками'),
+            'url'      => 'mod=images',
+            'category' => 'files'
+            ),
+
+            array(
+            'name'     => t('Категории'),
+            'url'      => 'mod=categories',
+            'category' => 'news'
+            ),
+
+            array(
+            'name'     => t('Поиск и замена'),
+            'url'      => 'mod=snr',
+            'category' => 'tools'
+            ),
+            
+            array(
+            'name'     => t('Translater'),
+            'url'      => 'mod=lang',
+            'category' => 'tools'
+            ), 
+
+            array(
+            'name'     => t('JS-Включения'),
+            'url'      => 'mod=js',
+            'category' => 'options'
+            ),
+            
+            array(
+            'name'     => t('RSS-Потоки'),
+            'url'      => 'mod=rss',
+            'category' => 'tools'
+            ),
+            
+            array(
+            'name'     => t('GO Link!'),
+            'url'      => 'mod=go_link',
+            'category' => 'news'
+            ),
+            
+            array(
+            'name'     => t('Статистика посещений'),
+            'url'      => 'mod=statistic',
+            'category' => 'news'
+            ),
+
+            array(
+            'name'     => t('Плагины'),
+            'url'      => 'mod=plugins',
+            'category' => 'options'
+            ),
+
+        //    array(
+        //    'name'     => t('Резервное копирование'),
+        //    'url'      => 'mod=backup',
+        //    'category' => 'tools'
+        //    ), 
+
+            array(
+            'name'     => t('DUMPer'),
+            'url'      => 'mod=dumper',
+            'category' => 'tools'
+            ),
+
+            array(
+            'name'     => t('Добавить новость'),
+            'url'      => 'mod=addnews',
+            'category' => 'news'
+            ),
+            
+            array(
+            'name'     => t('База данных'),
+            'url'      => 'mod=dbinfo',
+            'category' => 'news'
+            ),            
+
+            array(
+            'name'     => t('Редактировать новость'),
+            'url'      => 'mod=editnews',
+            'category' => 'news'
+            ),
+
+            array(
+            'name'     => t('Входящая почта'),
+            'url'      => 'mod=mails',
+            'category' => 'modules'
+            ),
+
+            array(
+            'name'     => t('Гостевая книга'),
+            'url'      => 'mod=gb',
+            'category' => 'modules'
+            ),
+            
+ #           array(
+ #           'name'     => t('Каталог ссылок'),
+ #           'url'      => 'mod=links',
+ #           'category' => 'modules'
+ #           ),
+
+            array(
+            'name'     => t('Комментарии'),
+            'url'      => 'mod=comments',
+            'category' => 'news'
+            ),
+
+ #           array(
+ #           'name'     => t('Главная страница'),
+ #           'url'      => 'mod=main',
+ #           'category' => 'tools'
+ #           ),
+
+            array(
+            'name'     => t('Группы пользователей'),
+            'url'      => 'mod=usergroups',
+            'category' => 'users'
+            ),
+
+            array(
+            'name'     => t('Импорт новостей'),
+            'url'      => 'mod=import',
+            'category' => 'news'
+            ),
+
+            array(
+            'name'     => t('META дополнения'),
+            'url'      => 'mod=header',
+            'category' => 'options'
+            ),
+
+ #           array(
+ #           'name'     => t('Сонник'),
+ #           'url'      => 'mod=sonnic',
+ #           'category' => 'modules'
+ #           ),
+           );
+
+$options = run_filters('options', $options);
+
+if (!function_exists('cmp_sort_sections')){
+	function cmp_sort_sections ($a, $b) {
+	    if ($a == $b){
+	    	return 0;
+	    }
+
+		return ($a > $b ? -1 : 1);
+	}
+}
+
+for ($i = 0; $i < count($options); $i++){
+    $file = explode('=', $options[$i]['url']);
+    $file = explode('&', $file[1]);
+    $file = $file[0];
+
+    if (straw_get_rights($file, 'read') and !empty($options[$i]['category'])){
+
+    	$sections[$options[$i]['category']][$options[$i]['name']] = $options[$i];
+    	$ctnm[$options[$i]['category']] = $options[$i];
+
+    }
+}
+
+
+uasort($sections, 'cmp_sort_sections');
+
+
+if (empty($inmenu)) {
+
+echoheader('options', t('Настройки'));
+
+$i = 0;
+foreach ($sections as $k => $section){
+	$i++;
+
+	asort($section);
+	
+	
+########################	
+echo '<table style="float: left;width: 30%;margin: 2px;" class="'.($i%2 == 1 ? 'enabled' : 'disabled').'">';
+foreach ($section as $option){
+?>
+<tr>
+<td title="<?php echo $option['category']; ?>" style="padding: 2px;">» <a href="<?php echo $PHP_SELF.'?'.$option['url']; ?>" title="<?php echo $option['name']; ?>"><?php echo $option['name']; ?></a></td>
+</tr>
+<?php
+}
+echo '</table>';
+########################
+
+}
+
+echofooter();
+}
+?>

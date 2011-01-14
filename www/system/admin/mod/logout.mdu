@@ -1,0 +1,14 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+//straw_setcookie('username', '', (time/2)); // cnr
+//straw_setcookie('md5_password', '', (time/2)); // cnr
+straw_setcookie('username', '', (time/2), '/');
+straw_setcookie('md5_password', '', (time/2), '/');
+straw_setcookie('login_referer', '', (time/2), '/');
+@session_destroy();
+@session_unset();
+straw_setcookie(session_name(), '', (time/2), '/');
+header('Location: '.$PHP_SELF);
+?>

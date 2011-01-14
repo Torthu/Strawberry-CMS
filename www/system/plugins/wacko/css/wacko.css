@@ -1,0 +1,106 @@
+/* Example CSS for WackoFormatter */
+
+.dt    { font-family: Verdana; font-size:60% }
+ol, ul { margin-top:0; padding-top:0; margin-bottom:5px }
+
+/* paddings headers */
+form, h1, h2, h3, h4, h5 {
+  margin: 0px;
+  padding: 0px;
+}
+
+h2 { padding:0; margin: 1em 0 0.5em; line-height:1.2em; font-size:18px; color:#444444; width:100%; border-bottom: 1px solid #000000; background-color: #dddddd; } 
+h3 { padding:0; margin: 1em 0 0.5em; line-height:1.2em; font-size:15px; color:#0064D8 } 
+h4 { padding:0; margin: 1em 0 0.5em; line-height:1.2em; font-size:14px; color:#444444 } 
+h5 { padding:0; margin: 1em 0 0.5em; line-height:1.2em; font-size:13px; color:#666666 } 
+h6 { padding:0; margin: 1em 0 0.5em; line-height:1.2em; font-size:12px; color:#444444 } 
+
+/* Strikes */
+strike, s { color:#999999 }    
+strike, s a:link { color:#999999 }
+strike, s a:visited { color:#999999 }
+strike, s a:hover { color:#cc3300 }
+strike, s a.outerlink:link { color:#999999 }
+strike, s a.outerlink:visited { color:#999999 }
+strike, s a.outerlink:hover { color:#cc3300 }
+s img { filter:Gray } 
+
+/* Colour marks and indent */
+cite {color:#888800;font-style:normal;}
+.cite {color:#ff0000;font-style:normal;}
+.mark  { color: #008800; }
+.center { text-align: center; }
+.indent { margin-left: 40px; }
+
+/* fixed markup */
+tt { color:#666600; background:#ffffcc; padding: 0 2px } 
+
+/* (?dfn?). Uses hacks. */
+dfn { font-variant: small-caps; letter-spacing: 0.1em; font-style: normal; cursor: help; border-bottom: 1px dotted #000; }
+* html dfn { \background: url(javascript:DOTS) repeat-x bottom left; }
+
+/* diff */
+.additions { color: #008800; }
+.deletions { color: #880000; }
+.add { font-weight: bold; color:#c00; text-decoration: underline; }
+.del { font-style: italic; color:#c00; text-decoration: line-through; }
+
+
+/* форматтинг типа <[......]> */
+blockquote {  border-left:#cccccc 3px solid; padding:5px; color: #999999; }
+blockquote p {  padding:0px;  margin: 5px 0px; }
+
+
+/* “аблицы -- шаманство с CSS */
+table.usertable { border: 1px none; border-collapse: collapse; }
+table.usertable tr td { vertical-align:top; border-width: 1px;  border-color: #999999;  border-style: solid;  padding: 4px; 
+                        font-family: Arial; font-size:100%; color:#444444; }
+table.dtable { width:100%; border: 0px none; border-collapse: collapse; }
+table.dtable tr td { vertical-align:top; border-width: 0px;  border-color: #999999;  border-style: none;  padding: 4px; 
+                     font-family: Arial; font-size:100%; color:#444444; }
+table.usertable tr td,
+table.dtable tr td      { font-size: 80% }
+.missingpage { border-bottom: 1px dashed orange; }
+
+/* типовые ссылки anchors */
+/* указание их без класса часто рушит оформление дизайна */
+a:link { color: #0020cc; }
+a:visited { color: #8020cc; }
+a:hover { color:#cc3300 }
+a:active { color:#ff0000; }
+a.denied:link, a.denied:visited { color: #666666; }
+a.denied:hover { color:#cc3300 }
+
+
+/* External links */
+.outerlink:link, .outerlink:visited { font-family:Verdana; color:#000080 }
+.outerlink:hover { color:#cc3300 }
+
+/* Table Of Context items */
+.toc1 { margin-left:0px; padding-left:0px; font-weight:bold; list-style-type:none;  } 
+.toc2 { margin-left:0px; padding-left:15px; list-style-type:none;  } 
+.toc3 { margin-left:0px; padding-left:30px; list-style-type:none;  } 
+.toc4 { margin-left:0px; padding-left:45px; list-style-type:none;  } 
+.toc5 { margin-left:0px; padding-left:60px; list-style-type:none;  } 
+.toc6 { margin-left:0px; padding-left:75px; list-style-type:none;  }
+
+/* %%(...) formatters */
+.code {
+  background: #FFFFFF;
+  border: solid #888888 2px;
+  font-family: "Courier New";
+  color: black;
+  font-size: 10pt;
+  width: 90%;
+}
+
+/* ICQ & Email formatters */
+.micq1 { padding:2px; vertical-align:top; font-weight: bold; color:#444444; font-size:90% }
+.micq2 { padding:2px; vertical-align:top; font:10px tahoma, arial; color:#444444; }
+.micq3 { padding:2px; vertical-align:top; width:100%; color:#444444; font-size:90% }
+     
+.email1 {color:#800000}
+.email2 {color:#808000}
+.email-odd {color:#800000}
+.email-even {color:#808000}
+

@@ -1,0 +1,390 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+
+
+if (!straw_get_rights($modul, 'read')) {
+msg('error', t('Ошибка'), t('Вам запрещён доступ к этому модулю!'));
+} else {
+if (straw_get_rights($modul, 'write')) { $yaw = 1; } else { $yaw = 0; }
+
+
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  Main Screen of SNR
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+if (empty($action)){
+    echoheader('search', t('Поиск и замена'));
+?>
+
+<script language="JavaScript" type="text/javascript">
+<!--
+onload=startup;
+
+function startup(){
+    ckeck_uncheck_tree('news');
+    ckeck_uncheck_tree('comments');
+    ckeck_uncheck_tree('fields');
+}
+
+function ckeck_uncheck_tree(tree) {
+    var myform = document.snr;
+
+    if (tree == 'news'){
+        if (myform.snr_search_in_news.checked == false){
+            myform.snr_include_title.disabled = true;
+            myform.snr_include_short.disabled = true;
+            myform.snr_include_full.disabled = true;
+            myform.snr_include_avatar.disabled = true;
+            myform.snr_include_metakeywords.disabled = true;
+            myform.snr_include_url.disabled = true;
+        } else {
+            myform.snr_include_title.disabled = false;
+            myform.snr_include_short.disabled = false;
+            myform.snr_include_full.disabled = false;
+            myform.snr_include_avatar.disabled = false;
+            myform.snr_include_metakeywords.disabled = false;
+            myform.snr_include_url.disabled = false;
+        }
+    }
+    if (tree == 'comments'){
+        if (myform.snr_search_in_comments.checked == false){
+            myform.snr_include_name.disabled = true;
+            myform.snr_include_comment.disabled = true;
+            myform.snr_include_reply.disabled = true;
+        } else {
+            myform.snr_include_name.disabled = false;
+            myform.snr_include_comment.disabled = false;
+            myform.snr_include_reply.disabled = false;
+        }
+    }
+    
+    if (tree == 'fields'){
+        if (myform.snr_search_in_fields.checked == false){
+            myform.snr_include_fname.disabled = true;
+            myform.snr_include_fvalue.disabled = true;
+        } else {
+            myform.snr_include_fname.disabled = false;
+            myform.snr_include_fvalue.disabled = false;
+        }
+    }
+    
+
+}
+
+function ckeck_uncheck_all() {
+    var frm = document.snr;
+
+    for (var i = 0; i < frm.elements.length; i++){
+        var elmnt = frm.elements[i];
+
+        if (elmnt.name == 'snr_sources[]'){
+            if (frm.master_box.checked != true){
+            	elmnt.checked = false;
+            } else {
+            	elmnt.checked = true;
+            }
+        }
+    }
+}
+-->
+</script>
+
+<form method="post" name="snr" action="">
+ <table border="0" cellpading="0" cellspacing="0" width="100%">
+  <tr>
+   <td width="50%">
+   
+   
+    <table class="panel" cellspacing="2" cellpadding="2" width="330">
+     <tr>
+      <td valign="top" width="318" colspan="2">
+       <input type="checkbox" onclick="javascript:ckeck_uncheck_tree('news')" style="border:0; background-color:transparent" name="snr_search_in_news" value="1" checked id="snr_search_in_news">
+       <label for="snr_search_in_news">
+       <?php echo t('Поиск в новостях'); ?>
+       </label>
+     <tr>
+      <td valign="top" width="20">
+      <td valign="top" width="296">
+       <input type="checkbox" style="border:0; background-color:transparent" name="snr_include_title" value="1" checked id="snr_include_title">
+       <label for="snr_include_title">
+       <?php echo t('включая заголовки'); ?>
+       </label>
+     <tr>
+      <td valign="top" width="20">
+      <td valign="top" width="296">
+       <input type="checkbox" style="border:0; background-color:transparent" name="snr_include_short" value="1" checked id="snr_include_short">
+       <label for="snr_include_short">
+       <?php echo t('включая краткое содержание'); ?>
+       </label>
+     <tr>
+      <td valign="top" width="20">
+      <td valign="top" width="296">
+       <input type="checkbox" style="border:0; background-color:transparent" name="snr_include_full" value="1" checked id="snr_include_full">
+       <label for="snr_include_full">
+       <?php echo t('включая новость целиком'); ?>
+       </label>
+     <tr>
+      <td valign="top" width="20">
+      <td valign="top" width="296">
+       <input type="checkbox" style="border:0; background-color:transparent" name="snr_include_avatar" value="1" id="snr_include_avatar">
+       <label for="snr_include_avatar">
+       <?php echo t('включая аватары'); ?>
+       </label>
+     <tr>
+      <td valign="top" width="20">
+      <td valign="top" width="296">
+       <input type="checkbox" style="border:0; background-color:transparent" name="snr_include_metakeywords" checked value="1" id="snr_include_metakeywords">
+       <label for="snr_include_metakeywords">
+       <?php echo t('включая Meta keywords (ключ. слова)'); ?>
+       </label>
+     <tr>
+      <td valign="top" width="20">
+      <td valign="top" width="296">
+       <input type="checkbox" style="border:0; background-color:transparent" name="snr_include_url" value="1" id="snr_include_url">
+       <label for="snr_include_metakeywords">
+       <?php echo t('включая url новости'); ?>
+       </label>
+
+
+
+
+
+
+
+
+     <tr>
+      <td valign="top" width="318" colspan="2">
+       <input type="checkbox" style="border:0; background-color:transparent" onclick="javascript:ckeck_uncheck_tree('comments')" name="snr_search_in_comments" value="1" id="snr_search_in_comments">
+       <label for="snr_search_in_comments">
+       <?php echo t('Поиск в комментариях'); ?>
+       </label>
+     <tr>
+      <td valign="top" width="20">
+      <td valign="top" width="296">
+       <input type="checkbox" style="border:0; background-color:transparent" name="snr_include_name" value="1" checked id="snr_include_name">
+       <label for="snr_include_name">
+       <?php echo t('включая имя'); ?>
+       </label>
+     <tr>
+      <td valign="top" width="20">
+      <td valign="top" width="296">
+       <input type="checkbox" style="border:0; background-color:transparent"  name="snr_include_comment" value="1" checked id="snr_include_comment">
+       <label for="snr_include_comment">
+       <?php echo t('включая текст комментария'); ?>
+       </label>
+     <tr>
+      <td valign="top" width="20">
+      <td valign="top" width="296">
+       <input type="checkbox" style="border:0; background-color:transparent"  name="snr_include_reply" value="1" checked id="snr_include_reply">
+       <label for="snr_include_reply">
+       <?php echo t('включая текст ответа'); ?>
+       </label>
+
+
+     <tr>
+      <td valign="top" width="318" colspan="2">
+       <input type="checkbox" style="border:0; background-color:transparent" onclick="javascript:ckeck_uncheck_tree('fields')" name="snr_search_in_fields" value="1" id="snr_search_in_fields">
+       <label for="snr_search_in_fields">
+       <?php echo t('Поиск в доп.полях'); ?>
+       </label>
+     <tr>
+      <td valign="top" width="20">
+      <td valign="top" width="296">
+       <input type="checkbox" style="border:0; background-color:transparent" name="snr_include_fname" value="1" checked id="snr_include_fname">
+       <label for="snr_include_fname">
+       <?php echo t('включая имя доп.поля'); ?>
+       </label>
+     <tr>
+      <td valign="top" width="20">
+      <td valign="top" width="296">
+       <input type="checkbox" style="border:0; background-color:transparent"  name="snr_include_fvalue" value="1" checked id="snr_include_fvalue">
+       <label for="snr_include_fvalue">
+       <?php echo t('включая текст доп.поля'); ?>
+       </label>
+
+       
+    </table>
+    
+    
+   </td>
+   <td width="50%">
+   
+   
+ <table cellspacing="0" cellpadding="0">
+  <tr>
+   <td><img border="0" src="admin/images/help_small.gif">&nbsp;</td>
+   <td><?php echo t('Перед началом замены текста рекомендуется<br /> сделать <a href="%url" target="_blank">резервную копию</a> Ваших новостей&nbsp;&nbsp;<br /><a onClick="javascript:Help(\'snr\')" href="#">Как пользоваться модулем &quot;Поиск и замена&quot;</a>?', array('url' => $config['http_script_dir'].'?mod=dumper')); ?></td>
+ </tr>
+ </table>
+ 
+ 
+</td></tr>
+<tr><td colspan="2">
+
+<br />
+
+    <table class="panel" cellspacing="5" cellpadding="5" width="100%">
+     <tr><td>&nbsp;&nbsp;<?php echo t('Искать текст:'); ?><br />&nbsp;<textarea rows="5" cols="95" name="snr_search_text"></textarea></td></tr>
+     <tr><td>&nbsp;&nbsp;<?php echo t('Заменить на:'); ?><br />&nbsp;<textarea rows="5" cols="95" name="snr_replace_text"></textarea></td></tr>
+    </table>
+
+</td></tr>
+</table>
+
+
+<div style="text-align:right;padding-right:20px;"><input type="submit" value="<?php echo t(' Заменить '); ?>"></div>
+<input type="hidden" name="action" value="doreplace">
+</form>
+
+<?php    
+echofooter();
+
+
+
+} elseif (!empty($action) and $action == 'doreplace' and !empty($yaw)) {
+
+
+
+
+	if (empty($_POST['snr_search_in_news']) and empty($_POST['snr_search_in_comments']) and empty($_POST['snr_search_in_fields'])){
+		msg('error', t('Ошибка'), t('Вы должны выбрать, где заменять текст: в новостях и/или комментариях.'));
+	} elseif(empty($_POST['snr_search_text']) or empty($_POST['snr_search_text'])){
+		msg('error', t('Ошибка'), t('Вы должны ввести текст для поиска и замены.'));
+	}
+$cc = array();
+$cn = array();
+$cf = array();
+	//----------------------------------
+	// Search in the News
+	//----------------------------------
+	if (!empty($_POST['snr_search_in_news'])){
+
+#######################################################################
+
+$wheren = "a.title LIKE '%".$_POST['snr_search_text']."%' or b.metatitle LIKE '%".$_POST['snr_search_text']."%' or b.short LIKE '%".$_POST['snr_search_text']."%' or b.full LIKE '%".$_POST['snr_search_text']."%' or b.metadescription LIKE '%".$_POST['snr_search_text']."%' or b.metakeywords LIKE '%".$_POST['snr_search_text']."%' or a.avatar LIKE '%".$_POST['snr_search_text']."%' or a.url LIKE '%".$_POST['snr_search_text']."%' ";
+$arr_query = $db->sql_query("SELECT a.*, b.* FROM ".$config['dbprefix']."news AS a LEFT JOIN ".$config['dbprefix']."story AS b ON (b.post_id=a.id) WHERE ".$wheren." ");
+
+while($query[] = $db->sql_fetchrow($arr_query));
+array_pop($query); // удаляем лишний
+
+
+	    foreach ($query as $row) {
+	    
+	        if (!empty($_POST['snr_include_title'])){
+	        	$row['title'] = str_replace($_POST['snr_search_text'], $_POST['snr_replace_text'], $row['title']);
+	        	$row['metatitle'] = str_replace($_POST['snr_search_text'], $_POST['snr_replace_text'], $row['metatitle']);
+	        }
+
+	        if (!empty($_POST['snr_include_short'])){
+	        	$row['short'] = str_replace($_POST['snr_search_text'], $_POST['snr_replace_text'], $row['short']);
+	        }
+
+	        if (!empty($_POST['snr_include_full'])){
+	        	$row['full'] = str_replace($_POST['snr_search_text'], $_POST['snr_replace_text'], $row['full']);
+	        }
+	        
+	        if (!empty($_POST['snr_include_short']) or !empty($_POST['snr_include_full'])){
+	        	$row['metadescription'] = str_replace($_POST['snr_search_text'], $_POST['snr_replace_text'], $row['metadescription']);
+	        }
+	        
+	        if (!empty($_POST['snr_include_metakeywords'])){
+	        	$row['metakeywords'] = str_replace($_POST['snr_search_text'], $_POST['snr_replace_text'], $row['metakeywords']);
+	        }
+
+	        if (!empty($_POST['snr_include_avatar'])){
+	        	$row['avatar'] = str_replace($_POST['snr_search_text'], $_POST['snr_replace_text'], $row['avatar']);
+	        }
+	        
+	        if (!empty($_POST['snr_include_url'])){
+	        	$row['url'] = str_replace($_POST['snr_search_text'], $_POST['snr_replace_text'], $row['url']);
+	        }
+
+  $db->sql_query("update ".$config['dbprefix']."news set title = '".$row['title']."', c_short = '".strlen($row['short'])."', c_full = '".strlen($row['full'])."', url = '".$row['url']."', avatar = '".$row['avatar']."' WHERE id = ".$row['id']." limit 1");
+  $db->sql_query("update ".$config['dbprefix']."story set short = '".$row['short']."', full = '".$row['full']."', metatitle = '".$row['metatitle']."', metakeywords = '".$row['metakeywords']."', metadescription = '".$row['metadescription']."' WHERE post_id = ".$row['id']." limit 1");
+$cn[] = $row['id']; 
+	    }
+	    
+##############################################################
+
+	}
+
+	//----------------------------------
+	// Search in the Comments
+	//----------------------------------
+	if (!empty($_POST['snr_search_in_comments'])){
+
+########################################################
+
+
+$wherec = "author LIKE '%".$_POST['snr_search_text']."%' or comment LIKE '%".$_POST['snr_search_text']."%' or reply LIKE '%".$_POST['snr_search_text']."%' ";
+$arr_cuery = $db->sql_query("SELECT * FROM ".$config['dbprefix']."comments WHERE ".$wherec." ");
+while($cuery[] = $db->sql_fetchrow($arr_cuery));
+array_pop($cuery); // удаляем лишний
+
+	    foreach ($cuery as $cow) {
+	    
+	        if (!empty($_POST['snr_include_name'])){
+	        	$cow['author'] = str_replace($_POST['snr_search_text'], $_POST['snr_replace_text'], $cow['author']);
+	        }
+
+	        if (!empty($_POST['snr_include_comment'])){
+	        	$cow['comment'] = str_replace($_POST['snr_search_text'], $_POST['snr_replace_text'], $cow['comment']);
+	        }
+	        
+	        if (!empty($_POST['snr_include_reply'])){
+	        	$cow['reply'] = str_replace($_POST['snr_search_text'], $_POST['snr_replace_text'], $cow['reply']);
+	        }
+
+ $db->sql_query("update ".$config['dbprefix']."comments set author = '".$cow['author']."', comment = '".$cow['comment']."', reply = '".$cow['reply']."' WHERE id = ".$cow['id']." limit 1");
+$cc[] = $cow['id']; 
+	    }
+
+##############################################################
+
+	}
+	
+	
+	
+	
+	//----------------------------------
+	// Search in the Add-Fields
+	//----------------------------------
+	if (!empty($_POST['snr_search_in_fields'])){
+
+########################################################
+
+
+$wheref = "fname LIKE '%".$_POST['snr_search_text']."%' or fvalue LIKE '%".$_POST['snr_search_text']."%' ";
+$arr_fuery = $db->sql_query("SELECT * FROM ".$config['dbprefix']."fields WHERE ".$wheref." ");
+while($fuery[] = $db->sql_fetchrow($arr_fuery));
+array_pop($fuery); // удаляем лишний
+
+	    foreach ($fuery as $fow) {
+	    
+	        if (!empty($_POST['snr_include_fname'])){
+	        	$fow['fname'] = str_replace($_POST['snr_search_text'], $_POST['snr_replace_text'], $fow['fname']);
+	        }
+
+	        if (!empty($_POST['snr_include_fvalue'])){
+	        	$fow['fvalue'] = str_replace($_POST['snr_search_text'], $_POST['snr_replace_text'], $fow['fvalue']);
+	        }
+
+$db->sql_query("update ".$config['dbprefix']."fields set fname = '".$fow['fname']."', fvalue = '".$fow['fvalue']."'WHERE fid = ".$fow['fid']." limit 1");
+$cf[] = $fow['fid']; 
+	    }
+
+##############################################################
+
+	}
+	
+	
+	
+	msg('info', t('Замена'), t('Процесс поиска и замены успешно завершен.<br /> Замен в новостях: %cn (%scn).<br /> Замен в комментариях:  %cс (%scс).<br /> Замен в доп.полях:  %cf (%scf).', 
+	array('cn'=>count($cn), 'scn'=>implode(",",$cn), 'cс'=>count($cc), 'scс'=>implode(",",$cc), 'cf'=>count($cf), 'scf'=>implode(",",$cf))), $PHP_SELF.'?mod=snr');
+}
+
+}
+?>

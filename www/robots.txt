@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /attach/
+Disallow: /system/
+Disallow: /images/
+Disallow: /go.php
+Crawl-delay: 3
+Sitemap: http://www.strawberry.su/sitemap.xml
+Sitemap: http://www.strawberry.su/g_sitemap.xml

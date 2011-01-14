@@ -1,0 +1,469 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+if (!empty($config['use_images_uf'])){
+  if ((straw_get_rights('edit_all') or straw_get_rights('delete_all')) and array_key_exists('user', $_GET)){
+    $user = totranslit(cheker($_GET['user']));
+  } else {
+    $user = totranslit($member['username']);
+  }
+}
+
+$image = !empty($_GET['image']) ? $_GET['image'] : (!empty($_POST['image']) ? $_POST['image'] : "");
+$name = !empty($_GET['name']) ? $_GET['name'] : (!empty($_POST['name']) ? $_POST['name'] : "");
+
+if (!empty($_POST['thumb_p']) and $_POST['thumb_p'] == 1) {
+$make_thumb = (!empty($_POST['make_thumb_pr']) and is_numeric($_POST['make_thumb_pr'])) ? $_POST['make_thumb_pr'] : 40;
+} else {
+$make_thumb = (!empty($_POST['make_thumb_px']) and is_numeric($_POST['make_thumb_px'])) ? $_POST['make_thumb_px'] : 200;
+}
+
+$ar = "";
+
+$query_string = straw_query_string($QUERY_STRING, array('action', 'mod', 'image', 'name', 'start_from'));
+$PHP_SELF .= '?mod=img'.$query_string;
+$allowed_upload = false;
+$folder = straw_parse_url($config['path_image_upload']);
+$folder = $folder['abs'];
+$whonow = "";
+
+   if (!empty($config['use_images_uf'])){
+if (!empty($_GET['user']) and !empty($user)){
+  $folder .= "/".strtolower($_GET['user']);
+  $whonow = cheker($_GET['user']);
+} elseif (empty($_GET['user']) and !empty($_GET['choose'])){
+  $folder .= "";
+  $whonow = "";
+} else {
+  $folder .= "/".strtolower($member['username']);
+  $whonow = $member['username'];
+}
+   }
+   
+  @mkdir($folder, "0".$config['chm_dir']);
+  @mkdir($folder.'/thumbs', "0".$config['chm_dir']);
+
+if (!empty($action) and $action == 'rename' and !empty($image) and !empty($name)){
+  @rename($folder.'/'.$image, $folder.'/'.$name);
+  @rename($folder.'/thumbs/'.$image, $folder.'/thumbs/'.$name);
+  header('Location: '.$PHP_SELF);
+}
+
+if (!empty($action) and $action == 'remove' and !empty($image)){
+  @unlink($folder.'/'.$image);
+  @unlink($folder.'/thumbs/'.$image);
+  header('Location: '.$PHP_SELF);
+}
+
+if (!empty($_FILES['image']['name'])){
+  for ($i = 0; $i < count($_FILES['image']['name']); $i++){
+      $ext   = end($ext = explode('.', $_FILES['image']['name'][$i]));
+      $type  = end($type = explode('/', $_FILES['image']['type'][$i]));
+      $image = preg_replace('/(.*?).'.$ext.'$/ie', "totranslit('\\1')", $_FILES['image']['name'][$i]).'.'.$ext;
+
+      foreach ($allowed_extensions as $allow){
+        if (substr($type, -strlen($allow)) == $allow){
+          $allowed_upload = true;
+        }
+      }
+
+      if ((file_exists($folder.'/'.$image) and !empty($overwrite) or !file_exists($folder.'/'.$image)) and !empty($allowed_upload)){
+           @move_uploaded_file($_FILES['image']['tmp_name'][$i], $folder.'/'.$image);
+
+             //Add watermark (text)
+       if (!empty($_POST['watermark']) and !empty($_POST['watermark_text'])) {
+           if(!empty($_POST['watermark_font']) and $_POST['watermark_font'] == "none") {
+           @add_watermark($folder.'/'.$image, cheker($_POST['watermark_text']), ((!empty($_POST['hotspot1']) and is_numeric($_POST['hotspot1'])) ? $_POST['hotspot1'] : 0), ($_POST['textcolor'] ? cheker($_POST['textcolor']) : 'FFFFFF'), ((!empty($_POST['textsize']) and is_numeric($_POST['textsize'])) ? $_POST['textsize'] : '12'));
+           } else {
+           @add_watermark($folder.'/'.$image, cheker($_POST['watermark_text']), ((!empty($_POST['hotspot1']) and is_numeric($_POST['hotspot1'])) ? $_POST['hotspot1'] : 0), ($_POST['textcolor'] ? cheker($_POST['textcolor']) : 'FFFFFF'), ((!empty($_POST['textsize']) and is_numeric($_POST['textsize'])) ? $_POST['textsize'] : '12'), font_directory.'/'.$_POST['watermark_font']);
+           }
+       }
+       
+             //Add watermark (image)
+       if (!empty($_POST['merge'])) {
+           @mergePix($folder.'/'.$image, watermark_directory.'/'.$_POST['watermark_image'], $folder.'/'.$image, $_POST['hotspot2'], ((!empty($_POST['merge_transition']) and is_numeric($_POST['merge_transition'])) ? $_POST['merge_transition'] : '55'));
+       }
+
+          if (!empty($_POST['thumb']) and !empty($make_thumb)){
+              @img_resize($folder.'/'.$image, $folder.'/thumbs/'.$image, $make_thumb);
+                 if (!empty($_POST['shadow'])) {
+                   @make_shadow($folder.'/thumbs/'.$image);
+                 }
+          }
+
+      }
+      
+      if (!empty($config['chm_dir'])) {
+      @chmod($folder, intval($config['chm_dir'], 8));
+      @chmod($folder.'/thumbs/', intval($config['chm_dir'], 8));
+      }
+      if (!empty($config['chm_file'])) {
+      @chmod($folder.'/'.$image, intval($config['chm_file'], 8));
+      @chmod($folder.'/thumbs/'.$image, intval($config['chm_file'], 8));
+      }
+  }
+ //   @header('Location: '.$PHP_SELF);
+}
+
+$usera_arr = array('' => '...');
+foreach ($users as $row){
+  $usera_arr[$row['username']] = $row['name'];
+}
+
+
+
+?>
+
+<!-- Загружам картинкама -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+
+<head>
+<meta http-equiv="content-type" content="text/html; charset=<?php echo $config['charset']; ?>">
+<title><?php echo $config['home_title']." ".$config['delitel']." ".t('АдминЦентр'); ?></title>
+<link href="<?php echo $add_way; ?>admin/themes/default/style.css" rel="stylesheet" type="text/css" media="screen">
+<script type="text/javascript" src="<?php echo $add_way; ?>data/java/cute.js"></script>
+<script type="text/javascript" src="<?php echo $add_way; ?>data/java/prototype.js"></script>
+<script type="text/javascript" src="<?php echo $add_way; ?>data/java/tooltip.js"></script>
+</head>
+
+<body>
+
+<table border="0" cellpading="0" cellspacing="0" width="100%">
+<tr><td class="charmapOver" style="font-size: 30px; height: 40px;">&nbsp;<?php echo t('Загрузка изображений'); ?></td></tr>
+</table>
+
+
+<?php
+
+if (!straw_get_rights('images', 'read')) {
+msg('error', t('Ошибка'), t('Вам запрещён доступ к этому модулю!'));
+} else {
+if (straw_get_rights('images', 'write')) { $yaw = 1; } else { $yaw = 0; }
+
+
+ if (!empty($_GET['area'])) { 
+ echo "<script language=\"javascript\" type=\"text/javascript\">
+<!--
+function insertimage(text){
+  text = ' ' + text + ' ';
+  opener.document.forms['addnews'].".$area."_story.focus();
+  opener.document.forms['addnews'].".$area."_story.value += text;
+  opener.document.forms['addnews'].".$area."_story.focus();
+}
+//-->
+</script>";
+$ar = "&amp;area=".cheker($_GET['area']);
+}
+ if (!empty($yaw)) {
+?>
+<div id="masterdiv">
+<form action="<?php echo $PHP_SELF; ?>" method="post" enctype="multipart/form-data">
+<b><?php echo t('Добавить изображение'); ?></b>
+<table border="0" cellpading="0" cellspacing="0" width="100%" class="panel">
+<tr>
+<td title="<?php echo t('Более 5 картинок за 1 раз загружать не рекомендуется! И не более 3 с использованием вотермарков и штампов.'); ?>">
+
+<script language="javascript">
+f = 0
+document.writeln('<input type="file" name="image[0]" size="70" value="" onchange="file_uploader(0);"><br>')
+document.writeln('<span id="image_1"></span>')
+</script>
+
+<label for="overwrite"><input type="checkbox" name="overwrite" id="overwrite"><?php echo t('Перезаписать, если картинка уже есть?'); ?></label><br>
+<label for="thumb"><input type="checkbox" name="thumb" id="thumb" onclick="javascript:ShowOrHide('make_thumb')"<?php echo (!extension_loaded('gd') ? ' disabled' : ''); ?>><?php echo t('Делать уменьшенную копию?'); ?></label>
+<br> 
+<span id="make_thumb" style="display: none;">
+<label for="thumb_px"><input type="radio" name="thumb_p" checked id="thumb_px" onclick="smn('sab0')" value="0"> <?php echo t('Уменьшать в пикселах'); ?></label> &nbsp;&nbsp;&nbsp;
+<label for="thumb_pr"><input type="radio" name="thumb_p" id="thumb_pr" onclick="smn('sab1')" value="1"> <?php echo t('Уменьшать в процентах'); ?></label>
+<br>
+<div id="sab0"><input type="text" name="make_thumb_px" size="1" maxlength="3" value="200"> <b>px</b> <?php echo t('укажите желаемый размер уменьшенного изображения (в пикселах от оригинального)'); ?></div>
+<div class="submenu" id="sab1"><input type="text" name="make_thumb_pr" size="1" maxlength="3" value="40"> <b>%</b> <?php echo t('укажите желаемый размер уменьшенного изображения (в процентах от оригинального)'); ?></div>
+<label title="<?php echo t('Добавить тень?'); ?>" for="shadow"><input type="checkbox" name="shadow" id="shadow"><?php echo t('Добавить тень для превъю?'); ?> (<?php echo t('Только для'); ?> *.jpg <?php echo t('и'); ?> *.png)</label>
+<br>
+</span>
+
+<?php
+   $dir = opendir(watermark_directory);
+while ($single_file = readdir($dir)){
+        if (strtolower(end(explode('.', $single_file))) == "jpg" or strtolower(end(explode('.', $single_file))) == "jpeg" or strtolower(end(explode('.', $single_file))) == "png"){
+                $watermarks[] = $single_file;
+        }
+}
+
+   $fdir = opendir(font_directory);
+while ($fsingle_file = readdir($fdir)){
+        if (strtolower(end(explode('.', $fsingle_file))) == "ttf"){
+                $fonts[] = $fsingle_file;
+        }
+}
+?>
+
+<!-- WATER -->
+<label for="watermark"><input type="checkbox" name="watermark" id="watermark" onclick="javascript:ShowOrHide('make_watermark')"<?php echo (!extension_loaded('gd') ? ' disabled' : ''); ?>><?php echo t('Добавить вотермарк?'); ?></label> 
+<!-- MERGE -->
+<label for="merge"><input type="checkbox" name="merge" id="merge" onclick="javascript:ShowOrHide('make_merge')"<?php echo (!extension_loaded('gd') ? ' disabled' : ''); ?>><?php echo t('Сделать штамп'); ?>?</label>
+
+
+<table width="100%">
+<tr>
+<td width="50%" class="enabled" valign="top">
+
+<span id="make_watermark" style="display: none;">
+<table width="99%" align="center">
+<tr><td><?php echo t('Текст надписи'); ?>:</td><td width="100"><?php echo t('Шрифт'); ?>:</td></tr>
+<tr>
+<td><input type="text" name="watermark_text" size="10" value="<?php echo $config['home_title']; ?>" style="width: 99%;"></td>
+<td>
+   <select name="watermark_font">
+   <option value="none"><?php echo t('Выбрать'); ?></option>
+   <?php
+    foreach($fonts as $font) {
+   echo '<option value="'.$font.'">'.$font.'</option>';
+   }
+   ?>
+   </select>
+</td>
+</tr>
+<tr><td><?php echo t('Позиция'); ?>:</td><td><?php echo t('Цвет шрифта'); ?>:</td></tr>
+<tr>
+<td rowspan="3"><input type="radio" name="hotspot1" value="1"> <input type="radio" name="hotspot1" value="2"> <input type="radio" name="hotspot1" value="3"><br><input type="radio" name="hotspot1" value="4"> <input type="radio" name="hotspot1" value="5" checked> <input type="radio" name="hotspot1" value="6"><br><input type="radio" name="hotspot1" value="7"> <input type="radio" name="hotspot1" value="8"> <input type="radio" name="hotspot1" value="9"></td>
+<td valign="top"><input type="text" name="textcolor" maxlength="6" size="6" value="FFCC00"></td>
+</tr>
+<tr><td valign="top"><?php echo t('Размер шрифта'); ?>:</td></tr>
+<tr><td valign="top"><input type="text" name="textsize" maxlength="2" size="1" value="12"></td></tr>
+</table>
+</span>
+
+</td>
+<td width="50%" class="enabled" valign="top">
+
+<span id="make_merge" style="display: none;">
+<table width="99%" align="center">
+<tr><td colspan="2"><?php echo t('0 - полная невидимость. 99 - непрозрачный штамп'); ?>.</td></tr>
+<tr>
+<td width="120"><?php echo t('Прозрачность'); ?>: <input type="text" name="merge_transition" maxlength="2" size="1" value="40"></td>
+<td><?php echo t('Изображение'); ?>:  <select onchange="showpreview('data/watermark/'+this.options[this.selectedIndex].value, 'previewimage')" name="watermark_image">
+   <?php 
+   foreach($watermarks as $watermark_image) {
+   echo '<option value="'.$watermark_image.'">'.$watermark_image.'</option>';
+   }
+   ?>
+   </select></td>
+</tr>
+
+<tr>
+<td valign="top"><?php echo t('Позиция'); ?>:<br><input type="radio" name="hotspot2" value="1"> <input type="radio" name="hotspot2" value="5"> <input type="radio" name="hotspot2" value="2"><br><input type="radio" name="hotspot2" value="8"> <input type="radio" name="hotspot2" value="0" checked> <input type="radio" name="hotspot2" value="6"><br><input type="radio" name="hotspot2" value="4"> <input type="radio" name="hotspot2" value="7"> <input type="radio" name="hotspot2" value="3"></td>
+<td><img name="previewimage" src="data/watermark/<?php echo $watermarks[0]; ?>" align="left" style="margin: 5px;"></td>
+</tr>
+</table>
+</span>
+
+</td>
+</tr>
+</table>
+
+
+<input type="submit" value="<?php echo t('Загрузить'); ?>">
+</table>
+<?php
+if (!empty($_GET['area'])) {
+echo "<input type=\"hidden\" name=\"area\" value=\"".$area."\">";
+}
+?>
+</form>
+</div>
+<br><br>
+
+<?php 
+} 
+?>
+
+<table width="100%" border="0" cellspacing="2" cellpadding="0" align="center">
+<?php
+ if (straw_get_rights('edit_all') or straw_get_rights('delete_all')){ 
+$doch = (empty($_GET['user']) and !empty($_GET['choose'])) ? "&amp;choose=1" : "";
+$imsort_url = (!empty($_GET['user'])) ? "&amp;user=".$_GET['user'] : "".$doch;
+$imsort = (!empty($_GET['sortby']) and $_GET['sortby'] == "name") ? "- <a href=\"index.php?mod=img&amp;sortby=time".$imsort_url.$ar."\">".t('Сортировка по дате закачки')."</a> <br>- ".t('Сортировка по имени')."." : "- ".t('Сортировка по дате закачки')." <br>- <a href=\"index.php?mod=img&amp;sortby=name".$imsort_url.$ar."\">".t('Сортировка по имени')."</a>.";
+?>
+<tr>
+<td colspan="2"><?php echo $imsort; ?></td>
+<td align="right" colspan="3">
+<form action="<?php echo $PHP_SELF; ?>" method="get">
+<input name="mod" type="hidden" value="img">
+<input name="choose" type="hidden" value="open">
+<?php echo makeDropDown($usera_arr, 'user', $whonow); ?>
+<input type="submit" value=" <?php echo t('Открыть'); ?> ">
+<?php
+if (!empty($_GET['area'])) {
+echo "<input type=\"hidden\" name=\"area\" value=\"".cheker($_GET['area'])."\">";
+}
+?>
+</form>
+</td>
+</tr>
+
+<?php
+
+ }
+
+$handle = opendir($folder);
+while ($file = readdir($handle)){
+    if (in_array(strtolower(end(explode('.', $file))), $allowed_extensions)){
+      $files[$file] = filemtime($folder.'/'.$file);
+    }
+}
+
+if (!empty($files) and count($files)){
+((!empty($_GET['sortby']) and $_GET['sortby'] == "name") ? ksort($files) : arsort($files));
+
+$prs = $config['adm_image_prev_show'];
+$prw = $config['adm_image_prev_w'];
+$prh = $config['adm_image_prev_h'];
+
+  $image_per_page = (!empty($image_per_page) ? $image_per_page : 21);
+  $start_from = (!empty($start_from) ? $start_from : '');
+  $i = $start_from;
+  $j = 0;
+  $total = 0;
+  foreach ($files as $file => $time){
+      if ($j < $start_from){
+          $j++;
+          continue;
+      }
+
+      $i++;
+      $total += filesize($folder.'/'.$file);
+
+
+   if (!empty($config['use_images_uf'])){
+if (!empty($_GET['user']) and !empty($user) and !empty($_GET['choose'])){
+$us = "/".strtolower($_GET['user'])."/";
+$titus = $user.": ";
+} elseif (empty($_GET['user']) and !empty($_GET['choose'])) {
+$us = "/";
+$titus = "";
+} else {
+$us = "/".strtolower($member['username'])."/";
+$titus = $member['username'].": ";
+}
+   } else {
+$us = "/";
+$titus = "";   
+   }
+   
+## Размеры оригинального изображения
+$flinfo = getimagesize($folder.'/'.$file);
+
+## Есть ли превью?      //$prinsert = '<a target="_blank" href="'.$config['path_image_by_main'].$us.$file.'"><img src="'.$config['path_image_by_main'].$us.'thumbs/'.$file.'" alt="'.$file.'" title="'.$config['home_title'].' - '.$titus.$file.'" border="0" '.$info[3].'></a>';
+if (file_exists($folder.'/thumbs/'.$file)){
+      $info = getimagesize($folder.'/thumbs/'.$file);
+      $prinsert = "[url=".$config['http_home']."/".$config['path_image_by_main'].$us.$file."][img=left alt=".spaser(@htmlspecialchars(str_replace($config['delitel'], "", $config['home_title'])))."]".$config['path_image_by_main'].$us."thumbs/".$file."[/img][/url]";
+      $primg = '<a href="javascript:insertimage(\''.htmlspecialchars($prinsert).'\')">'.t('[превъю]').'</a>';
+      $imgprview = "<br><a target=\"_blank\" href=\"".$config['path_image_upload'].$us."thumbs/".$file."\" title=\"".t('превью %fil', array('fil'=>$file))."\">".t('[превью]')."</a>";
+
+## Проверяем размер тумба.
+if ($info[0] > $prw)
+{$w = $prw;}
+else
+{$w = $info[0];}
+## Проверяем размер тумба.
+if ($info[1] > $prh)
+{$h = $prh;}
+else
+{$h = $info[1];}
+
+## инфа о превью и полнойкартинке
+$abimg = t("Оригинал").":<br>".$flinfo[0]."x".$flinfo[1]."<br>".formatsize(filesize($folder.'/'.$file));
+$abprimg = t("Превъю").":<br>".$info[0]."x".$info[1]."<br>".formatsize(filesize($folder.'/thumbs/'.$file));
+
+## проверяем режим показа превью
+if (!empty($prs) and $prs == 1) {
+$prewshow = '<a target="_blank" href="'.$config['path_image_upload'].$us.'thumbs/'.$file.'"><img src="'.$config['path_image_upload'].$us.'thumbs/'.$file.'" width="'.$w.'" height="'.$h.'"></a>';
+} else {
+$prewshow = '<a target="_blank" href="'.$config['path_image_upload'].$us.'thumbs/'.$file.'" title="'.t('Посмотреть превъю').'">'.t('Размер превью').':<br>'.t('ширина').': '.$w.'<br>'.t('высота').': '.$h.'</a>';
+}
+
+      }
+      else
+      {
+## Если нет, то берем размер реальной картнки.
+$primg = t('[нет превъю]');
+$abimg = t("Оригинал").":<br>".$flinfo[0]."x".$flinfo[1]."<br>".formatsize(filesize($folder.'/'.$file))."";
+$prewshow = t('[нет превъю]');
+$abprimg = t('[нет превъю]');
+$imgprview = "<br>".t('[нет превъю]');
+      }
+
+$flinsert = '<img src="'.$config['path_image_by_main'].$us.$file.'" alt="'.$config['home_title'].' - '.$titus.$file.'" border="0" '.$flinfo[3].'>';
+$flinsert = "[img=left alt=".spaser(@htmlspecialchars(str_replace($config['delitel'], "", $config['home_title'])))."]".$config['path_image_by_main'].$us.$file."[/img]";
+$insert = '<a href="javascript:insertimage(\''.htmlspecialchars($flinsert).'\')">'.t('[оригинал]').'</a><br>'.$primg.'';
+
+?>
+
+ <tr <?php echo straw_that(); ?> align="center" height="17">
+  <td width="100"><?php echo $prewshow; ?></td>
+  <td width="100">Просмотр:<br><a target="_blank" href="<?php echo $config['path_image_upload'].$us.$file; ?>" alt="<?php echo $file; ?>" title="<?php echo $file; ?>">[оригинал]</a><?php echo $imgprview; ?></td>
+  <td width="100">Вставить:<br><?php echo $insert; ?></td>
+  <td>Операции:<?php if ($yaw) { ?><br><a href="?mod=img&amp;action=rename&amp;image=<?php echo $file.$query_string; ?>" onclick="if (ren=window.prompt('', '<?php echo $file; ?>')){window.location.href=this.href+'&name='+ren;}return false;"><?php echo t('[переименовать]'); ?></a><br><a href="javascript:confirmDelete('?mod=img&amp;action=remove&amp;image=<?php echo $file.$query_string; ?>')"><?php echo t('[удалить]'); ?></a><?php } ?></td>
+  <td width="100"><?php echo $abimg; ?></td>
+  <td width="100"><?php echo $abprimg; ?></td>
+ </tr>
+ <tr><td colspan="6" style="margin: 0px; padding: 0px;"><hr style="margin: 0px; padding: 0px;"></td></tr>
+<?php
+       if ($i >= $image_per_page + $start_from){
+          break;
+      }
+  }
+  
+$npp_nav = "";
+
+  if ($start_from > 0){
+      $previous = $start_from - $image_per_page;
+      $npp_nav .= '<a href="'.$PHP_SELF.'&amp;start_from='.$previous.$ar.'">&lt;&lt;</a>';
+  }
+
+  if (count($files) > $image_per_page){
+      $npp_nav .= ' [ ';
+      $enpages_count = @ceil(count($files) / $image_per_page);
+      $enpages_start_from = 0;
+      $enpages = '';
+
+      for ($j = 1; $j <= $enpages_count; $j++){
+          if ($enpages_start_from != $start_from){
+              $enpages .= '<a href="'.$PHP_SELF.'&amp;start_from='.$enpages_start_from.$ar.'">'.$j.'</a> ';
+          } else {
+              $enpages .= ' <b> <u>'.$j.'</u> </b> ';
+          }
+
+          $enpages_start_from += $image_per_page;
+      }
+
+      $npp_nav .= $enpages;
+      $npp_nav .= ' ] ';
+  }
+
+  if (count($files) > $i){
+      $npp_nav .= '<a href="'.$PHP_SELF.'&amp;start_from='.$i.$ar.'">&gt;&gt;</a>';
+  }
+?>
+
+ <tr><td colspan="6"><?php echo $npp_nav; ?></td></tr>
+ <tr><td align="right" colspan="6" style="padding: 2px 2px 2px 2px;"><?php echo t('Общий размер картинок <b>%size</b>', array('size' => formatsize($total))); ?></td></tr>
+</table>
+
+<?php
+} else {
+?>
+ <tr><td align="center" colspan="6" style="padding: 2px 2px 2px 2px;"><?php echo t('- Изображений нет -'); ?></td></tr>
+</table>
+<?php
+}
+
+echo on_page();
+}
+?>
+
+</body>
+</html>

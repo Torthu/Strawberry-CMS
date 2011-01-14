@@ -1,0 +1,87 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+// ********************************************************************************
+// Add JS
+// ********************************************************************************
+if (!empty($action)){
+
+    if (!is_writable(js_file)){
+      @chmod(js_file, 0666);
+    }
+
+if (!empty($_POST['jswhere'])) {
+$jswhere = $_POST['jswhere'];
+$scripts = "";
+	   while(list($key, $val) = each($jswhere)) {
+		$scripts .= "{$val},";
+	   }
+file_write(js_file, $scripts);
+	} else {
+file_write(js_file, '');
+	}
+
+}
+
+
+
+// ********************************************************************************
+// Show all JS
+// ********************************************************************************
+echoheader('options', t('JS-Включения'));
+if (!straw_get_rights($mod, 'read')) {
+msg('error', t('Ошибка'), t('Вам запрещён доступ к этому модулю!'));
+} else {
+if (straw_get_rights($mod, 'write')) { $yaw = 1; } else { $yaw = 0; }
+?>
+
+<form method="post" action="">
+<table border="0" cellpading="0" cellspacing="0" width="100%">
+<tr>
+ <td width="321" height="33" class="panel"><b><?php echo t('JS-Включения'); ?></b>
+</tr>
+<tr>
+<td><?php echo t('JavaScript файлы подключаются между тегами %ho и %hc по всем правилам автоматически.<br>Данная система избавит вас от постоянного редактирования шаблонов.<br> Файлы скриптов располагаются в папке <i>system/data/java/</i>.<br>Текущие доступные файлы скриптов', array('par'=>'type="application/rss+xml"', 'ho'=>'&lt;head&gt;', 'hc'=>'&lt;/head&gt;')); ?>:</td>
+</tr>
+<tr>
+<td><?php
+echo "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" align=\"center\" width=\"100%\"><tr>";
+$res = file_read(js_file);
+	$where_mas = explode(",", $res);
+	$a = 1;
+$handle = opendir(java_directory);
+while ($file = readdir($handle)){
+        if (strtolower(end(explode('.', $file))) == "js"){
+		$cel = "";
+		foreach ($where_mas as $val) {
+			if ($val == $file) $cel="checked";
+		}
+		echo "\n<td width=\"10\"><input type=\"checkbox\" name=\"jswhere[]\" value=\"".$file."\" ".$cel."></td><td width=\"20%\">".$file."</td>";
+		if ($a == 5) {
+			echo "\n</tr><tr>\n";
+			$a = 1;
+		} else {
+			$a++;
+		}
+            
+        }
+}
+echo "\n</tr></table>";
+?>
+</td>
+</tr>
+<?php if ($yaw) { ?>
+<tr>
+<td><input type="submit" name="js" id="js" value="  <?php echo t('Редактировать'); ?>  "></td>
+</tr>
+<?php } ?>
+</table>
+  <input type="hidden" name="mod" value="js">
+  <input type="hidden" name="action" value="save">
+</form>
+<?php 
+}
+echo on_page();
+echofooter(); 
+?>

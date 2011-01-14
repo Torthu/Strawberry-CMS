@@ -1,0 +1,282 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+<title>WackoFormatter: Text Formatting Rules</title>
+<link rel="stylesheet" type="text/css" href="../../css/wacko.css" />
+<link rel="stylesheet" type="text/css" href="../../css/highlighter.css" />
+</head>
+<body>
+<h1>WackoFormatter: Text Formatting Rules</h1>
+<br><a name="p7705-1"></a><p class="auto" id="p7705-1">
+<!--notypo--></p><fieldset style="padding:10px;"><legend><strong> Table Of Contents </strong></legend><div class="toc1"><a travel="h7705-2" href="#h7705-2">Basic Formatting</a></div><div class="toc1"><a travel="h7705-3" href="#h7705-3">Links</a></div><div class="toc1"><a travel="h7705-4" href="#h7705-4">Headlines</a></div><div class="toc1"><a travel="h7705-10" href="#h7705-10">Bulleted and&nbsp;Numbered Lists</a></div><div class="toc1"><a travel="h7705-11" href="#h7705-11"> Cite and&nbsp;definitions </a></div><div class="toc1"><a travel="h7705-12" href="#h7705-12">Footnotes</a></div><div class="toc1"><a travel="h7705-13" href="#h7705-13">Tables</a></div><div class="toc1"><a travel="h7705-14" href="#h7705-14">Miscellaneous</a></div><div class="toc1"><a travel="h7705-17" href="#h7705-17">Extensions - additional formatters (Highlighters)</a></div></fieldset><!--/notypo--><br><a name="p7705-2"></a><p class="auto" id="p7705-2">
+
+Wacko text formatting is&nbsp;slightly different from other Wikis, so&nbsp;you should read the&nbsp;examples below.</p><a name="p7705-3"></a><p class="auto" id="p7705-3">
+Text enclosed in&nbsp;pairs of&nbsp;double quotes is&nbsp;not formatted and&nbsp;remains unchanged when displayed.</p><a name="h7705-2"></a><h2>Basic Formatting</h2>
+
+<br>
+<table class="dtable" border="0"> <tbody><tr class="userrow"><td class="usercell"><!--notypo-->**bold**<!--/notypo--><br>
+</td><td class="usercell"><strong>bold</strong><br>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->//italic//<!--/notypo--><br>
+</td><td class="usercell"><em>italic</em><br>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->__underline__<!--/notypo--><br>
+</td><td class="usercell"><u>underline</u><br>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->--strikethrough--<!--/notypo--><br>
+
+</td><td class="usercell"><s>strikethrough</s><br>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->##monospace text##<!--/notypo--><br>
+</td><td class="usercell"><tt>monospace text</tt><br>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->&gt;&gt;centered&lt;&lt;<!--/notypo--><br>
+</td><td class="usercell"><div class="center">centered</div>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->!!emphasis!!<!--/notypo--> (also <!--notypo-->''emphasis''<!--/notypo-->,<br>
+
+but&nbsp;it&nbsp;is better not&nbsp;to&nbsp;use it).<br>
+</td><td class="usercell"><span class="cite">emphasis</span><br>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->??note??<!--/notypo--><br>
+</td><td class="usercell"><span class="mark">note</span><br>
+</td></tr>  </tbody></table>
+
+<a name="h7705-3"></a><h2>Links</h2>
+<p><div class="cite"><b>Attention!</b> This functionality heavily depends on used WackoFormatterConfig class. Default class provides not all of this linking functionality!</div></p>
+<table class="dtable" border="0"> <tbody><tr class="userrow"><td class="usercell"><!--notypo-->[[http://www.webscript.ru]] or ((http://www.webscript.ru))<!--/notypo--><br>
+</td><td class="usercell"><a href="http://www.webscript.ru" 
+>http://www.webscript.ru</a><br>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->[[http://www.webscript.ru Webscript]] or ((http://www.webscript.ru Webscript))<!--/notypo--><br>
+</td><td class="usercell"><a href="http://www.webscript.ru" 
+>Webscript</a><br>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->[[SandBox]] or ((SandBox))<!--/notypo--><br>
+
+</td><td class="usercell"><a href="http://wackowiki.com/Sandbox" class="" title="SandBox">SandBox</a><br>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->[[SandBox The sandbox page]] <br>or ((SandBox The sandbox page))<!--/notypo--><br>
+</td><td class="usercell"><a href="http://wackowiki.com/Sandbox" class="" title="SandBox">The sandbox page</a><br>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->http://www.ya.ru<!--/notypo--> is&nbsp;highlighted automatically.<br>
+</td><td class="usercell"><a href="http://www.ya.ru" 
+>http://www.ya.ru</a><br>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->http://www.yandex.ru/logo1.gif<!--/notypo--> <br>
+
+Image with no&nbsp;link.<br>
+</td><td class="usercell"><img src="http://www.yandex.ru/logo1.gif"><br>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->((/HomePage http://www.yandex.ru/logo1.gif))<!--/notypo--> <br>
+Image with a&nbsp;link.<br>
+</td><td class="usercell"><a name=".homepage" href="http://wackowiki.com/HomePage" class="" title="HomePage"><img src="http://www.yandex.ru/logo1.gif" title="http://www.yandex.ru/logo1.gif" border="0"></a><br>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->{{a name="test"}} or {{anchor name="test"}}<!--/notypo--> <br>
+anchor declaration.<br>
+
+</td><td class="usercell"><!--notypo--><a travel="test" name="test" href="#test" title=""></a>
+<!--/notypo--><br>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->((#test)) or ((/HomePage#TOC_1))<!--/notypo--> <br>
+anchor reference.<br>
+</td><td class="usercell"><a travel="test" href="#test" name="otest">test</a> or&nbsp;<a href="http://wackowiki.com/HomePage#TOC_1" class="" title="HomePage">/HomePage#TOC_1</a><br>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->mailto:address@domain.com<!--/notypo--><br>
+email.<br>
+
+</td><td class="usercell"><a href="mailto:address@domain.com">mailto:address@domain.com</a><br>
+</td></tr> 
+ </tbody></table>
+<br><a name="p7705-5"></a><p class="auto" id="p7705-5">
+<strong>NB:</strong> mixed case words  (LikeThis)
+do&nbsp;not need to&nbsp;be enclosed in&nbsp;brackets.
+For&nbsp;internal links (inside this Wiki), the&nbsp;complete
+URL&nbsp;should not&nbsp;be&nbsp;written<br>
+
+ (otherwise the&nbsp;link will not&nbsp;work). Add&nbsp;"http://" only for&nbsp;external links.</p><br><a name="p7705-6"></a><p class="auto" id="p7705-6">
+<strong>NB:</strong> To&nbsp;prevent a&nbsp;WordLikeThis from becoming a&nbsp;link, place a&nbsp;~ (tilde) in&nbsp;front of&nbsp;it.</p><br><a name="p7705-7"></a><p class="auto" id="p7705-7">
+
+<strong>NB:</strong> You&nbsp;can also link to&nbsp;non BumpyText words using:  ((Clusters here)) = <a href="clusters">here</a>.</p><a name="h7705-4"></a><h2>Headlines</h2>
+<br>
+<div class="indent"><!--notypo-->== big Headline ==<!--/notypo--> </div><a name="h7705-5"></a><h1> big&nbsp;Headline </h1>
+
+<br>
+<div class="indent"><!--notypo-->=== bigger Headline ===<!--/notypo--> </div><a name="h7705-6"></a><h2>bigger Headline </h2>
+<div class="indent"><br>
+<!--notypo-->==== middle Headline ====<!--/notypo--> </div><a name="h7705-7"></a><h3> middle Headline </h3>
+<div class="indent"><br>
+<!--notypo-->===== smaller Headline =====<!--/notypo--> </div><a name="h7705-8"></a><h4> smaller Headline </h4>
+
+<div class="indent"><br>
+<!--notypo-->====== small Headline ======<!--/notypo--> </div><a name="h7705-9"></a><h5> small Headline </h5>
+<br><a name="p7705-8"></a>
+<a name="h7705-10"></a><h2>Bulleted and&nbsp;Numbered Lists</h2>
+<br><a name="p7705-9"></a><p class="auto" id="p7705-9">
+Indent lists with double spaces, and&nbsp;use *, 1., A.,
+a., or&nbsp;i. to&nbsp;specify the&nbsp;type of&nbsp;list
+you&nbsp;want.</p><br>
+<p>NB: here "_" (underscore) means space character.</p>
+
+<table class="dtable" border="0"> <tbody><tr class="userrow"><td class="usercell"><!--notypo-->first line<br>__indented line<!--/notypo--><br>
+</td><td class="usercell"><div class="indent">first line<div class="indent">indented line</div></div>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->__*bulleted list<br>__*bulleted list-2<!--/notypo--><br>
+</td><td class="usercell"><ul><li>bulleted list
+</li><li>bulleted <nobr>list-2</nobr></li></ul>
+
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->__1. numbered list<br>__1. numbered list-2<!--/notypo--><br>
+</td><td class="usercell"><ol type="1"><li> numbered list
+</li><li> numbered <nobr>list-2</nobr></li></ol>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->__A. using uppercase characters<br>__A. using uppercase characters-2<!--/notypo--><br>
+
+</td><td class="usercell"><ol type="A"><li> using uppercase characters
+</li><li> using uppercase <nobr>characters-2</nobr></li></ol>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->__a. using lowercase characters<br>__a. using lowercase characters-2<!--/notypo--><br>
+</td><td class="usercell"><ol type="a"><li> using lowercase characters
+</li><li> using lowercase <nobr>characters-2</nobr></li></ol>
+
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->__i. using Roman numbers<br>__i. using Roman numbers-2<!--/notypo--><br>
+</td><td class="usercell"><ol type="i"><li> using Roman numbers
+</li><li> using Roman <nobr>numbers-2</nobr></li></ol>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->__1. numbered list<br>____1. nested numbered list<br>____1. nested numbered list-2<br>__1. numbered list-2<!--/notypo--><br>
+</td><td class="usercell"><ol type="1"><li> numbered list
+<ol type="1"><li> nested numbered list</li>
+<li> nested numbered list-2</li></ol>
+</li><li> numbered <nobr>list-2</nobr></li></ol>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->__1.#5 numbered list begins with 5<br>__1. numbered list-next<!--/notypo--><br>
+</td><td class="usercell"><ol type="1"><li value="5"> numbered list begins with 5</li>
+<li>numbered list-next</li></ol>
+</td></tr> </tbody></table>
+<a name="h7705-11"></a><h2> Cite and&nbsp;definitions </h2>
+
+<table class="dtable" border="0">
+<tbody><tr class="userrow"><td class="usercell"><!--notypo-->&lt;[ Citation of text <br>(blockquote) ]&gt;<!--/notypo--><br>
+</td><td class="usercell"><blockquote>Citation of&nbsp;text <br>
+(blockquote)</blockquote><br>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->(?Term Some definition?)<!--/notypo--><br>
+</td><td class="usercell"><dfn title="Some definition">Term</dfn><br>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->(?Term containing spaces == Some other definition?)<!--/notypo--><br>
+
+</td><td class="usercell"><dfn title=" Some other definition">Term containing spaces </dfn><br>
+</td></tr> </tbody></table>
+<a name="h7705-12"></a><h2>Footnotes</h2>
+<table class="dtable" border="0">
+<tbody><tr class="userrow"><td class="usercell"><!--notypo-->Text, then footnote[[*]] and second one[[**]]<!--/notypo--><br>
+</td><td class="usercell">Text, then footnote<sup><a travel="oftn1" href="#oftn1" name="ftn1">*</a></sup> and&nbsp;second one<sup><a travel="oftn2" href="#oftn2" name="ftn2">**</a></sup><br>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->Text, then numeric footnote[[*1]] and second one[[*2]]<!--/notypo--><br>
+
+</td><td class="usercell">Text, then numeric footnote<sup><a travel="oftnd1" href="#oftnd1" name="ftnd1">1</a></sup> and&nbsp;second one<sup><a travel="oftnd2" href="#oftnd2" name="ftnd2">2</a></sup><br>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->[[#*]] Text for first footnote<!--/notypo--><br>
+<!--notypo-->[[#**]] Text for second footnote<!--/notypo--><br>
+<!--notypo-->[[#1]] Text for numeric footnote<!--/notypo--><br>
+<!--notypo-->[[#2]] Text for second numeric footnote<!--/notypo--><br>
+</td><td class="usercell"><sup><a travel="ftn1" href="#ftn1" name="oftn1">*</a></sup> Text for&nbsp;first footnote<br>
+
+<sup><a travel="ftn2" href="#ftn2" name="oftn2">**</a></sup> Text for&nbsp;second footnote<br>
+<sup><a travel="ftnd1" href="#ftnd1" name="oftnd1">1</a></sup> Text for&nbsp;numeric footnote<br>
+<sup><a travel="ftnd2" href="#ftnd2" name="oftnd2">2</a></sup> Text for&nbsp;second numeric footnote<br>
+</td></tr> </tbody></table>
+
+<a name="h7705-13"></a><h2>Tables</h2>
+<br><a name="p7705-10"></a><p class="auto" id="p7705-10">
+<strong>Table with border</strong><br>
+<!--notypo-->#|<br>||cell11|cell12|cell13||<br>||cell21|cell22||<br>|#<!--/notypo--></p><br>
+<table class="usertable" border="1">
+<tbody><tr class="userrow"><td class="usercell">cell11</td><td class="usercell">cell12</td><td class="usercell">cell13</td></tr>
+<tr class="userrow"><td class="usercell">cell21</td><td class="usercell" colspan="2">cell22</td></tr>
+
+</tbody></table>
+<br><a name="p7705-11"></a><p class="auto" id="p7705-11">
+<strong>Table without border, 100% width</strong><br>
+<!--notypo-->#||<br>||cell11|cell12|cell13||<br>||cell21|cell22||<br>||#<!--/notypo--></p><br>
+<table class="dtable" border="0">
+<tbody><tr class="userrow"><td class="usercell">cell11</td><td class="usercell">cell12</td><td class="usercell">cell13</td></tr>
+<tr class="userrow"><td class="usercell">cell21</td><td class="usercell" colspan="2">cell22</td></tr>
+
+</tbody></table>
+<a name="h7705-14"></a><h2>Miscellaneous</h2>
+<br><a name="p7705-12"></a><p class="auto" id="p7705-12">
+<strong>Horizontal rule (separator):</strong><br>
+<!--notypo-->----<!--/notypo--></p><hr noshade="noshade" size="1">
+<br><a name="p7705-13"></a><p class="auto" id="p7705-13">
+<strong>Forced line break:</strong><br>
+<!--notypo-->test---shmest<!--/notypo--><br>
+test<br>
+shmest</p><br><a name="p7705-14"></a><p class="auto" id="p7705-14">
+
+<strong>Text output "<nobr>as-is</nobr>" - ignoring markup</strong><br>
+Text should be&nbsp;enclosed by&nbsp;a pair of&nbsp;double quotes.
+</p><br><a name="p7705-15"></a><p class="auto" id="p7705-15">
+<strong>HTML output "<nobr>as-is</nobr>"</strong><br>
+
+<span class="cite">this works only if&nbsp;you allow it by adjusting configuration option <tt>allow_rawhtml</tt>.</span><br>
+<!--notypo-->&lt;# &lt;input type="text"&gt; #&gt;<!--/notypo--><br>
+<input type="text"><br>
+<strong>NB</strong>: it&nbsp;is very dangerous option, avoid XSS!</p><br><a name="p7705-16"></a><p class="auto" id="p7705-16">
+
+<strong>Superscript:</strong><br>
+<!--notypo-->E=mc^^2^^<!--/notypo--><br>
+E=mc<sup>2</sup></p><ul><li> Please Note: there should be&nbsp;no spaces inside double <!--notypo-->^^<!--/notypo--> - this markup is&nbsp;provided for&nbsp;mathematics (<nobr>sub-indexes</nobr>) and&nbsp;since you&nbsp;should avoid spaces <em>inside</em> the&nbsp;block!!</li></ul>
+
+<br><a name="p7705-17"></a><p class="auto" id="p7705-17">
+<strong>Subscript:</strong><br>
+<!--notypo-->H vv2vv O<!--/notypo--><br>
+H&nbsp;<sub>2</sub> O</p><ul><li> Please Note: there should be&nbsp;no spaces inside double <strong>vv</strong> - this markup is&nbsp;provided for&nbsp;mathematics (<nobr>sub-indexes</nobr>) and&nbsp;since you&nbsp;should avoid spaces <em>inside</em> the&nbsp;block!!</li></ul>
+
+<br>
+
+<a name="h7705-17"></a><h2>Extensions - additional formatters (Highlighters)</h2><a name="p7705-27"></a><p class="auto" id="p7705-27">
+<a href="http://wackowiki.com/">WackoWiki</a> is&nbsp;easily extended with text formatters. They are&nbsp;called using syntax <!--notypo-->%%(name) text%%<!--/notypo-->.<br>
+<p><div class="cite"><b>Attention!</b> This functionality heavily depends on used WackoFormatterConfig class. Default class does not provide this functionality at all!</div></p>
+There are&nbsp;several formatters included in&nbsp;Wacko package:</p><table class="dtable" border="0"> <tbody><tr class="userrow"><td class="usercell"><!--notypo-->%%(php) PHP-code%%<!--/notypo--><br>
+
+</td><td class="usercell"><!--notypo--><div class="code"><code><font color="#000000">
+<font color="#0000bb">&lt;?<br>phpinfo</font><font color="#007700">();<br></font><font color="#0000bb">$s </font><font color="#007700">= </font><font color="#dd0000">"Hello, World!\n"</font><font color="#007700">;<br>print </font><font color="#dd0000">"$s"</font><font color="#007700">;<br></font><font color="#0000bb">?&gt;</font>
+</font>
+</code></div><!--/notypo--><br>
+Attention: that code should begin with &lt;? and&nbsp;end with ?&gt;,
+because builtin PHP&nbsp;parser identifies PHP&nbsp;by&nbsp;those
+separators.<br>
+
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->%%(comments) Comments, they will be hidden when the page is stored and redisplayed %%<!--/notypo--><br>
+</td><td class="usercell"><br>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->%%(icq) ICQ Pro Logs%%<!--/notypo--><br>
+</td><td class="usercell"><div><br><table><tbody><tr style="background: rgb(238, 255, 238) none repeat scroll 0%; -moz-background-clip: initial; -moz-background-origin: initial; -moz-background-inline-policy: initial;"><td class="micq1" nowrap="nowrap">Somebody</td><td class="micq3">Hello</td><td class="micq2" nowrap="nowrap">14.05.20 14:52</td></tr><tr style="background: rgb(238, 238, 255) none repeat scroll 0%; -moz-background-clip: initial; -moz-background-origin: initial; -moz-background-inline-policy: initial;"><td class="micq1" nowrap="nowrap">Roman</td><td class="micq3">Yes, hello</td><td class="micq2" nowrap="nowrap">14.05.20 14:52</td></tr><tr style="background: rgb(238, 255, 238) none repeat scroll 0%; -moz-background-clip: initial; -moz-background-origin: initial; -moz-background-inline-policy: initial;"><td class="micq1" nowrap="nowrap">Somebody</td><td class="micq3">Testing<br>                               blah blah</td><td class="micq2" nowrap="nowrap">28.06.20 2:25</td></tr><tr style="background: rgb(238, 238, 255) none repeat scroll 0%; -moz-background-clip: initial; -moz-background-origin: initial; -moz-background-inline-policy: initial;"><td class="micq1" nowrap="nowrap">Roman</td><td class="micq3">Yep</td><td class="micq2" nowrap="nowrap">28.06.20 2:25</td></tr></tbody></table></div><br>
+
+</td></tr> <tr class="userrow"><td class="usercell" colspan="2">There's also icq_t (Trillian), icq_l (ICQ Lite) and&nbsp;icq_m (Miranda IM&nbsp;+ nConvers) formatters.<br>
+</td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->%%(email) Email%%<!--/notypo--><br>
+</td><td class="usercell"><div class="code"><pre>Hi!
+<span class="email2">RI&gt;&gt; Yes, it&nbsp;is.</span>
+<span class="email1">&gt;Are you&nbsp;sure?</span>
+
+Of&nbsp;course, yes!
+
+Roman.</pre></div><br>
+</td></tr> <tr class="userrow"><td class="usercell" colspan="2"></td></tr> <tr class="userrow"><td class="usercell"><!--notypo-->%%(sql) SQL-code%%<!--/notypo--><br>
+</td><td class="usercell"><!--notypo--><div class="code"><code><font color="blue">SELECT</font>&nbsp;*&nbsp;<font color="blue">FROM</font>&nbsp;sometable&nbsp;<font color="blue">WHERE</font>&nbsp;a&nbsp;=&nbsp;'12'&nbsp;<font color="blue">and</font>&nbsp;b&nbsp;=&nbsp;<font color="green"><b>2</b></font>&nbsp;<font color="blue">ORDER</font>&nbsp;<font color="blue">BY</font>&nbsp;c&nbsp;<font color="blue">DESC</font></code></div><!--/notypo--><br>
+
+</td></tr> <tr class="userrow"><td class="usercell" colspan="2"></td></tr> <tr class="userrow"><td class="usercell">There's also (ini), (html), (css) and&nbsp;(pascal) highlighters.<br>
+</td><td class="usercell"><!--notypo--><div class="code"><pre><span style="color: rgb(0, 0, 128); font-weight: bold;">&lt;html&gt;</span>
+<span style="color: rgb(0, 0, 128); font-weight: bold;">&lt;a </span><span style="color: rgb(128, 0, 0); font-weight: bold;">href=</span><span style="color: blue;">"http://www.ya.ru"</span> <span style="color: rgb(128, 0, 0); font-weight: bold;">width=</span><span style="color: blue;">"8"</span><span style="color: rgb(0, 0, 128); font-weight: bold;">&gt;</span>test<span style="color: rgb(0, 0, 128); font-weight: bold;">&lt;/a&gt;</span>
+<span style="color: rgb(0, 0, 128); font-weight: bold;">&lt;/html&gt;</span></pre></div><a name="p7705-28"></a><p class="auto" id="p7705-28"><!--/notypo--></p><hr noshade="noshade" size="1"><a name="p7705-29"></a><p class="auto" id="p7705-29">
+
+<!--notypo--></p><div class="code"><pre><strong style="background: rgb(238, 224, 204) none repeat scroll 0%; color: rgb(170, 0, 0); -moz-background-clip: initial; -moz-background-origin: initial; -moz-background-inline-policy: initial;">[Wiki]</strong>
+BestEngine<span style="color: rgb(68, 0, 221);">=</span>"WackoWiki"
+Version<span style="color: rgb(68, 0, 221);">=</span>4</pre></div><a name="p7705-30"></a><p class="auto" id="p7705-30"><!--/notypo--></p><hr noshade="noshade" size="1"><a name="p7705-31"></a><p class="auto" id="p7705-31">
+<!--notypo--></p><div class="code"><pre>&nbsp;<span style="color: blue;">body <span style="color: rgb(128, 0, 0); font-weight: bold;">{</span><span style="color: red;">margin</span><span style="color: rgb(128, 0, 0); font-weight: bold;">:</span> 0; <span style="color: red;">padding</span><span style="color: rgb(128, 0, 0); font-weight: bold;">:</span><span style="color: green;">5px</span>;<span style="color: rgb(128, 0, 0); font-weight: bold;">}</span>
+
+.class <span style="color: rgb(128, 0, 0); font-weight: bold;">{</span><span style="color: red;">background</span><span style="color: rgb(128, 0, 0); font-weight: bold;">:</span>url("http<span style="color: rgb(128, 0, 0); font-weight: bold;">:</span>//www.ya.ru/")<span style="color: rgb(128, 0, 0); font-weight: bold;">}</span></span>&nbsp;<span style="color: blue;"></span></pre></div><a name="p7705-32"></a><p class="auto" id="p7705-32"><!--/notypo--></p><hr noshade="noshade" size="1"><a name="p7705-33"></a><p class="auto" id="p7705-33">
+<!--notypo--></p><div class="code"><pre><b>BEGIN</b>
+ <b>if</b> a = <font color="#000080">15</font> <b>then</b> writeln("test");
+
+<b>END</b>.</pre></div><a name="p7705-34"></a><p class="auto" id="p7705-34"><!--/notypo--></p><br>
+</td></tr> <tr class="userrow"><td class="usercell" colspan="2"></td></tr> <tr class="userrow"><td class="usercell">There's also highlighters for&nbsp;CSS, diff, DTD, Javascript, mySQL,  PHP, Python, SQL, XML.<br>
+Them can&nbsp;be&nbsp;called as&nbsp;(hl css) etc.<br>
+</td><td class="usercell"><!--notypo--><div class="code"><pre><pre class="hl-main"><span class="hl-identifier">body</span><span class="hl-code"> </span><span class="hl-brackets">{</span><span class="hl-reserved">margin:</span><span class="hl-code"> </span><span class="hl-number">0</span><span class="hl-reserved"></span><span class="hl-code">; </span><span class="hl-identifier">padding</span><span class="hl-code">:5</span><span class="hl-identifier">px</span><span class="hl-code">;</span><span class="hl-brackets">}</span><span class="hl-code">
+
+</span><span class="hl-identifier">.class</span><span class="hl-code"> </span><span class="hl-brackets">{</span><span class="hl-identifier">background</span><span class="hl-code">:</span><span class="hl-identifier">url</span><span class="hl-code">("</span><span class="hl-identifier">http</span><span class="hl-code">://</span><span class="hl-identifier">www.ya.ru</span><span class="hl-code">/")</span><span class="hl-brackets">}</span></pre></pre></div><a name="p7705-35"></a><p class="auto" id="p7705-35"><!--/notypo--></p><hr noshade="noshade" size="1"><a name="p7705-36"></a><p class="auto" id="p7705-36">
+<!--notypo--></p><div class="code"><pre><pre class="hl-main"><span class="hl-reserved">var</span><span class="hl-code"> </span><span class="hl-identifier">a</span><span class="hl-code"> = </span><span class="hl-builtin">document</span><span class="hl-code">.</span><span class="hl-identifier">getElementById</span><span class="hl-brackets">(</span><span class="hl-quotes">"</span><span class="hl-string">test</span><span class="hl-quotes">"</span><span class="hl-brackets">)</span><span class="hl-code">;
+
+</span><span class="hl-identifier">a</span><span class="hl-code">.</span><span class="hl-identifier">value</span><span class="hl-code"> = </span><span class="hl-reserved">new</span><span class="hl-code"> </span><span class="hl-builtin">Array</span><span class="hl-brackets">(</span><span class="hl-number">15</span><span class="hl-code">, </span><span class="hl-number">31</span><span class="hl-brackets">)</span><span class="hl-code">;
+</span><span class="hl-reserved">function</span><span class="hl-code"> </span><span class="hl-identifier">echo</span><span class="hl-code"> </span><span class="hl-brackets">(</span><span class="hl-identifier">msg</span><span class="hl-brackets">)</span><span class="hl-code"> </span><span class="hl-brackets">{</span><span class="hl-identifier">alert</span><span class="hl-brackets">(</span><span class="hl-identifier">msg</span><span class="hl-brackets">)}</span><span class="hl-code">;</span></pre></pre></div><a name="p7705-37"></a><p class="auto" id="p7705-37"><!--/notypo--></p><hr noshade="noshade" size="1"><a name="p7705-38"></a><p class="auto" id="p7705-38">
+
+<!--notypo--></p><div class="code"><pre><pre class="hl-main"><span class="hl-inlinetags">&lt;?</span><span class="hl-code">
+</span><span class="hl-identifier">phpinfo</span><span class="hl-brackets">()</span><span class="hl-code">;
+</span><span class="hl-var">$s</span><span class="hl-code"> = </span><span class="hl-quotes">"</span><span class="hl-string">Hello, World!</span><span class="hl-special">\n</span><span class="hl-quotes">"</span><span class="hl-code">;
+</span><span class="hl-identifier">print</span><span class="hl-code"> </span><span class="hl-quotes">"</span><span class="hl-var">$s</span><span class="hl-quotes">"</span><span class="hl-code">;
+
+</span><span class="hl-inlinetags">?&gt;</span></pre></pre></div><a name="p7705-39"></a><p class="auto" id="p7705-39"><!--/notypo--></p><hr noshade="noshade" size="1"><a name="p7705-40"></a><p class="auto" id="p7705-40">
+<!--notypo--></p><div class="code"><pre><pre class="hl-main"><span class="hl-brackets">&lt;</span><span class="hl-reserved">config</span><span class="hl-brackets">&gt;</span><span class="hl-code">
+</span><span class="hl-brackets">&lt;</span><span class="hl-reserved">section</span><span class="hl-code"> </span><span class="hl-var">name</span><span class="hl-code">=</span><span class="hl-quotes">"</span><span class="hl-string">test</span><span class="hl-quotes">"</span><span class="hl-brackets">&gt;</span><span class="hl-code">
+  </span><span class="hl-brackets">&lt;</span><span class="hl-reserved">var</span><span class="hl-brackets">&gt;</span><span class="hl-code">Test</span><span class="hl-brackets">&lt;/</span><span class="hl-reserved">var</span><span class="hl-brackets">&gt;</span><span class="hl-code">
+
+  </span><span class="hl-brackets">&lt;</span><span class="hl-reserved">val</span><span class="hl-brackets">&gt;</span><span class="hl-comment">&lt;![CDATA[..text...]]&gt;</span><span class="hl-brackets">&lt;/</span><span class="hl-reserved">val</span><span class="hl-brackets">&gt;</span><span class="hl-code">
+</span><span class="hl-brackets">&lt;/</span><span class="hl-reserved">section</span><span class="hl-brackets">&gt;</span><span class="hl-code">
+</span><span class="hl-brackets">&lt;/</span><span class="hl-reserved">config</span><span class="hl-brackets">&gt;</span></pre></pre></div><a name="p7705-41"></a><p class="auto" id="p7705-41"><!--/notypo--></p>
+
+</body>
+</html>

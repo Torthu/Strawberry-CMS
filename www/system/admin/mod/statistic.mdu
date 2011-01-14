@@ -1,0 +1,512 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+
+$adfile = "index";
+
+function StatNavi() {
+	global $adfile;
+	echo "<center><h5>[ <a href=\"".$adfile.".php?mod=statistic\">".t('Главная')."</a>"
+	." | <a href=\"".$adfile.".php?mod=statistic&amp;act=main\">".t('По сайту')."</a>"
+	." | <a href=\"".$adfile.".php?mod=statistic&amp;act=hours&amp;day=0\">".t('Сегодня')."</a>"
+	." | <a href=\"".$adfile.".php?mod=statistic&amp;act=hours&amp;day=1\">".t('Вчера')."</a>"
+	." | <a href=\"".$adfile.".php?mod=statistic&amp;act=referer\">".t('Реферы')."</a>"
+	." | <a href=\"".$adfile.".php?mod=statistic&amp;act=delpageform\">".t('Очистка')."</a> ]</h5></center>";
+}
+
+
+function index() {
+global $config, $db, $adfile, $sql, $PHP_SELF;
+echoheader('statistic', t('Общая статистика посещений сайта'));	
+	StatNavi();
+###########################################
+
+$page = (!empty($_GET['page']) and is_numeric($_GET['page'])) ? $_GET['page'] : 1;
+$order =  (!empty($_GET['order']) and is_numeric($_GET['order'])) ? $_GET['order'] : '';
+
+    if(empty($order)) {
+    $orderstr = "name";
+    } else {
+    $orderstr = "num desc" ;
+    }
+    // Отображаем все страницы, которые есть в таблице page
+    // по $pnumber штук
+    $pnumber = 500;
+    $begin = ($page - 1)*$pnumber;
+    $pgs = $db->sql_query("SELECT a.id_page, b.name, count(a.id_ip) as num FROM ".$config['dbprefix']."count_ip AS a LEFT JOIN ".$config['dbprefix']."count_pages AS b ON (a.id_page=b.id_page) GROUP BY a.id_page ORDER BY $orderstr LIMIT $begin, $pnumber");
+    $num = $db->sql_query("SELECT count(*) FROM ".$config['dbprefix']."count_pages;");
+    $tot = $db->sql_query("SELECT count(*) FROM ".$config['dbprefix']."count_ip;");
+    if ($pgs && $num && $tot)  {
+    
+      $total = $db->sql_fetchrow($num);
+      $number = (int)($total['count(*)']/$pnumber);
+      if((float)($total['count(*)']/$pnumber)-$number != 0) $number++;
+
+
+echo "<table cellspacing=\"2\" width=\"100%\">
+<tr valign=\"top\">
+<td>Ниже перечислены страницы, которые участвуют в статистике.<br>
+На странице выводится по ".$pnumber." страниц.<br>
+По гиперссылкам можно получить детальную статистику по каждой отдельной странице:<br><br>";
+
+      for($i = 1; $i<=$number; $i++)
+      {
+        if($number == $i)
+        {
+          if($page == $i) {
+            echo "[".(($i - 1)*$pnumber + 1)."-".$total['count(*)']."]";
+          } else {
+            echo "<a href=\"".$PHP_SELF."?mod=statistic&amp;page=".$i."&amp;order=".$order."\">[".(($i - 1)*$pnumber + 1)."-".$total['count(*)']."]</a>";
+            }
+        }  else  {
+          if($page == $i) {
+            echo "[".(($i - 1)*$pnumber + 1)."-".$i*$pnumber."]";
+         } else {
+            echo "<a href=\"".$PHP_SELF."?mod=statistic&amp;page=".$i."&amp;order=".$order."\">[".(($i - 1)*$pnumber + 1)."-".$i*$pnumber."]</a>";
+            }
+        }
+      }
+?>
+
+<form method="post" name="pages" action="<?php echo $PHP_SELF; ?>?mod=statistic&amp;act=delpage&amp;id_page=mass">
+<script language="JavaScript" type="text/javascript">
+<!--
+function ckeck_uncheck_all() {
+       var frm = document.pages;
+       for (var i=0;i<frm.elements.length;i++) {
+               var elmnt = frm.elements[i];
+               if (elmnt.type=="checkbox") {
+                       if(frm.master_box.checked == true){ elmnt.checked=false; }
+           else{ elmnt.checked=true; }
+               }
+       }
+       if(frm.master_box.checked == true){ frm.master_box.checked = false; }
+   else{ frm.master_box.checked = true; }
+}
+-->
+</script>  
+
+
+<?php
+echo "<br><hr><table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">     
+      <tr align=\"center\">
+      <td width=\"80%\"><b><a href=\"".$PHP_SELF."?mod=statistic&amp;page=".$page."\" title=\"Сортировать таблицу по имени страниц\">Страница</a></b></td>
+      <td width=\"10%\"><b><a href=\"".$PHP_SELF."?mod=statistic&amp;page=".$page."&amp;order=1\" title=\"Сортировать таблицу по количеству посещений\">Посещения</a></b></td>
+         <td width=\"10%\" align=\"right\"><input type=\"checkbox\" name=\"master_box\" title=\"".t('Выбрать все')."\" onclick=\"javascript:ckeck_uncheck_all()\"></td>
+      </tr>";
+
+      $totalhit = $db->sql_fetchrow($tot);
+      while($pag = $db->sql_fetchrow($pgs))
+      {
+      $pag_out = (strlen($pag['name']) > 50) ? substr($pag['name'], 0, 50)."..." : $pag['name'];
+        echo "<tr ".straw_that().">
+                <td><a href=\"".$PHP_SELF."?mod=statistic&amp;act=main&amp;id_page=".$pag['id_page']."\" title=\"".t('Подробнее по')." ".$pag['name']."\">".$_SERVER["SERVER_NAME"].$pag_out."</a></td>
+                <td align=\"center\">".$pag['num']."</td>
+                <td align=\"right\"><a href=\"".$PHP_SELF."?mod=statistic&amp;act=main&amp;id_page=".$pag['id_page']."\" title=\"".t("Подробнее")."\"><img src=\"admin/images/icons/page_white_world.png\" alt=\"".t('Подробнее')."\"/></a> <a href=\"".$PHP_SELF."?mod=statistic&amp;act=delpage&amp;id_page=".$pag['id_page']."\" title=\"".t("Удалить статистику для")." ".$pag['name']."\"><img src=\"admin/images/icons/delete.png\" alt=\"".t('Удалить')."\"/></a> <input name=\"selected_pages[]\" value=\"".$pag['id_page']."\" type=\"checkbox\"></td>
+              </tr>";
+      }
+     echo "<tr><td colspan=\"3\" align=\"right\"><input type=\"submit\" value=\"".t('Удалить отмеченные')."\" accesskey=\"d\"></td></tr></table></form>
+     Для получения статистики только по выбранной странице щелкните ее имени в таблице.
+     Если страница не будет выбрана, то статистика будет представлена для <a href=\"".$PHP_SELF."?mod=statistic&amp;act=main\">всего сайта</a>.";
+     
+     echo "</td></tr>
+     </table><br>";
+     } else {
+     echo "<center><hr width=\"50%\"> - статистика не велась - <hr width=\"50%\"></center>";
+     }
+###########################################
+echo on_page();	
+echofooter();
+}
+
+
+
+
+
+
+function main() {
+	global $config, $db, $adfile, $PHP_SELF;
+echoheader('statistic', t('Статистика посещений сайта'));	
+	StatNavi();
+###########################################
+$id_page = (!empty($_GET['id_page']) and is_numeric($_GET['id_page'])) ? $_GET['id_page'] : 0;
+#show_ip_host($i+1,$i,$id_page,$day,1);
+  list($hosta, $totala) = show_ip_host(1,0,0,0,0);
+  list($hostb, $totalb) = show_ip_host(2,1,0,0,0);
+  list($hostc, $totalc) = show_ip_host(7,0,$id_page,0,0);
+  list($hostd, $totald) = show_ip_host(30,0,$id_page,0,0);
+  list($hostall, $totalall) = show_ip_host(0,0,$id_page,0,0);
+  
+  if (!empty($id_page)) {
+$dbst = $db->sql_fetchrow($db->sql_query("SELECT id_page, name, id_site FROM ".$config['dbprefix']."count_pages WHERE id_page=".$id_page." "));
+$pag_out = (strlen($dbst['name']) > 50) ? substr($dbst['name'], 0, 50)."..." : $dbst['name'];
+echo "Статистика посещений для страницы <a target=\"_blank\" href=\"".$siteurl.$dbst['name']."\" title=\"Перейти на указанную страницу\">".$_SERVER["SERVER_NAME"].$pag_out."</a>";
+} else {
+echo "Статистика посещений для всего сайта";
+}
+
+echo "<br><br><table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\" width=\"100%\">
+<tr align=\"center\" class=\"panel\">
+<td></td>
+<td><a href='".$PHP_SELF."?mod=statistic&amp;act=hours&amp;day=0&amp;id_page=".$id_page."'>Cегодня</a></td>
+<td><a href='".$PHP_SELF."?mod=statistic&amp;act=hours&amp;day=1&amp;id_page=".$id_page."'>Вчера</a></td>
+<td><a href='".$PHP_SELF."?mod=statistic&amp;act=days&amp;id_page=".$id_page."&amp;daystst=7'>За 7 дней</a></td>
+<td><a href='".$PHP_SELF."?mod=statistic&amp;act=days&amp;id_page=".$id_page."&amp;daystst=30'>За 30 дней</a></td>
+<td>За всё время</td>
+</tr>
+<tr align=\"center\" onmouseover=\"this.style.backgroundColor='#ebebeb';\" onmouseout=\"this.style.backgroundColor='#FFFFFF';\"><td>Хосты</td><td>".$hosta."</td><td>".$hostb."</td><td>".$hostc."</td><td>".$hostd."</td><td>".$hostall."</td></tr>
+<tr align=\"center\" onmouseover=\"this.style.backgroundColor='#ebebeb';\" onmouseout=\"this.style.backgroundColor='#FFFFFF';\"><td>Все хиты</td><td>".$totala."</td><td>".$totalb."</td><td>".$totalc."</td><td>".$totald."</td><td>".$totalall."</td></tr>
+</table><br>";
+
+###########################################
+echo on_page();	
+echofooter();
+}
+
+
+
+
+
+
+
+
+
+
+function days() {
+global $config, $db, $adfile;
+echoheader('statistic', t('Статистика посещений сайта по дням'));	
+	StatNavi();
+###########################################
+$id_page = (!empty($_GET['id_page']) and is_numeric($_GET['id_page'])) ? $_GET['id_page'] : 0;
+
+$daystst = (!empty($_GET['daystst']) and is_numeric($_GET['daystst'])) ? $_GET['daystst'] : 7;
+  
+  if (!empty($id_page)) {
+$dbst = $db->sql_fetchrow($db->sql_query("SELECT id_page, name, id_site FROM ".$config['dbprefix']."count_pages WHERE id_page=".$id_page." "));
+$pag_out = (strlen($dbst['name']) > 50) ? substr($dbst['name'], 0, 50)."..." : $dbst['name'];
+echo "Статистика посещений по дням для страницы <a target=\"_blank\" href=\"".$siteurl.$dbst['name']."\" title=\"Перейти на указанную страницу\">".$_SERVER["SERVER_NAME"].$pag_out."</a>  (за ".$daystst." дней):";
+} else {
+echo "Статистика посещений по дням для всего сайта (за ".$daystst." дней):";
+}
+  
+echo "<br><br><table border=\"0\" cellpadding=\"2\" cellspacing=\"0\" width=\"100%\">
+    <tr class=\"panelm\" align=\"center\">
+    <td width=\"100\">&nbsp;</td>
+    <td><b>Хиты</b></td>
+    <td><b>Хосты</b></td>
+    </tr>";
+     $sum_tot = 0;
+    $sum_hst = 0;   
+  for($i=0; $i<$daystst; $i++)
+  {
+    list($dhost, $dtotal) = show_ip_host($i+1,$i,$id_page,0,0);
+    echo "<tr ".straw_that().">
+    <td><a href=\"".$PHP_SELF."?mod=statistic&amp;act=hours&amp;id_page=".$id_page."&amp;day=".($i+1)."\" title=\"По временная информация\">".($i+1)." дн. назад</a></td>
+    <td align=\"center\">".$dtotal."</td>
+    <td align=\"center\">".$dhost."</td>
+    </tr>";
+       $sum_tot = $sum_tot + $dtotal;
+  #  $sum_hst = $sum_hst + $dhost; 
+  }
+    echo "<tr class=\"panelm\" align=\"center\"><td><b>Всего</b></td><td><b>$sum_tot</b></td><td><b></b></td></tr>";
+  echo "</table><br>";
+###########################################
+echo on_page();	
+echofooter();
+}
+
+
+
+
+
+function hours() {
+	global $config, $db, $adfile;
+echoheader('statistic', t('Статистика посещений сайта'));	
+	StatNavi();
+###########################################
+$id_page = (!empty($_GET['id_page']) and is_numeric($_GET['id_page'])) ? $_GET['id_page'] : 0;
+$day = (!empty($_GET['day']) and is_numeric($_GET['day'])) ? $_GET['day'] : 0;
+
+  if (!empty($id_page)) {
+$dbst = $db->sql_fetchrow($db->sql_query("SELECT id_page, name, id_site FROM ".$config['dbprefix']."count_pages WHERE id_page=".$id_page." "));
+$pag_out = (strlen($dbst['name']) > 50) ? substr($dbst['name'], 0, 50)."..." : $dbst['name'];
+echo "Статистика посещений по часам для страницы <a target=\"_blank\" href=\"".$siteurl.$dbst['name']."\" title=\"Перейти на указанную страницу\">".$_SERVER["SERVER_NAME"].$pag_out."</a> (за ".($day ? $day." дн. назад" : "сегодня")."):";
+} else {
+echo "Статистика посещений по часам для всего сайта (за ".($day ? $day." дн. назад" : "сегодня")."):";
+}
+
+echo "<br><br><table border=\"0\" cellpadding=\"2\" cellspacing=\"0\" width=\"100%\">
+    <tr class=\"panelm\" align=\"center\">
+    <td width=\"10%\"><b>Часы</b></td>
+    <td width=\"45%\"><b>Хиты</b></td>
+    <td width=\"45%\"><b>Хосты</b></td>
+    </tr>";
+    $sum_tot = 0;
+    $sum_hst = 0;
+  for($i=0;$i<24;$i++)
+  {
+    list($host, $total) = show_ip_host($i+1,$i,$id_page,$day,1);
+    echo "<tr ".straw_that()." align=\"center\"><td>".$i."</td><td>$total</td><td>$host</td></tr>";
+    $sum_tot = $sum_tot + $total;
+  #  $sum_hst = $sum_hst + $host;
+  }
+  echo "<tr class=\"panelm\" align=\"center\"><td><b>Всего</b></td><td><b>$sum_tot</b></td><td><b></b></td></tr>";
+  echo "</table><br>";
+
+
+###########################################
+echo on_page();	
+echofooter();
+}
+
+
+
+
+function delpage() {
+	global $config, $db, $adfile, $PHP_SELF;
+
+###########################################
+
+$selected_pages = !empty($_POST['selected_pages']) ? $_POST['selected_pages'] : '';
+
+$id_page = (!empty($_GET['id_page'])) ? $_GET['id_page'] : 0;
+$day = !empty($_GET['day']) ? $_GET['day'] : 0;
+
+if (!empty($id_page) and $id_page != "mass" and $id_page != "mass_do") {
+
+#echoheader('statistic', t('Статистика посещений сайта'));	
+#	StatNavi();
+
+  if($db->sql_query("delete from ".$config['dbprefix']."count_ip where id_page=$id_page;")) {
+  
+    // Удаляем запись о данной страницы из таблицы pages
+    if($db->sql_query("delete from ".$config['dbprefix']."count_pages where id_page=$id_page;")) {
+    // Осуществляем переход на страницу администрирования
+header ('Location: '.$PHP_SELF.'?mod=statistic');
+    } else {
+      echo "Ошибка при удалении страницы номер ".$id_page;
+    }
+    
+  } else {
+      echo "Ошибка при удалеии страницы номер ".$id_page;
+  }
+  } else if (!empty($id_page) and $id_page == "mass") {
+  
+////////////////////////////////////////////////////////////////////
+
+    if (empty($selected_pages)){
+        msg('error', t('Ошибка'), t('Не выбрано ни одной ссылки для удаления.'), $PHP_SELF.'?mod=statistic');
+    } else {
+echoheader('statistic', t('Статистика посещений сайта - удаление страниц'));	
+	StatNavi();
+
+?>
+
+<form method="post" action="<?php echo $PHP_SELF; ?>?mod=statistic&amp;act=delpage&amp;id_page=mass_do">
+<table border="0" cellpading="0" cellspacing="0" width="100%" height="100%">
+ <tr>
+  <td>
+   <?php echo t('Вы уверены, что хотите удалить эти (<b>%count</b>) ссылки статистики?', array('count' => count($selected_pages))); ?><br><br>
+   <input type="button" value="   <?php echo t('Нет'); ?>   " onclick="javascript:document.location='<?php echo $PHP_SELF; ?>?mod=statistic'"> &nbsp; <input type="submit" value="   <?php echo t('Да'); ?>   ">
+   <input type="hidden" name="id_page" value="mass_do">
+   <input type="hidden" name="act" value="delpage">
+   <input type="hidden" name="mod" value="statistic">
+
+<?php  
+foreach($selected_pages as $pagesid){
+        echo '<input type="hidden" name="selected_pages[]" value="'.$pagesid.'">';
+    }
+?>
+
+</table>
+</form>
+<?php
+}
+////////////////////////////////////////////////////////////////////
+  
+  } else if (!empty($id_page) and $id_page == "mass_do") {
+  
+////////////////////////////////////////////////////////////////////
+
+    if (empty($selected_pages)){
+        msg('error', t('Ошибка'), t('Не выбрано ни одной ссылки для удаления.'), $PHP_SELF.'?mod=statistic');
+    } else {
+
+    $deleted_pages = 0;
+
+    foreach ($selected_pages as $id_num){
+  $db->sql_query("delete from ".$config['dbprefix']."count_ip where id_page=$id_num;");
+  $db->sql_query("delete from ".$config['dbprefix']."count_pages where id_page=$id_num;");
+  $deleted_pages++;
+    }
+
+    if (!empty($selected_pages) and count($selected_pages) == $deleted_pages){
+        msg('info', t('Удаление ссылок статистики'), t('Все выбранные Вами ссылки статистики успешно удалены.'), $PHP_SELF.'?mod=statistic');
+    } else {
+        msg('error', t('Удаление ссылок статистики'), t('Удалено <b>%deleted</b> из <b>%selected</b> выбраных  ссылок статистики.', array('deleted' => $deleted_pages,'selected' => count($selected_pages))), $PHP_SELF.'?mod=statistic');
+    }
+    }
+
+////////////////////////////////////////////////////////////////////
+
+  }
+      exit();
+###########################################
+echo on_page();	
+echofooter();
+}
+
+
+
+function delpageform() {
+	global $config, $db, $adfile;
+echoheader('statistic', t('Статистика посещений сайта'));	
+	StatNavi();
+###########################################
+
+  $pgs = $db->sql_query("SELECT * FROM ".$config['dbprefix']."count_pages");
+  if (!empty($pgs))
+  {
+
+   echo "<form action=\"\" method=\"get\">
+    <table align=\"center\" border=\"0\" width=\"100%\" cellpadding=\"5\">
+    <tr>
+    <td><b>".t('Название страницы').":</b></td>
+    </tr><tr>
+    <td align=\"center\"><select type=\"text\" name=\"id_page\" style=\"width: 90%\">\n";
+
+    while($pag = mysql_fetch_array($pgs))
+    {
+$pag_out = (strlen($pag['name']) > 130) ? substr($pag['name'], 0, 130)."..." : $pag['name'];
+      echo "\n<option value=\"".$pag['id_page']."\">".$pag_out."</option>";
+    }
+
+   echo "\n</select>
+    </td>
+    </tr><tr>
+    <td align=\"center\"><input type=\"submit\" value=\"Удалить\"><br><br><font color=\"green\"><b>".t('Выберите из выпадающего списка страницу, которую вы хотите удалить из счетчика и нажмите кнопку "Удалить"')."</b></font></td>
+    </tr>
+    </table>
+<input type=\"hidden\" name=\"mod\" value=\"statistic\">
+<input type=\"hidden\" name=\"act\" value=\"delpage\">
+    </form>";
+
+  } else {
+    echo "<B>Error: ".mysql_error();
+    exit();
+  }
+
+###########################################
+echo on_page();	
+echofooter();
+}
+
+
+
+
+function rfrr() {
+global $config, $db, $adfile, $sql, $PHP_SELF;
+echoheader('statistic', t('Общая статистика переходов на сайт'));	
+	StatNavi();
+###########################################
+
+$page = (!empty($_GET['page']) and is_numeric($_GET['page'])) ? $_GET['page'] : 1;
+$order =  (!empty($_GET['order']) and is_numeric($_GET['order'])) ? $_GET['order'] : '';
+
+    if(empty($order)) {
+    $orderstr = "putdate desc";
+    } else {
+    $orderstr = "putdate" ;
+    }
+
+
+    // Отображаем все страницы, которые есть в таблице page
+    // по $pnumber штук
+    $pnumber = 50;
+    $skip = (!empty($_GET['skip']) and is_numeric($_GET['skip'])) ? $_GET['skip'] : 0;
+    $pgs = $db->sql_query("SELECT id_ip, ip, putdate, id_page, referer FROM ".$config['dbprefix']."count_ip WHERE referer > '0' ORDER BY ".$orderstr." LIMIT ".$skip.", ".$pnumber." ");
+
+    if (!empty($pgs)) {
+
+echo "<table cellspacing=\"2\" width=\"100%\">
+<tr valign=\"top\">
+<td>Ниже перечислены страницы, c которыx был переход а этот сайт.<br>
+На странице выводится по ".$pnumber." страниц.";
+
+echo "<br><hr><table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">     
+      <tr align=\"center\">
+      <td width=\"2%\"><b><a href=\"".$PHP_SELF."?mod=statistic&amp;act=referer\" title=\"Сортировать таблицу по имени страниц\">Страница</a></b></td>
+      <td width=\"10%\"><b><a href=\"".$PHP_SELF."?mod=statistic&amp;act=referer&amp;order=1\" title=\"Сортировать таблицу по посещению\">Посещение</a></b></td>
+      <td width=\"78%\"><b><a href=\"".$PHP_SELF."?mod=statistic&amp;act=referer\" title=\"Откуда пришли\">Ссылающаяся страница</a></b></td>
+      <td width=\"10%\" align=\"center\">IP</td>
+      </tr>";
+
+      while($pag = $db->sql_fetchrow($pgs))
+      {
+      $pag_out = (strlen($pag['referer']) > 200) ? substr(utf8_convert(urldecode($pag['referer']), "w"), 0, 200)."..." : utf8_convert(urldecode($pag['referer']), "w");
+        echo "<tr ".straw_that().">
+                <td align=\"center\"><a href=\"index.php?mod=statistic&act=main&id_page=".$pag['id_ip']."\" title=\"".t('Номер страницы')."\">".$pag['id_ip']."</a></td>
+                <td align=\"center\">".$pag['putdate']."</td>
+                <td><a target=\"_blank\" href=\"".$pag['referer']."\" title=\"Перейти на страницу\">".$pag_out."</a></td>
+                <td align=\"center\">".whois_ip($pag['ip'])."</td>
+              </tr>";
+         $pag_out = "";  
+      }
+     echo "</table>";
+     
+     echo "</td></tr>
+     </table><br>";
+     $wheren = "referer > '0'";
+echo pnp("count_ip", (!empty($skip) ? $skip : 0), (!empty($pnumber) ? $pnumber : 0), (!empty($tpl_out) ? $tpl_out : 'default'), (!empty($wheren) ? $wheren : ''));
+
+     } else {
+     echo "<center><hr width=\"50%\"> - статистика не велась - <hr width=\"50%\"></center>";
+     }
+###########################################
+echo on_page();	
+echofooter();
+}
+
+
+
+
+
+
+
+
+
+
+switch($act) {
+	default:
+	index();
+	break;
+	
+	case "main":
+	main();
+	break;
+	
+	case "days":
+	days();
+	break;
+	
+	case "referer":
+	rfrr();
+	break;
+	
+	case "hours":
+	hours();
+	break;
+	
+	case "delpage":
+	delpage();
+	break;
+	
+	case "delpageform":
+	delpageform();
+	break;
+	
+}
+
+
+?>

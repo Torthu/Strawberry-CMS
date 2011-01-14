@@ -1,0 +1,152 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+// http://spectator.ru/technology/php/simple_XML
+function R_untag($string, $tag){
+$stop = !empty($stop) ? $stop : 0;
+$result = !empty($result) ? $result : array();
+
+
+	while (true){
+	    //начало тэга
+	    $start = strpos($string, '<'.$tag, $stop);
+
+	    if ($start === false){
+	    	break;
+	    }
+
+	    //начало контента
+	    $start = strpos($string, '>', $start);
+	    if ($start === false){
+	        break;
+	    }
+
+	    $start++;
+
+	    //конец контента
+	    $stop = strpos($string, '</'.$tag.'>', $start);
+	    if ($stop === false){
+	    	break;
+	    }
+
+	    //выкусить контент!
+	    $result[] = substr($string, $start, $stop - $start);
+	}
+
+return $result;
+}
+
+
+
+
+
+
+
+function remove_cdata($text){
+
+    if (substr($text, 0, 9) == '<![CDATA['){
+        $text = trim(substr(substr($text, 9), 0, -3));
+    } else {
+    	$text = unhtmlentities($text);
+    }
+
+return $text;
+}
+
+
+
+
+
+
+$PHP_SELF .= '?mod=import';
+$tags = array('title', 'description', 'pubDate', 'category');
+
+if (!empty($_POST['feed'])) {
+
+$category = (!empty($_POST['category']) and is_numeric($_POST['category'])) ? ",".$_POST['category']."," : 0;
+$feed = @file_get_contents($_POST['feed']);
+
+	preg_match('/\<\?(.*?)encoding=(\"|\')(.*?)(\\2)(.*?)\>/i', $feed, $match);
+
+	foreach ($tags as $tag) {
+	    foreach (R_untag($feed, 'item') as $item) {
+	        if (R_untag($item, $tag)) {
+	            $result[$tag][] = R_untag($item, $tag);
+	        }
+	        if (!empty($result[$tag])) {
+	            $result[$tag] = @array_reverse($result[$tag]);
+	        }
+	    }
+   	}
+
+    if (!empty($result) and is_array($result)){
+	    $id = ($sql->last_insert_id('news', '', 'id') + 1);
+
+	    for ($i = 0; $i < count($result['title']); $i++){
+	        foreach ($tags as $tag){
+	        	if (!empty($result[$tag][$i])){
+	                $result[$tag][$i] = join(',', $result[$tag][$i]);
+	                $result[$tag][$i] = remove_cdata($result[$tag][$i]);
+
+	                if (!empty($config['charset']) and strtolower($config['charset']) != strtolower($match[3])){
+	                    $result[$tag][$i] = iconv($match[3], $config['charset'], $result[$tag][$i]);
+	                }
+	            }
+	        }
+
+ $db->sql_query("INSERT INTO ".$config['dbprefix']."news  VALUES ('".($result['pubDate'][$i] ? strtotime($result['pubDate'][$i]) : time)."', '".$member['username']."', '".replace_news('add', $result['title'][$i])."', '".strlen(replace_news('add', $result['description'][$i]))."', '0', '', '".$category."', '".straw_namespace(totranslit($result['title'][$i]))."', NULL, '0', '0', '".straw_get_rights('approve_news')."', '0', '', '', '', '', '', '0', '0', '')");
+ $db->sql_query("INSERT INTO ".$config['dbprefix']."story (post_id, short, full, metatitle, metakeywords, metadescription, ico, add_comm, stop_comm, format) VALUES (NULL, '".replace_news('add', $result['description'][$i])."', '', '".replace_news('add', $result['title'][$i])."', '', '', '', 'no', 'no', 'html_with_br')");
+ 
+	    }
+
+	    msg('info', t('Импорт'), t('Посты (<b>%count</b>) из выбранного вами фида были успешно импортированны.', array('count' => $i)), $PHP_SELF);
+
+    } else {
+
+    	    msg('info', t('Импорт'), t('По данному адресу (<i>%feed</i>) нет возможности импортировать информацию.', array('feed' => $_POST['feed'])), $PHP_SELF);
+
+    }
+
+
+
+} else {
+
+	echoheader('options', t('Импорт'));
+	$categories_list = category_get_tree('&nbsp;', '<option value="{id}">{prefix}{name}</option>');
+	
+// Если будите пиздить контент, то идите на хуй! Леха симпатявый сказал!
+?>
+
+<div align="justify" class="panel"><?php echo t('Тестировалось только на RSS и RDF. Atom не поддерживается.'); ?><br /><br /><b><?php echo t('Внимание!'); ?></b> <?php echo t('Категорически запрещается использовать данный модуль для кражи контента! Если вы будете уличены в этом, то техническая поддержка вам больше осуществляться не будет.'); ?></div>
+<br /><br />
+<form action="" method="post">
+<?php echo t('УРЛ фида (например: %u)', array('u'=>'http://strawberry.goodgirl.ru/rss.xml')); ?><br />
+<input name="feed" type="text" value="" style="width: 200px;"><br />
+<?php
+ if (!empty($categories_list)) { 
+ echo t('Категория'); 
+ ?><br />
+<select name="category">
+<option value=""> </option>
+<?php echo $categories_list; ?>
+</select><br />
+<?php } ?>
+
+
+<!--
+<label for="getcategories"><input id="getcategories" name="getcategories" type="checkbox" value="on">&nbsp;<?php echo t('Импортировать категории?'); ?></label><br />
+<?php if (!empty($categories_list)){ ?>
+<label for="subcategories"><input id="subcategories" name="subcategories" type="checkbox" value="on">&nbsp;<?php echo t('Делать категории из фида субкатегориями выбранной категории?'); ?></label><br />
+<?php } ?>
+-->
+
+
+<br /><input type="submit" value="<?php echo t('Импортировать'); ?>">
+</form>
+
+<?php
+echo on_page();
+	echofooter();
+}
+?>

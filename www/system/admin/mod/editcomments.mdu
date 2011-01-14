@@ -1,0 +1,33 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+if (empty($newsid) and empty($comid)){
+?>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<?php 
+
+$dbcom = $db->sql_query("SELECT date, author, mail, ip, comment, reply, post_id, user_id, parent, id FROM ".$config['dbprefix']."comments WHERE post_id='".$id."' ORDER BY date ASC");
+$parent = 0;
+$k=0;
+while (list($date, $namesender, $cmail, $cip, $textsender, $reply, $postid, $userid, $parent, $cmid) = $db->sql_fetchrow($dbcom)) 
+{
+$k++;
+$textsender = str_stop(str_replace("<br>", " ", strip_tags(comm_out($textsender))), 50);
+
+?>
+
+<tr <?php echo straw_that(); ?>>
+<td style="padding: 3px;"><?php echo $k; ?>) <u><a href="<?php echo $PHP_SELF; ?>?mod=comments&act=view&id=<?php echo $cmid; ?>" title="<?php echo t('Редактировать комментарий'); ?>"><?php echo t('правка'); ?></a></u> <b><?php echo chuser($namesender, 1); ?>:</b> <?php echo $textsender; ?></td>
+<td style="padding: 3px; width: 20px;"><a href="<?php echo $PHP_SELF; ?>?mod=comments&amp;act=delete&amp;id=<?php echo $cmid; ?>&amp;nid=<?php echo $postid; ?>" title="<?php echo t("Удалить комментарий № %n", array('n'=>$cmid)); ?>"><img src="admin/images/icons/delete.png" alt="<?php echo t('Удалить'); ?>"/></a></td>
+</tr>
+<?php 
+} 
+?>
+
+</table>
+
+<?php
+}
+?>

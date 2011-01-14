@@ -1,0 +1,90 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+// ********************************************************************************
+// Show all out GO Links!
+// ********************************************************************************
+
+if (straw_get_rights($modul, 'write')) { $yaw = 1; } else { $yaw = 0; }
+
+if (empty($act)) {
+echoheader('links', t('GO Link! Переходы по внешним ссылкам'));
+
+if (!straw_get_rights($modul, 'read')) {
+msg('error', t('Ошибка'), t('Вам запрещён доступ к этому модулю!'));
+} else {
+
+
+?>
+
+<table cellspacing="1" cellpadding="5" border="0" align="center" width="100%">
+<tr>
+ <td colspan="7" height="33" class="panel"><b><?php echo t('Список переходов по внешним ссылкам'); ?></b></td>
+</tr>
+<tr>
+ <td colspan="7" height="20" align="right"><?php echo straw_number(50, 1); ?></td>
+</tr>
+<tr class="panel">
+    <th><b><a href="index.php?mod=<?php echo $modul; ?>&amp;by=id<?php echo $lsort; ?>">№</a></b></th>
+    <th><b><a href="index.php?mod=<?php echo $modul; ?>&amp;by=date<?php echo $lsort; ?>"><?php echo t('Дата'); ?></a></b></th>
+    <th><b><a href="index.php?mod=<?php echo $modul; ?>&amp;by=link<?php echo $lsort; ?>"><?php echo t('Ссылка'); ?></a></b></th>
+    <th><b><a href="index.php?mod=<?php echo $modul; ?>&amp;by=counter<?php echo $lsort; ?>"><?php echo t('Переходов'); ?></a></b></th>
+    <th><b><a href="index.php?mod=<?php echo $modul; ?>&amp;by=referer<?php echo $lsort; ?>"><?php echo t('Место'); ?></a></b></th>
+    <th><b><a href="index.php?mod=<?php echo $modul; ?>&amp;by=ip<?php echo $lsort; ?>">IP</a></b></th>
+    <th><b><?php echo t('Опции'); ?></b></th>
+</tr>
+<?php
+
+$row_link = $db->sql_query("SELECT * FROM ".$config['dbprefix']."golink ORDER BY ".$order." ".(!empty($number) ? " LIMIT ".((!empty($oskip) ? $oskip : 0) .", ".$number) : "")." ");
+$crl = $db->sql_numrows($row_link);
+if (!empty($crl) and $crl > 0) {
+while ($lrow=$db->sql_fetchrow($row_link)) {
+#######################
+$l_ref = substr(preg_replace("#(http:\/\/|".$_SERVER['SERVER_NAME']."|www.)#si", "", $lrow['referer']), 1);
+
+echo "<tr ".straw_that().">
+ <td align=\"center\" class=\"tabnum\">".$lrow['id']."</td>
+ <td align=\"center\"><small>".langdate("j M Y", $lrow['date'])."<br>".langdate("H:i:s", $lrow['date'])."</small></td>
+ <td><a target=\"_blank\" href=\"".$lrow['link']."\" title=\"".$lrow['link']."\">".substr($lrow['link'], 7, 50)."</a></td>
+ <td align=\"center\">".$lrow['counter']."</td>
+ <td><a target=\"_blank\" href=\"".$lrow['referer']."\" title=\"".(!empty($l_ref) ? "/".$l_ref : "/index.php")."\">".t('Перейти')."</a></td>
+ <td align=\"center\">".whois_ip($lrow['ip'])."</td>";
+ if (!empty($yaw)) echo "<td align=\"center\"><a href=\"index.php?mod=".$modul."&amp;act=delete&amp;id=".$lrow['id']."\"><img src=\"admin/images/icons/delete.png\" alt=\"".t('Удалить')."\"/></a></td>";
+echo "</tr>";
+#######################
+}
+
+} else {
+echo "\n<tr><td align=\"center\" colspan=\"6\"><hr width=\"50%\">".t('- переходов нет -')."<hr width=\"50%\"></td></tr>\n";
+}
+
+if (empty($config['go_link'])) echo "<tr><td align=\"center\"><font color=\"red\"><b>".t('В данный момент система учета безопасных переходов отключена!')."</font></td></tr>\n";
+
+?>
+</table>
+<?php 
+if (!empty($crl)) {
+echo pnp("golink", intval($pnum), intval($number), 'default', (!empty($wheren) ? $wheren : ''), '', '', $lnk);
+unset($order, $lsort, $oskip, $lnk, $pnum);
+}
+
+}
+/////////////////////////////////////
+
+
+} elseif (!empty($act) and $act == "delete" and !empty($_GET['id']) and is_numeric($_GET['id']) ) {
+
+if (!empty($yaw)) { 
+$db->sql_query("DELETE FROM ".$config['dbprefix']."golink WHERE id='".$_GET['id']."'");
+}
+
+Header("Location: index.php?mod=go_link");
+
+}
+
+/////////////////////////////////////
+
+echo on_page();
+echofooter(); 
+?>

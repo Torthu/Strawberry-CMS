@@ -1,0 +1,1 @@
+<div class="freeblock">{bl-content}</div>

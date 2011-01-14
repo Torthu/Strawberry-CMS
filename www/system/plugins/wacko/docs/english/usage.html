@@ -1,0 +1,202 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+<title>Usage of WackoFormatter</title>
+<link rel="stylesheet" type="text/css" href="../../css/wacko.css" />
+</head>
+<body>
+<h1>Usage of WackoFormatter</h1>
+<fieldset style="padding:10px;"><legend><strong> Table Of Contents </strong></legend><div class="toc1"><a href="#h1">1. Simple usage</a></div>
+<div class="toc1"><a href="#h2">2. Advanced usage</a></div>
+<div class="toc2"><a href="#h3">2.1. Default config class</a></div>
+<div class="toc2"><a href="#h4">2.2. Actions</a></div>
+<div class="toc2"><a href="#h5">2.3. Highlighters</a></div>
+<div class="toc2"><a href="#h6">2.4. Linking</a></div>
+<div class="toc2"><a href="#h7">2.5. Options of formatter</a></div>
+<div class="toc2"><a href="#h8">2.6. Example config class</a></div>
+</fieldset><br>
+<a name="h1"></a>
+<h2>1. Simple usage</h2>
+<p>Simple usage is really simple:</p>
+<div class="indent">
+<font color="#007700">require_once(</font><font color="#dd0000">"classes/WackoFormatter.php"</font><font color="#007700">);<br><a name="p7558-2"></a></font></font></code><p class="auto" id="p7558-2"><font color="#000000"><font color="#0000bb">$parser </font><font color="#007700">= &amp;new </font><font color="#0000bb">WackoFormatter</font><font color="#007700">();<br></font><font color="#0000bb">$formatted </font><font color="#007700">= </font><font color="#0000bb">$parser</font><font color="#007700">-&gt;</font><font color="#0000bb">format</font><font color="#007700">(</font><font color="#0000bb">$text</font><font color="#007700">);</font>
+<div class="indent">
+(See <tt>example.php</tt>)
+</div>
+</div>
+<p>But simple usage cannot provide <strong>actions</strong> and <strong>highlighters</strong> functionality, either <strong>request-time linking</strong> and <strong>custom linking</strong> features.</p>
+<a name="h2"></a>
+<h2>2. Advanced usage</h2>
+<p>If you want to use advanced features of WackoFormatter, you should create custom config-class.</p>
+
+<a name="h3"></a>
+<h3>2.1. Default config class</h3>
+<div class="indent">
+<font color="#007700">class </font><font color="#0000bb">WackoFormatterConfigDefault
+<br></font><font color="#007700">{
+<br> function </font><font color="#0000bb">WackoFormatterConfigDefault</font><font color="#007700">() {}
+<br>
+<br> </font><font color="#ff8000">//return unique identifier of this page
+<br> </font><font color="#007700">function </font><font color="#0000bb">GetPageId</font><font color="#007700">() { return </font><font color="#0000bb">0</font><font color="#007700">; }
+
+<br>
+<br> </font><font color="#ff8000">//return value of some configuration option 
+<br> </font><font color="#007700">function </font><font color="#0000bb">GetConfigValue</font><font color="#007700">(</font><font color="#0000bb">$option</font><font color="#007700">) { return </font><font color="#0000bb">false</font><font color="#007700">; }
+<br>
+<br> </font><font color="#ff8000">//format piece of text with some formatter
+<br> </font><font color="#007700">function </font><font color="#0000bb">Format</font><font color="#007700">(</font><font color="#0000bb">$text</font><font color="#007700">, </font><font color="#0000bb">$formatter</font><font color="#007700">=</font><font color="#0000bb">false</font><font color="#007700">) {return </font><font color="#0000bb">$text</font><font color="#007700">;}
+
+<br>
+<br> </font><font color="#ff8000">//preformat links
+<br> </font><font color="#007700">function </font><font color="#0000bb">PreLink</font><font color="#007700">(</font><font color="#0000bb">$url</font><font color="#007700">, </font><font color="#0000bb">$text</font><font color="#007700">=</font><font color="#0000bb">false</font><font color="#007700">) 
+<br> {
+<br>&nbsp;&nbsp;if (!</font><font color="#0000bb">$text</font><font color="#007700">) </font><font color="#0000bb">$text </font><font color="#007700">= </font><font color="#0000bb">htmlspecialchars</font><font color="#007700">(</font><font color="#0000bb">$url</font><font color="#007700">);
+
+<br>&nbsp;&nbsp;return </font><font color="#dd0000">"&lt;a href='"</font><font color="#007700">.</font><font color="#0000bb">$url</font><font color="#007700">.</font><font color="#dd0000">"'&gt;"</font><font color="#007700">.</font><font color="#0000bb">$text</font><font color="#007700">.</font><font color="#dd0000">"&lt;/a&gt;"</font><font color="#007700">;
+<br> }
+
+<br>
+<br> </font><font color="#ff8000">//preformat action
+<br> </font><font color="#007700">function </font><font color="#0000bb">WrapAction</font><font color="#007700">(</font><font color="#0000bb">$action</font><font color="#007700">) { return </font><font color="#dd0000">"{{"</font><font color="#007700">.</font><font color="#0000bb">$action</font><font color="#007700">.</font><font color="#dd0000">"}}"</font><font color="#007700">; } </font><font color="#ff8000">//\xA1\xA1&lt;!--/notypo--&gt;
+
+<br>
+<br> //format link
+<br> </font><font color="#007700">function </font><font color="#0000bb">Link </font><font color="#007700">(</font><font color="#0000bb">$url</font><font color="#007700">, </font><font color="#0000bb">$options</font><font color="#007700">, </font><font color="#0000bb">$text</font><font color="#007700">) 
+<br> { 
+<br>&nbsp;&nbsp;if (!</font><font color="#0000bb">$text</font><font color="#007700">) </font><font color="#0000bb">$text </font><font color="#007700">= </font><font color="#0000bb">htmlspecialchars</font><font color="#007700">(</font><font color="#0000bb">$url</font><font color="#007700">);
+
+<br>&nbsp;&nbsp;return </font><font color="#dd0000">"&lt;a href='"</font><font color="#007700">.</font><font color="#0000bb">$url</font><font color="#007700">.</font><font color="#dd0000">"'&gt;"</font><font color="#007700">.</font><font color="#0000bb">$text</font><font color="#007700">.</font><font color="#dd0000">"&lt;/a&gt;"</font><font color="#007700">;
+<br> }
+
+<br>
+<br> </font><font color="#ff8000">//run some Action
+<br> </font><font color="#007700">function </font><font color="#0000bb">Action</font><font color="#007700">(</font><font color="#0000bb">$action</font><font color="#007700">, </font><font color="#0000bb">$params</font><font color="#007700">) { return </font><font color="#dd0000">""</font><font color="#007700">; } 
+<br>}
+<br></font>
+</div>
+
+<a name="h4"></a>
+<h3>2.2. Actions</h3>
+<p>Action is dynamic substance. Bluntly speaking, it's a php code snippet that provide some dynamic information. You can see manual about WackoWiki's actions at <a href="http://wackowiki.com/actions/newmanual">http://wackowiki.com/actions/newmanual</a>.</p>
+
+<p>Right now, WackoFormatter (rather <tt>WackoFormatterConfigDefault</tt>) doesn't provide functions for action calling &mdash; you need to redefine <tt>Action()</tt> method and implement it by yourself. I'm not inconceivable that we'll  provide advanced <tt>WackoFormatterConfig</tt> in future.</p>
+
+<a name="h5"></a>
+<h3>2.3. Highlighters</h3>
+<p>Highlighter is code that does text formatting. For example, some programming language highlighter or highlighter for ICQ logs.</p>
+
+<p>Right now, WackoFormatter (rather <tt>WackoFormatterConfigDefault</tt>) doesn't provide functions for highlighter calling &mdash; you need to redefine <tt>Format()</tt> method and implement it by yourself. I'm not excepting that we'll  provide advanced <tt>WackoFormatterConfig</tt> in future.</p>
+
+<a name="h6"></a>
+<h3>2.4. Linking</h3>
+<p>WackoFormatter doesn't process links by himself. It just call <tt>Link()</tt> method, where should be all "fuzzy logic".</p>
+
+<p>Right now, WackoFormatterConfigDefault provides basical linking procedures, but if you want to upgrade them, you need to redefine <tt>Link()</tt> method and implement it by yourself. I'm not excepting that we'll  provide advanced <tt>WackoFormatterConfig</tt> in future.</p>
+
+<p>There's two methods for linking: <tt>PreLink()</tt> and <tt>Link()</tt>. We need both because common usage looks in the wollowing way:</p>
+
+<ol><li> On save we format text, then store it to Database. Here we only PreLink text.
+</li><li>On request we get text from Database, do actual linking, then send HTML to User-Agent.
+</ol>
+
+<p>Why we don't do actual linking before storing into Database? Due to dynamic nature of any Wiki, we don't know today what wiki-link will refer to existing or non-existing page tomorrow. So we need do actual linking strictly when we get page request.</p>
+
+<a name="h7"></a>
+<h3>2.5. Options of formatter</h3>
+<p>Options stored in associative array $this->config of WackoFormatterConfig class.</p>
+
+<p>Current version of WackoFormatter includes these options:</p>
+
+<ul>
+<li><tt>disable_wikilinks</tt> &mdash; if set to 1, disables linking for CamelCaseWords.</li>
+<li><tt>disable_tikilinks</tt> &mdash; if set to 1, disables linking for Double.CamelCaseWords.</li>
+<li><tt>disable_bracketslinks</tt> &mdash; if set to 1, disables [[link]] and ((link)) syntax.</li>
+<li><tt>disable_npjlinks</tt> &mdash; if set to 1, disables linking for See::Example and user@node:address links, used in NPJ software.</li>
+<li><tt>allow_rawhtml</tt> &mdash; if set to 1, enables <# #> syntax for including raw HTML.</li>
+<li><tt>disable_formatters</tt> &mdash; if set to 1, disables %%code%% syntax, used for highlighters.</li>
+</ul>
+
+<a name="h8"></a>
+<h3>2.6. Example config class</h3>
+<div class="indent">
+<font color="#ff8000">// define example customConfig class
+<br> </font><font color="#007700">class </font><font color="#0000bb">customConfig </font><font color="#007700">extends </font><font color="#0000bb">WackoFormatterConfigDefault
+<br> </font><font color="#007700">{
+<br>&nbsp;&nbsp;function </font><font color="#0000bb">customConfig</font><font color="#007700">() {}
+<br>&nbsp;&nbsp;
+<br>&nbsp;&nbsp;</font><font color="#ff8000">//return unique identifier of this page
+<br>&nbsp;&nbsp;</font><font color="#007700">function </font><font color="#0000bb">GetPageId</font><font color="#007700">() { return </font><font color="#0000bb">$this</font><font color="#007700">-&gt;</font><font color="#0000bb">id</font><font color="#007700">; }
+
+<br>
+<br>&nbsp;&nbsp;</font><font color="#ff8000">//preformat links
+<br>&nbsp;&nbsp;</font><font color="#007700">function </font><font color="#0000bb">PreLink</font><font color="#007700">(</font><font color="#0000bb">$url</font><font color="#007700">, </font><font color="#0000bb">$text</font><font color="#007700">=</font><font color="#0000bb">false</font><font color="#007700">) 
+<br>&nbsp;&nbsp;{
+<br>&nbsp;&nbsp;&nbsp;if (!</font><font color="#0000bb">$text</font><font color="#007700">) </font><font color="#0000bb">$text </font><font color="#007700">= </font><font color="#0000bb">$url</font><font color="#007700">;
+
+<br>&nbsp;&nbsp;&nbsp;return </font><font color="#dd0000">"\xa2\xa2"</font><font color="#007700">.</font><font color="#0000bb">$url</font><font color="#007700">.</font><font color="#dd0000">" == "</font><font color="#007700">.</font><font color="#0000bb">$text</font><font color="#007700">.</font><font color="#dd0000">"\xaf\xaf"</font><font color="#007700">;
+<br>&nbsp;&nbsp;}
+<br> <br>&nbsp;&nbsp;</font><font color="#ff8000">//preformat action
+<br>&nbsp;&nbsp;</font><font color="#007700">function </font><font color="#0000bb">WrapAction</font><font color="#007700">(</font><font color="#0000bb">$action</font><font color="#007700">) 
+
+<br>&nbsp;&nbsp;{ 
+<br>&nbsp;&nbsp;&nbsp;return </font><font color="#dd0000">"\xA1\xA1"</font><font color="#007700">.</font><font color="#0000bb">$action</font><font color="#007700">.</font><font color="#dd0000">"\xA1\xA1"</font><font color="#007700">; 
+<br>&nbsp;&nbsp;}
+<br>
+<br>&nbsp;&nbsp;</font><font color="#ff8000">//format link
+<br>&nbsp;&nbsp;</font><font color="#007700">function </font><font color="#0000bb">Link </font><font color="#007700">(</font><font color="#0000bb">$tag</font><font color="#007700">, </font><font color="#0000bb">$options</font><font color="#007700">, </font><font color="#0000bb">$text</font><font color="#007700">) 
+
+<br>&nbsp;&nbsp;{ 
+<br>
+<br>&nbsp;&nbsp;&nbsp;</font><font color="#0000bb">$text </font><font color="#007700">= </font><font color="#0000bb">htmlspecialchars</font><font color="#007700">(</font><font color="#0000bb">$text</font><font color="#007700">, </font><font color="#0000bb">ENT_NOQUOTES</font><font color="#007700">);
+<br>
+<br>&nbsp;&nbsp;&nbsp;if (</font><font color="#0000bb">preg_match</font><font color="#007700">(</font><font color="#dd0000">"/^(mailto[:])?[^\\s\"&lt;&gt;&amp;\:]+\@[^\\s\"&lt;&gt;&amp;\:]+\.[^\\s\"&lt;&gt;&amp;\:]+$/"</font><font color="#007700">, </font><font color="#0000bb">$tag</font><font color="#007700">, </font><font color="#0000bb">$matches</font><font color="#007700">))
+
+<br>&nbsp;&nbsp;&nbsp;{</font><font color="#ff8000">// this is a valid Email
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#007700">return </font><font color="#dd0000">'&lt;a href="'</font><font color="#007700">.(</font><font color="#0000bb">$matches</font><font color="#007700">[</font><font color="#0000bb">1</font><font color="#007700">]==</font><font color="#dd0000">"mailto:" </font><font color="#007700">? </font><font color="#0000bb">$tag </font><font color="#007700">: </font><font color="#dd0000">"mailto:"</font><font color="#007700">.</font><font color="#0000bb">$tag</font><font color="#007700">).</font><font color="#dd0000">'"&gt;'</font><font color="#007700">.</font><font color="#0000bb">$text</font><font color="#007700">.</font><font color="#dd0000">'&lt;/a&gt;'</font><font color="#007700">; 
+
+<br>&nbsp;&nbsp;&nbsp;}
+<br>&nbsp;&nbsp;&nbsp;else if (</font><font color="#0000bb">preg_match</font><font color="#007700">(</font><font color="#dd0000">"/^#/"</font><font color="#007700">, </font><font color="#0000bb">$tag</font><font color="#007700">))
+<br>&nbsp;&nbsp;&nbsp;{</font><font color="#ff8000">// html-anchor
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#007700">return </font><font color="#dd0000">'&lt;a href="'</font><font color="#007700">.</font><font color="#0000bb">$tag</font><font color="#007700">.</font><font color="#dd0000">'"&gt;'</font><font color="#007700">.</font><font color="#0000bb">$text</font><font color="#007700">.</font><font color="#dd0000">'&lt;/a&gt;'</font><font color="#007700">; 
+
+<br>&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<br>&nbsp;&nbsp;&nbsp;else if (</font><font color="#0000bb">preg_match</font><font color="#007700">(</font><font color="#dd0000">"/^(http|https|ftp|file):\/\/([^\\s\"&lt;&gt;]+)\.(gif|jpg|jpe|jpeg|png)$/"</font><font color="#007700">, </font><font color="#0000bb">$tag</font><font color="#007700">))
+<br>&nbsp;&nbsp;&nbsp;{</font><font color="#ff8000">// external image 
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#007700">return </font><font color="#dd0000">"&lt;img src=\""</font><font color="#007700">.</font><font color="#0000bb">$tag</font><font color="#007700">.</font><font color="#dd0000">"\" "</font><font color="#007700">.(</font><font color="#0000bb">$text</font><font color="#007700">?</font><font color="#dd0000">"alt=\""</font><font color="#007700">.</font><font color="#0000bb">$text</font><font color="#007700">.</font><font color="#dd0000">"\" title=\""</font><font color="#007700">.</font><font color="#0000bb">$text</font><font color="#007700">.</font><font color="#dd0000">"\""</font><font color="#007700">:</font><font color="#dd0000">""</font><font color="#007700">).</font><font color="#dd0000">" /&gt;"</font><font color="#007700">;
+
+<br>&nbsp;&nbsp;&nbsp;}
+<br>&nbsp;&nbsp;&nbsp;else if (</font><font color="#0000bb">$this</font><font color="#007700">-&gt;</font><font color="#0000bb">GetConfigValue</font><font color="#007700">(</font><font color="#dd0000">"disable_tikilinks"</font><font color="#007700">)!=</font><font color="#0000bb">1 </font><font color="#007700">&amp;&amp; </font><font color="#0000bb">preg_match</font><font color="#007700">(</font><font color="#dd0000">"/^("</font><font color="#007700">.</font><font color="#0000bb">UPPER</font><font color="#007700">.</font><font color="#0000bb">LOWER</font><font color="#007700">.</font><font color="#0000bb">ALPHANUM</font><font color="#007700">.</font><font color="#dd0000">"*)\.("</font><font color="#007700">.</font><font color="#0000bb">ALPHA</font><font color="#007700">.</font><font color="#0000bb">ALPHANUM</font><font color="#007700">.</font><font color="#dd0000">"+)$/s"</font><font color="#007700">, </font><font color="#0000bb">$tag</font><font color="#007700">, </font><font color="#0000bb">$matches</font><font color="#007700">)) 
+
+<br>&nbsp;&nbsp;&nbsp;{</font><font color="#ff8000">// it`s a Tiki link!
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#007700">if (!</font><font color="#0000bb">$text</font><font color="#007700">) </font><font color="#0000bb">$text </font><font color="#007700">= </font><font color="#0000bb">$tag</font><font color="#007700">;
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#0000bb">$tag </font><font color="#007700">= </font><font color="#dd0000">"/"</font><font color="#007700">.</font><font color="#0000bb">$matches</font><font color="#007700">[</font><font color="#0000bb">1</font><font color="#007700">].</font><font color="#dd0000">"/"</font><font color="#007700">.</font><font color="#0000bb">$matches</font><font color="#007700">[</font><font color="#0000bb">2</font><font color="#007700">];
+
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return </font><font color="#0000bb">$this</font><font color="#007700">-&gt;</font><font color="#0000bb">Link</font><font color="#007700">( </font><font color="#0000bb">$tag</font><font color="#007700">, </font><font color="#0000bb">$options</font><font color="#007700">, </font><font color="#0000bb">$text</font><font color="#007700">);
+<br>&nbsp;&nbsp;&nbsp;}
+<br>&nbsp;&nbsp;&nbsp;else if (</font><font color="#0000bb">preg_match</font><font color="#007700">(</font><font color="#dd0000">"/^(http|https|ftp|file|nntp|telnet):\/\/([^\\s\"&lt;&gt;]+)$/"</font><font color="#007700">, </font><font color="#0000bb">$tag</font><font color="#007700">))
+
+<br>&nbsp;&nbsp;&nbsp;{</font><font color="#ff8000">// this is a valid external URL
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#007700">return </font><font color="#dd0000">'&lt;a href="'</font><font color="#007700">.</font><font color="#0000bb">$tag</font><font color="#007700">.</font><font color="#dd0000">'"&gt;'</font><font color="#007700">.</font><font color="#0000bb">$text</font><font color="#007700">.</font><font color="#dd0000">'&lt;/a&gt;'</font><font color="#007700">; 
+
+<br>&nbsp;&nbsp;&nbsp;} 
+<br>&nbsp;&nbsp;&nbsp;else if (</font><font color="#0000bb">preg_match</font><font color="#007700">(</font><font color="#dd0000">"/^([\!\."</font><font color="#007700">.</font><font color="#0000bb">ALPHANUM_P</font><font color="#007700">.</font><font color="#dd0000">"]+)(\#["</font><font color="#007700">.</font><font color="#0000bb">ALPHANUM_P</font><font color="#007700">.</font><font color="#dd0000">"\_\-]+)?$/"</font><font color="#007700">, </font><font color="#0000bb">$tag</font><font color="#007700">, </font><font color="#0000bb">$matches</font><font color="#007700">))
+
+<br>&nbsp;&nbsp;&nbsp;{</font><font color="#ff8000">// it's a Wiki link!
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font><font color="#0000bb">$tag </font><font color="#007700">= </font><font color="#0000bb">$matches</font><font color="#007700">[</font><font color="#0000bb">1</font><font color="#007700">];
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!</font><font color="#0000bb">$text</font><font color="#007700">) </font><font color="#0000bb">$text </font><font color="#007700">= </font><font color="#0000bb">htmlspecialchars</font><font color="#007700">(</font><font color="#0000bb">$tag</font><font color="#007700">, </font><font color="#0000bb">ENT_NOQUOTES</font><font color="#007700">);
+
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return </font><font color="#dd0000">'&lt;a href="'</font><font color="#007700">.</font><font color="#0000bb">$tag</font><font color="#007700">.</font><font color="#dd0000">'"&gt;'</font><font color="#007700">.</font><font color="#0000bb">$text</font><font color="#007700">.</font><font color="#dd0000">'&lt;/a&gt;'</font><font color="#007700">; 
+<br>&nbsp;&nbsp;&nbsp;}
+<br>&nbsp;&nbsp;&nbsp;return </font><font color="#0000bb">$text</font><font color="#007700">;
+
+<br>&nbsp;&nbsp;}
+<br>
+<br> }
+<br></font>
+<div class="indent">
+(See <tt>example_adv.php</tt>)
+</div>
+</div>
+
+</body>
+</html>

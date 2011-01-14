@@ -1,0 +1,549 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+if (!straw_get_rights($modul, 'read')) {
+msg('error', t('Ошибка'), t('Вам запрещён доступ к этому модулю!'));
+} else {
+if (straw_get_rights($mod, 'write')) { $yaw = 1; } else { $yaw = 0; }
+
+
+
+// ********************************************************************************
+// List All Available Users + Show Add User Form
+// ********************************************************************************
+if (empty($action) or (!empty($action) and $action == 'list')){
+	echoheader('users', t('Пользователи'));
+
+
+$arr_query = $db->sql_query("SELECT * FROM ".$config['dbprefix']."usergroups");
+while ($aug_row=$db->sql_fetchrow($arr_query)) {
+$usergroups_array[$aug_row['id']] = $aug_row['name'];
+}
+
+
+?>
+
+
+
+<script language="JavaScript" type="text/javascript">
+<!--
+function ckeck_uncheck_all() {
+       var frm = document.editusers;
+       for (var i=0;i<frm.elements.length;i++) {
+               var elmnt = frm.elements[i];
+               if (elmnt.type=="checkbox") {
+                       if(frm.master_box.checked == true){ elmnt.checked=false; }
+           else{ elmnt.checked=true; }
+               }
+       }
+       if(frm.master_box.checked == true){ frm.master_box.checked = false; }
+   else{ frm.master_box.checked = true; }
+}
+
+-->
+</script>  
+
+
+
+<table border="0" cellpading="2" cellspacing="2" width="100%">
+    <tr>
+     <td colspan="2" onclick="javascript:ShowOrHide('add_user')"><b><a title="<?php echo t('Нажмите для раскрытия формы'); ?>" href="javascript:void(0);"><?php echo t('Добавить пользователя'); ?></a></b></td>
+    </tr>
+    <tr>
+     <td colspan="2">
+     
+     <span style="display: none;" id="add_user">
+      <table border="0" width="100%" cellspacing="2" cellpadding="2" class="panel">
+      <form method="post" action="" onsubmit="return process_form(this)">
+       <tr>
+        <td width="100">&nbsp;<?php echo t('Имя'); ?></td>
+        <td><input size="21" type="text" name="regnickname"></td>
+       </tr><tr>
+        <td>&nbsp;<?php echo t('Логин'); ?></td>
+        <td><input size="21" type="text" name="regusername"></td>
+       </tr><tr>
+        <td>&nbsp;<?php echo t('Пароль'); ?></td>
+        <td><input size="21" type="text" name="regpassword"></td>
+       </tr><tr>
+        <td>&nbsp;<?php echo t('E-mail'); ?></td>
+        <td><input size="21" type="text" name="regemail"></td>
+       </tr><tr>
+        <td>&nbsp;<?php echo t('Группа'); ?></td>
+        <td><?php echo makeDropDown($usergroups_array, 'regusergroup', ''); ?></td>
+        <?php if ($yaw) { ?>
+       </tr><tr>
+        <td>&nbsp;</td>
+        <td height="35"> 
+         <input type="submit" value="<?php echo t('Добавить'); ?>">
+         <input type="hidden" name="action" value="adduser">
+         <input type="hidden" name="mod" value="editusers"></td>
+         </tr>
+          <?php } ?>
+      </form>
+      </table>
+      </span>
+      
+
+   
+   </td>
+   </tr>
+  <tr><td colspan="2"></td></tr>
+
+
+    <tr>
+    <td height="20" align="left"><b><?php echo t('Пользователи'); ?></b></td>
+    <td height="20" align="right"><?php echo straw_number(50, 1); ?></td>
+    </tr>
+
+  <tr>
+   <td colspan="2">
+   
+<form method="post" name="editusers" action="<?php echo $PHP_SELF; ?>?mod=editusers&amp;action=mass_delete_users">
+<table cellspacing="2" cellpadding="2" width="100%">
+
+
+
+  <tr class="panel">
+   <td width="1%" align="center"><b><a href="index.php?mod=<?php echo $modul; ?>&amp;by=id<?php echo $lsort; ?>">№</a></b></td>
+   <td width="40%"><b><a href="index.php?mod=<?php echo $modul; ?>&amp;by=name<?php echo $lsort; ?>"><?php echo t('Имя'); ?></a></b></td>
+   <td width="15%" align="center"><b><a href="index.php?mod=<?php echo $modul; ?>&amp;by=date<?php echo $lsort; ?>"><?php echo t('Дата регистрации'); ?></a></b></td>
+   <td width="15%" align="center"><b><a href="index.php?mod=<?php echo $modul; ?>&amp;by=last_visit<?php echo $lsort; ?>"><?php echo t('Последний визит'); ?></a></b></td>
+   <td width="5%" align="center"><b><a href="index.php?mod=<?php echo $modul; ?>&amp;by=publications<?php echo $lsort; ?>"><?php echo t('Публикаций'); ?></a></b></td>
+   <td width="10%" align="center"><b><a href="index.php?mod=<?php echo $modul; ?>&amp;by=usergroup<?php echo $lsort; ?>"><?php echo t('Группа'); ?></b></a></td>
+
+<?php if ($yaw) { ?>
+   <td width="5%" align="center"><b><?php echo t('Действие'); ?></b></td>
+   <td width="5%" align="center"><input type="checkbox" name="master_box" title="<?php echo t('Выбрать все'); ?>" onclick="javascript:ckeck_uncheck_all()"></td>
+<?php } ?>
+
+</tr>
+
+
+<?php
+
+$row_users = $db->sql_query("SELECT * FROM ".$config['dbprefix']."users WHERE deleted!=1 ORDER BY ".$order." ".(!empty($number) ? " LIMIT ".((!empty($oskip) ? $oskip : 0) .", ".$number) : "")." ");
+$crl = $db->sql_numrows($row_users);
+$wheren = "deleted!=1";
+if (!empty($crl) and $crl > 0) {
+while ($urow=$db->sql_fetchrow($row_users)) {
+
+?>
+
+  <tr <?php echo straw_that(); ?>>
+   <td class="tabnum">&nbsp;<?php echo $urow['id']; ?></td>
+   <td>&nbsp;<?php echo $urow['name']; ?></td>
+   <td align="center"><?php echo langdate('j M Y', $urow['date']); ?></td>
+   <td align="center"><?php echo ($urow['last_visit'] ? langdate('j M Y H:i:s', $urow['last_visit']) : ''); ?></td>
+   <td align="center"><?php echo $urow['publications']; ?></td>
+   <td>&nbsp;<?php echo $usergroups[$urow['usergroup']]['name']; ?></td>
+
+<?php if ($yaw) { ?>
+   <td align="center"><a href="<?php echo $PHP_SELF; ?>?mod=editusers&amp;action=edituser&amp;id=<?php echo $urow['id']; ?>"><img src="admin/images/icons/edit.png" alt="<?php echo t('Редактировать'); ?>"/></a></td>
+   <td align="center"><input name="selected_users[]" value="<?php echo $urow['id']; ?>" type="checkbox"></td>
+<?php } ?>
+
+</tr>
+<?php
+}
+} else {
+ echo "<tr><td align=\"center\" colspan=\"7\"><br />&nbsp;".t('Нет пользователй!')."</td></tr>";
+}
+?>
+</table>
+
+
+</td></tr>
+</table>
+
+
+<?php if ($yaw) { ?>
+<p align="right"><input type="submit" value="<?php echo t('Удалить'); ?>" accesskey="d">
+<?php } ?>
+
+
+</form>
+
+<?php
+
+if (!empty($crl)) {
+echo pnp("users", (!empty($pnum) ? intval($pnum) : 1), (!empty($number) ? intval($number) : 0), (!empty($template) ? $template : 'default'), (!empty($wheren) ? $wheren : ''), '', '', $lnk);
+unset($order, $lsort, $oskip, $lnk, $pnum);
+}
+echo on_page();
+	echofooter();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ********************************************************************************
+// Add User
+// ********************************************************************************
+if (!empty($action) and $action == 'adduser'){
+	if (empty($_POST['regusername']) or empty($_POST['regpassword'])){
+		header('Location: '.$PHP_SELF.'?mod=editusers');
+		exit;
+	}
+
+	foreach ($users as $row){
+		if (!empty($_POST['regusername']) and strtolower($_POST['regusername']) == strtolower($row['username'])){
+			msg('error', t('Ошибка'), t('Пользователь с таким логином уже есть.'), $PHP_SELF.'?mod=editusers');
+		} elseif (!empty($_POST['regnickname']) and strtolower($row['name']) == strtolower($_POST['regnickname'])){
+			msg('error', t('Ошибка'), t('Пользователь с таким именем уже есть.'), $PHP_SELF.'?mod=personal');
+		} elseif (!empty($_POST['regemail']) and strtolower($row['mail']) == strtolower($_POST['regemail'])){
+			msg('error', t('Ошибка'), t('Пользователь с таким e-mail уже есть.'), $PHP_SELF.'?mod=personal');
+		}
+	}
+
+ $db->sql_query("INSERT INTO ".$config['dbprefix']."users (date, usergroup, username, password, name, mail, hide_mail, id) VALUES ('".time."', '".$_POST['regusergroup']."', '".$_POST['regusername']."', '".md5x($_POST['regpassword'])."', '".$_POST['regnickname']."', '".$_POST['regemail']."', 0, NULL)");
+ 
+	$userpic_folder = straw_parse_url($config['path_userpic_upload']);
+	$userpic_folder = $userpic_folder['abs'];
+
+	@mkdir($userpic_folder.'/'.totranslit($_POST['regusername']), "0".$config['chm_dir']);
+	@mkdir($userpic_folder.'/'.totranslit($_POST['regusername']).'/thumbs', "0".$config['chm_dir']);
+	msg('info', t('Добавление пользователя'), t('<b>%user</b> добавлен в группу <b>"%group"</b>', array('user' => (!empty($_POST['regnickname']) ? $_POST['regnickname'] : $_POST['regusername']), 'group' => $usergroups[$regusergroup]['name'])), $PHP_SELF.'?mod=editusers');
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ********************************************************************************
+// Edit User Details
+// ********************************************************************************
+if (!empty($action) and $action == 'edituser'){
+
+$user_query = $db->sql_query("SELECT * FROM ".$config['dbprefix']."users WHERE id='".$id."' LIMIT 0,1");
+$row=$db->sql_fetchrow($user_query); 
+
+		echoheader('user', t('Редактирование пользователя %user', array('user' => (!empty($row['name']) ? $row['name'] : $row['username']))));
+
+?>
+
+<form action="" method="post" enctype="multipart/form-data">
+
+
+<?php
+	    if (!empty($config['user_avatar'])){
+	        if (!empty($row['avatar'])){
+	            $row['avatar'] = '<img src="'.$config['path_userpic_upload'].'/'.$row['username'].'.'.$row['avatar'].'" style="margin: 5px; border: 0px;">';
+	            $delava = '<input type="checkbox" name="delavatar" id="delavatar">&nbsp;<label for="delavatar">'.t('Удалить аватар?').'</label>';
+	        } else {
+	            $row['avatar']="";
+	            $delava = '';
+	        }
+
+	        $showrow_avatar = '<tr '.straw_that().'>
+	        <td height="21">&nbsp;&nbsp;'.t('Аватар').':</td>
+	        <td height="21">
+	        <input type="hidden" name="max_file_size" value="110000">
+	        <input tabindex="6" name="newavatar" type="file" size="27">
+	        </td>
+	        <td>'.$delava.'</td></tr>';
+	    
+	    } else {
+	        $row['avatar']="";
+	    }
+
+$arr_query = $db->sql_query("SELECT * FROM ".$config['dbprefix']."usergroups");
+while ($aug_row=$db->sql_fetchrow($arr_query)) {
+$usergroups_array[$aug_row['id']] = $aug_row['name'];
+}
+
+?>
+
+<table border="0" height="1" width="100%" cellspacing="0" cellpadding="0">
+<form method="post" action="" name="personal" enctype="multipart/form-data">
+ <tr>
+  <td colspan="2" style="padding-bottom: 10px;"><b><?php echo t('Общая информация'); ?></b></td>
+ </tr>
+ <tr <?php echo straw_that(); ?>>
+  <td height="21">&nbsp;&nbsp;<?php echo t('Логин'); ?>
+  <td height="21" width="400" colspan="2"><input type="hidden" name="editusername" value="<?php echo $row['username']; ?>"><?php echo $row['username']; ?>
+ </tr>
+ <tr <?php echo straw_that(); ?>>
+  <td height="21" width="150">&nbsp;&nbsp;<?php echo t('Дата регистрации'); ?></td>
+  <td height="21" width="400" colspan="2"><?php echo langdate('l, j M Y - h:i', $row['date']); ?></td>
+ </tr>
+ <tr <?php echo straw_that(); ?>>
+  <td height="21">&nbsp;&nbsp;<?php echo t('Группа'); ?></td>
+  <td height="21" width="400" colspan="2"><?php echo makeDropDown($usergroups_array, 'editusergroup', $row['usergroup']); ?></td>
+</tr>
+<tr <?php echo straw_that(); ?>>
+ <td height="21" width="150">&nbsp;&nbsp;<?php echo t('Публикаций'); ?></td>
+ <td height="21" width="400" colspan="2"><?php echo $row['publications']; ?></td>
+</tr>
+<tr>
+ <td colspan="2" style="padding-top: 10px;padding-bottom: 10px;"><b><?php echo t('Личные данные'); ?></b></td>
+</tr>
+<tr <?php echo straw_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?php echo t('Новый пароль'); ?></td>
+ <td height="21" width="400" colspan="2"><input name="editpassword">&nbsp;<?php echo t('если хотите изменить текущий'); ?></td>
+</tr>
+<tr <?php echo straw_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?php echo t('Имя'); ?></td>
+ <td height="21" width="400" colspan="2"><input type="text" name="editnickname" value="<?php echo $row['name']; ?>"></td>
+</tr>
+<tr <?php echo straw_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?php echo t('E-mail'); ?></td>
+ <td height="21" width="400" colspan="2"><input type="text" name="editmail" value="<?php echo $row['mail']; ?>">&nbsp;&nbsp;&nbsp;<input type="checkbox" name="edithidemail" <?php echo ($row['hide_mail'] ? 'checked' : ''); ?> id="edithidemail">&nbsp;<label for="edithidemail"><?php echo t('спрятать адрес'); ?></label></td>
+</tr>
+<tr <?php echo straw_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?php echo t('Домашняя страница'); ?></td>
+ <td height="21" width="400" colspan="2"><input type="text" name="editsite" value="<?php echo $row['homepage']; ?>"></td>
+</tr>
+<tr <?php echo straw_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?php echo t('ICQ'); ?></td>
+ <td height="21" width="400" colspan="2"><input type="text" name="editicq" value="<?php echo (!empty($row['icq']) ? $row['icq'] : ""); ?>"></td>
+</tr>
+<tr <?php echo straw_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?php echo t('ЖЖ') ?></td>
+ <td height="21" width="400" colspan="2"><input type="text" name="editlj" value="<?php echo $row['lj_username']; ?>"></td>
+</tr>
+<tr <?php echo straw_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?php echo t('Пароль от ЖЖ'); ?></td>
+ <td height="21" width="400" colspan="2"><input type="text" name="editljpass" value="<?php echo $row['lj_password']; ?>"></td>
+</tr>
+<tr <?php echo straw_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?php echo t('Откуда'); ?></td>
+ <td height="21" width="400" colspan="2"><input type="text" name="editfrom" value="<?php echo $row['location']; ?>"></td>
+</tr>
+<tr <?php echo straw_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?php echo t('О себе'); ?></td>
+ <td height="21"><textarea type="text" name="editabout" style="width: 300px; height: 120px; padding: 5px; overflow-x: hidden; overflow-y: visible; "><?php echo replace_news('admin', $row['about']); ?></textarea><?php echo $row['avatar']; ?></td>
+ <td width="200" align="left">&nbsp;</td>
+</tr>
+
+<?php echo $showrow_avatar; ?>
+
+<tr>
+ <td height="1" colspan="2" colspan="3"><br />
+  <input type="submit" value="<?php echo t('Сохранить'); ?>" accesskey="s">
+  <input type="hidden" name="id" value="<?php echo $id; ?>">
+  <input type="hidden" name="mod" value="editusers">
+  <input type="hidden" name="action" value="doedituser">
+ </td>
+</tr>
+</form>
+</table>
+
+</form>
+<?php
+echo on_page();
+		echofooter();
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ********************************************************************************
+// Do Edit User
+// ********************************************************************************
+if (!empty($action) and $action == 'doedituser'){
+	$userpic_folder = straw_parse_url($config['path_userpic_upload']);
+	$userpic_folder = $userpic_folder['abs'];
+	
+    if (!is_dir($userpic_folder)){
+    	@mkdir($userpic_folder, "0".$config['chm_dir']);
+    	@chmod($userpic_folder, "0".$config['chm_dir']);
+    }
+
+$id = (!empty($_POST['id']) and is_numeric($_POST['id'])) ? $_POST['id'] : 0;
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+$user_query = $db->sql_query("SELECT * FROM ".$config['dbprefix']."users WHERE id='".$id."' LIMIT 0,1");
+$row=$db->sql_fetchrow($user_query); 
+
+/////////////////////
+
+	    if (!empty($_POST['delavatar'])){
+	        unset($change_avatar);
+	        @unlink($userpic_folder.'/'.$row['username'].'.'.$row['avatar']);
+	    } else {
+	        $change_avatar = $row['avatar'];
+	    }
+
+
+	    if (!empty($_POST['editljpass'])){
+	        $editljpass = $_POST['editljpass'];
+	    } else {
+	        $editljpass = $row['lj_password'];
+	    }
+
+
+$avatar_error  = "";
+
+
+	    if (!empty($_FILES) and empty($_FILES['newavatar']['error'])){
+	        // Загружаем файл(ы)
+	        $avatarname = $_FILES['newavatar']['name'];
+	        $avatartemp = $_FILES['newavatar']['tmp_name'];
+	        $type       = end($type = explode('.', $avatarname));
+
+	        // Проверяем картинку или фигню какую-то пытается закачать юзер
+	        if (!in_array($type, $allowed_extensions) or !in_array(strtolower($type), $allowed_extensions)){
+	            @unlink($userpic_folder.'/'.$avatarname);
+
+	            $change_avatar = $row['avatar'];
+	            $avatar_error  = t(' Но аватар не загружен!<br>Загрузка таких типов файлов запрещена.');
+	        } else {
+	            @unlink($userpic_folder.'/'.$row['username'].'.'.$row['avatar']);
+	            @move_uploaded_file($avatartemp, $userpic_folder.'/'.$avatarname);
+
+	            $size = @getimagesize($userpic_folder.'/'.$avatarname);
+
+	            // Проверяем размеры загружаемой картинки
+	            if (($size[0] > $config['avatar_w']) or ($size[1] > $config['avatar_h'])){
+	                $avatar_error  = t('Но аватар не загружен!<br>Размеры картинки должны быть <b>%w x %h</b>.', array('w' => $config['avatar_w'], 'h' =>$config['avatar_h']));
+	                $change_avatar = $row['avatar'];
+	                @unlink($userpic_folder.'/'.$avatarname);
+	            } else {
+	                $change_avatar = @rename($userpic_folder.'/'.$avatarname, $userpic_folder.'/'.$row['username'].'.'.$type);
+	                $change_avatar = $type;
+	            }
+	        }
+	    }
+
+        if (!empty($_POST['editpassword'])){
+            $row['password'] = md5x($_POST['editpassword']);
+            $_SESSION['md5_password'] = $row['password'];
+            straw_setcookie('md5_password', $row['password']);
+        }
+
+//////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+
+$editicq = str_replace("-", "", $_POST['editicq']);
+$editsite = rurl($_POST['editsite'], "http");
+
+  $db->sql_query("update ".$config['dbprefix']."users set password = '".cheker($row['password'])."', name = '".replace_comment('add', $_POST['editnickname'])."', mail = '".cheker($_POST['editmail'])."', hide_mail = '".(!empty($_POST['edithidemail']) ? true : false)."', avatar = '".$change_avatar."', homepage = '".replace_comment('add', $editsite)."', icq = '".replace_comment('add', $editicq)."', location = '".replace_comment('add', $_POST['editfrom'])."', about = '".replace_comment('add', $_POST['editabout'])."', lj_username = '".replace_comment('add', $_POST['editlj'])."', lj_password = '".cheker($editljpass)."', usergroup = '".$_POST['editusergroup']."' where id = ".$id." limit 1 ");
+
+    msg('user', t('Пользователи'), t('Изменения сохранены.').$avatar_error, $PHP_SELF.'?mod=editusers&action=edituser&id='.$id);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ Массовое удаление пользователей
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+if (!empty($action) and $action == 'mass_delete_users'){
+	if (empty($_POST['selected_users'])){
+		msg('error', t('Ошибка'), t('Не выбрано ни одного пользователей для удаления.'), $PHP_SELF.'?mod=editusers');
+	} else {
+	$selected_users = $_POST['selected_users'];
+	}
+
+	echoheader('options', t('Удаление пользователей'));
+	
+?>
+
+<form method="post" action="">
+<table border="0" cellpading="0" cellspacing="0" width="100%" height="100%">
+ <tr>
+  <td>
+   <?php echo t('Вы уверены, что хотите удалить этих(<b>%count</b>) пользователей?', array('count' => count($selected_users))); ?><br /><br />
+   <input type="button" value="   <?php echo t('Нет'); ?>   " onclick="javascript:document.location='<?php echo $PHP_SELF; ?>?mod=editusers'"> &nbsp; <input type="submit" value="   <?php echo t('Да'); ?>   ">
+   <input type="hidden" name="action" value="do_mass_delete_users">
+   <input type="hidden" name="mod" value="editusers">
+
+<?php
+	foreach($selected_users as $userid){
+	    echo '<input type="hidden" name="selected_users[]" value="'.$userid.'">';
+	}
+?>
+
+</table>
+</form>
+
+<?php
+echo on_page();
+	echofooter();
+}
+
+if (!empty($action) and $action == 'do_mass_delete_users'){
+	if (empty($_POST['selected_users'])){
+		msg('error', t('Ошибка'), t('Не выбрано ни одного пользователей для удаления.'), $PHP_SELF.'?mod=editusers');
+	} else {
+	        $selected_users = $_POST['selected_users'];
+	}
+
+$deleted_users = count($selected_users);
+$und = implode(",",$selected_users);
+$db->sql_query("UPDATE ".$config['dbprefix']."users SET deleted=1 WHERE id IN (".$und.")");
+
+	if (count($selected_users) == $deleted_users){
+		msg('info', t('Удаление пользователей'), t('Все выбранные Вами пользователи успешно удалены.'), $PHP_SELF.'?mod=editusers');
+	} else {
+		msg('error', t('Удаление пользователей'), t('Удалено <b>%deleted</b> из <b>%selected</b> выбраных пользователей.', array('deleted' => $deleted_users,'selected' => count($selected_users))), $PHP_SELF.'?mod=editusers');
+	}
+	
+	
+}
+
+
+
+
+}
+
+
+
+?>

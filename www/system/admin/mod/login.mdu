@@ -1,0 +1,106 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+
+if ($action == 'forgot'){
+	if (!empty($for)){
+	    if (!empty($key)){
+	        $new_password = @file_read(cache_directory.'/_'.$for.'_.tmp');
+	        unlink(cache_directory.'/_'.$for.'_.tmp');
+
+	        if ($key == $new_password){
+	            $sql->update(array(
+	            'table'  => 'users',
+	            'where'  => array("username = $for"),
+	            'values' => array('password' => $new_password)
+	            ));
+
+	            msg('info', t('Восстановление пароля'), t('Пароль был успешно изменён изменён.'), $PHP_SELF);
+	        } else {
+	            msg('info', t('Ошибка'), t('Ключ не верный. Попробуйте снова.'), $PHP_SELF);
+	        }
+	    } else {
+	        foreach ($sql->select(array('table' => 'users')) as $row){
+	            if (strtolower($for) == strtolower($row['username']) or strtolower($for) == strtolower($row['mail'])){
+	                if ($row['mail']){
+	                    $new_password   = random_pass();
+	                    $activation_url = $config['http_script_dir'].'/?mod='.$mod.'&action='.$action.'&key='.md5x($new_password).'&for='.$row['username'];
+
+	                    ob_start();
+	                    include mails_directory.'/forgot.tpl';
+	                    $tpl['body'] = ob_get_clean();
+
+	                    preg_match('/Subject:(.*)/i', $tpl['body'], $tpl['subject']);
+	                    preg_match('/Attachment:(.*)/i', $tpl['body'], $tpl['attachment']);
+
+	                    $tpl['body']       = preg_replace('/Subject:(.*)/i', '', $tpl['body']);
+	                    $tpl['body']       = preg_replace('/Attachment:(.*)/i', '', $tpl['body']);
+	                    $tpl['body']       = trim($tpl['body']);
+	                    $tpl['subject']    = trim($tpl['subject'][1]);
+	                    $tpl['attachment'] = trim($tpl['attachment'][1]);
+
+	                    if (!file_exists(cache_directory.'/_'.$row['username'].'_.tmp')){
+	                        file_write(cache_directory.'/_'.$row['username'].'_.tmp', md5x($new_password));
+	                        straw_mail($row['mail'], $tpl['subject'], $tpl['body'], $tpl['attachment']);
+	                    }
+
+	                    msg('info', t('Восстановление пароля'), t('Вам на e-mail было отправлено сообщение. Проверьте почту.'), $PHP_SELF);
+	                } else {
+	                    msg('info', t('Восстановление пароля'), t('Пользователь <b>%user</b> найден, но он не указал свой e-mail. Если вы являетесь этим пользователем, то обратитесь к администрации.', array('user' => $row['name'])), $PHP_SELF);
+	                }
+	            } else {
+	                msg('info', t('Восстановление пароля'), t('Нет такого пользователя в базе.'), $PHP_SELF);
+	            }
+	        }
+	    }
+	} else {
+	    echoheader('user', t('Восстановление пароля'));
+?>
+
+<form action="<?php echo $PHP_SELF; ?>" method="get">
+<input name="mod" type="hidden" value="<?php echo $mod; ?>">
+<input name="action" type="hidden" value="<?php echo $action; ?>">
+<?php echo t('Укажите ваш логин или e-mail'); ?><br />
+<input name="for" type="text" value=""><br />
+<input type="submit" value="  <?php echo t('Восстановить'); ?> ">
+</form>
+
+<?php
+	    echofooter();
+	}
+} else {
+
+	straw_setcookie('username', '', (time/2), '/');
+	straw_setcookie('password', '', (time/2), '/');
+	straw_setcookie('md5_password', '', (time/2), '/');
+	straw_setcookie('login_referer', '', (time/2), '/');
+
+	echoheader('user', t('Вход в панель управления сайта '.$config['home_title']));
+?>
+<form name="login" action="<?php echo $PHP_SELF; ?>" method="post" onsubmit="return process_form(this)">
+<table border="0" cellspacing="0" cellpadding="1" width="410">
+  <tr>
+   <td width="20%"><?php echo t('Логин'); ?></td>
+   <td width="40%" ><input type="text" name="username" value="" style="width:134px;"></td>
+   <td width="40%" rowspan="4" valign="top">» <a href="<?php echo $PHP_SELF; ?>?mod=login&action=forgot" title="<?php echo t('Восстановление пароля'); ?>"><?php echo t('Забыли пароль?'); ?></a><br>» <a href="../" title="<?php echo t('Перейти на главную страницу сайта'); ?>"><?php echo t('На главную.'); ?></a><br><br><br><input accesskey="s" type="submit" style="width:134;" value="<?php echo t('Вход...'); ?>"></td>
+  </tr>
+  <tr>
+   <td><?php echo t('Пароль'); ?></td>
+   <td><input type="password" name="password" style="width:134px;"></td>
+  </tr>
+   <?php   if (empty($is_logged_in) && $config['pin_auth']) {
+   echo pin_cod_auth("admin", "auth"); 
+   }
+   ?>
+  <tr>
+   <td align="center" colspan="3"><?php echo $result_in; ?></td>
+  </tr>
+</table>
+ <input type="hidden" name="action" value="dologin">
+ </form>
+
+<?php
+	echofooter();
+}
+?>

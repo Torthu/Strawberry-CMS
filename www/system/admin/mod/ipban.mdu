@@ -1,0 +1,127 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+if (straw_get_rights($mod, 'write')) { $yaw = 1; } else { $yaw = 0; }
+// ********************************************************************************
+// Add IP
+// ********************************************************************************
+if (!empty($action) and $action == 'add' and !empty($yaw)){
+$add_ip = !empty($_POST['add_ip']) ? cheker($_POST['add_ip']) : "";
+
+    if (empty($add_ip)){
+    	msg('error', t('Ошибка'), t('Заполните поле IP!'), $PHP_SELF.'?mod=ipban');
+    } elseif (!empty($add_ip)) {
+
+
+// // (c) Chaser <coderunnerz@gmail.com>
+	if (preg_match('#^([0-9]{1,3}|\*{1})\.([0-9]{1,3}|\*{1})\.([0-9]{1,3}|\*{1})\.([0-9]{1,3}|\*{1})#si', $add_ip, $match) && (($match[1]<256) && ($match[2]<256) && ($match[3]<256) && ($match[4]<256))) {
+
+$o_ip = $db->sql_query("SELECT ip FROM ".$config['dbprefix']."ipban WHERE ip='".$add_ip."' ");
+list($s_ip) = $db->sql_fetchrow($o_ip);
+    if (empty($s_ip) and $add_ip != '127.0.0.1'){
+$db->sql_query("INSERT INTO ".$config['dbprefix']."ipban VALUES ('".$add_ip."', 0) ");
+    }
+        } else {
+    	msg('error', t('Error'), t('Такой IP не существует!'), $PHP_SELF.'?mod=ipban');
+        }
+
+
+    }
+}
+
+// ********************************************************************************
+// Remove IP
+// ********************************************************************************
+if (!empty($_GET['remove_ip']) and !empty($_GET['action']) and $action == 'remove' and !empty($yaw)){
+    if (empty($_GET['remove_ip'])){
+    	msg('error', t('Ошибка'), t('Заполните поле IP!'), $PHP_SELF.'?mod=ipban');
+    }
+
+$db->sql_query("DELETE FROM ".$config['dbprefix']."ipban WHERE ip='".$_GET['remove_ip']."' ");
+
+}
+
+// ********************************************************************************
+// List all IP
+// ********************************************************************************
+echoheader('options', t('Блокировка IP'));
+$chto = (!empty($_GET['chto'])) ? "value=\"".$_GET['chto']."\"" : "";
+?>
+
+
+<table border="0" cellpading="0" cellspacing="0" width="100%"><tr>
+ <td height="33" colspan="2"><b><?php echo t('Заблокировать'); ?></b>
+  <form method="post" action="">
+  <table border="0" cellpading="0" cellspacing="0" width="100%"  class="panel" cellpadding="7">
+    <tr>
+    <td width="10%" height="25">&nbsp;<?php echo t('IP адрес'); ?>
+    <td width="90%" height="25"><input type="text" name="add_ip" size="50" <?php echo $chto; ?>>&nbsp;&nbsp;
+<?php
+if (!empty($yaw)) {
+?>
+     <input type="submit" value="<?php echo t('Заблокировать'); ?>">
+     <input type="hidden" name="action" value="add">
+     <input type="hidden" name="mod" value="ipban">
+ <?php
+}
+?>
+</td></tr>
+</table>
+    </form>
+    
+    </td></tr>
+    <tr>
+    <td height="20" align="left"><b><?php echo t('Заблокированные IP адреса'); ?></b></td>
+    <td width="300" height="20" align="right"><?php echo straw_number(50, 1); ?></td>
+    </tr>
+    <tr>
+    <td width="654" height="1" colspan="2">
+    <table width="100%" cellspacing="2" cellpadding="2">
+     <tr class="panel">
+       <td width="260"><b><a href="index.php?mod=<?php echo $modul; ?>&amp;by=ip<?php echo $lsort; ?>">IP</a></b></td>
+       <td width="218"><b><a href="index.php?mod=<?php echo $modul; ?>&amp;by=count<?php echo $lsort; ?>"><?php echo t('Сколько раз блокировался'); ?></a></b></td>
+       <td align="center" width="140">&nbsp;<b><?php echo t('Разблокировать'); ?></a></b></td>
+       </tr>
+
+<?php
+
+$order = str_replace("date", "ip", $order);
+$row_ip = $db->sql_query("SELECT * FROM ".$config['dbprefix']."ipban ORDER BY ".$order." ".(!empty($number) ? " LIMIT ".((!empty($oskip) ? $oskip : 0) .", ".$number) : "")." ");
+$crl = $db->sql_numrows($row_ip);
+if (!empty($crl) and $crl > 0) {
+while ($iprow=$db->sql_fetchrow($row_ip)) {
+?>
+<tr <?php echo straw_that(); ?>>
+ <td><?php echo whois_ip($iprow['ip']); ?></td>
+ <td><?php echo $iprow['count']; ?></td>
+ <td align="center">
+ <?php
+if (!empty($yaw)) {
+?>
+ <a href="index.php?mod=ipban&amp;action=remove&amp;remove_ip=<?php echo $iprow['ip']; ?>"><img src="admin/images/icons/delete.png" alt="<?php echo t('Разблокировать'); ?>"/></a>
+<?php
+}
+?>
+ </td>
+ </tr>
+ <?php
+} 
+} else {
+?>
+<tr> <td align="center" colspan="3"><br />&nbsp;<?php echo t('Нет заблокированных IP адресов!'); ?></td></tr>
+<?php
+}
+###########################
+
+?>
+
+</table>
+</td></tr>
+</table>
+
+<?php 
+if (!empty($crl)) {
+echo pnp("ipban", intval($pnum), intval($number), 'default', (!empty($wheren) ? $wheren : ''), '', '', $lnk);
+unset($order, $lsort, $oskip, $lnk, $pnum);
+}
+echofooter(); ?>

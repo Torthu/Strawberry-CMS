@@ -1,0 +1,496 @@
+<?php
+#_strawberry
+
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+$yaw = straw_get_rights('main', 'write') ? 1 : 0;
+
+function chmod_check($dir = '.', $check = false){
+
+  $handle = opendir($dir);
+  while ($file = readdir($handle)){
+    if ($file != '.' and $file != '..' and is_dir($dir.'/'.$file)){
+      $files[] = $file;
+        }
+  }
+
+    if (!empty($files)){
+      if (!empty($check)){
+        return true;
+      }
+
+      echo '<ul style="margin: 0;margin-left: 10px;list-style-type: none;">';
+
+      foreach ($files as $k => $v){
+        $name  = totranslit($dir.'/'.$v);
+        $chmod = ' <small>(CHMOD: <b>'.(@decoct(@fileperms($dir.'/'.$v)) % 1000).'</b>)</small>';
+        $plmin = makePlusMinus($name).' ';
+
+        if (is_dir($dir.'/'.$v)){
+              echo '<li '.straw_that().' style="padding: 5px;">'.(chmod_check($dir.'/'.$v, true) ? $plmin : '').$v.$chmod;
+              echo '<ul id="'.$name.'" style="margin: 0;margin-left: 10px;display: none;list-style-type: none;">';
+              chmod_check($dir.'/'.$v);
+              echo '</ul>';
+          } else {
+            echo '<li style="padding: 5px;">'.$v.$chmod;
+          }
+      }
+
+      echo '</ul>';
+  }
+}
+
+echoheader('home', t('%un, добро пожаловать в АдминЦентр Strawberry!', array('un'=>$member['name'])));
+
+// Данные статистики
+$todaynews      = 0;
+$count_my_news  = 0;
+$count_new_news = 0;
+
+
+########################################
+// Unix-like server load averages
+if (preg_match('/[c-z]:\\\.*/i', $_SERVER['PATH']) and !empty($yaw)){
+	$server_load = t('нет данных');
+} elseif (@file_exists('/proc/loadavg') and !empty($yaw)) {
+		if ($fp = @fopen( '/proc/loadavg', 'r' )) {
+			$data = @fread( $fp, 6 );
+			@fclose($fp);
+			$loaded = explode(" ", $data);
+			$server_load = trim($loaded[0]);
+		}
+} elseif(!empty($yaw)) {
+		$loaded = @exec('uptime');
+		if (preg_match('/averages?: ([0-9\.]+),[\s]+([0-9\.]+),[\s]+([0-9\.]+)/i', $loaded, $srv_load)) {
+			$server_load = $srv_load[1].' '.$srv_load[2].' '.$srv_load[3];
+		}
+} else {
+        $server_load = t('нет данных');
+}
+########################################
+
+
+// Define Welcome Message
+?>
+
+<table border="0" cellpading="0" cellspacing="0" width="100%">
+ <tr>
+  <td colspan="5" height="1"></td>
+ </tr>
+
+
+
+
+
+
+
+
+
+
+<?php
+//----------------------------------
+// Do we have enough free space ?
+//----------------------------------
+
+$root_folder  = straw_parse_url($config['http_home']);
+$dk = $root_folder['abs'];
+$dfs = @disk_free_space($dk);
+$dts = @disk_total_space($dk);
+$dus = $dts - $dfs;
+if (!empty($dfs) and $dfs < 10240){
+$freespace = formatsize($dfs);
+?>
+
+<tr class="panel">
+ <td class="admin" colspan="5" height="1"><?php echo t('<b>Внимание!</b><br>Системой обнаружено, что на сервере мало свободного места - <b>%free_space</b>. Вам необходимо предпринять меры по увеличению дискового пространства для нормальной работы скрипта. Также необходимо сделать <a href="%url">резервную копию</a> базы новостей!', array('free_space' => $freespace, 'url' => $PHP_SELF.'?mod=backup')); ?>
+<tr>
+
+<?php
+}
+
+
+
+
+
+
+
+
+
+
+//----------------------------------
+// Are we using SafeSkin ?
+//----------------------------------
+if (!empty($using_safe_skin)){
+?>
+
+<tr class="panel">
+ <td class="admin" colspan="5" height="1"><?php echo t('<b>Внимание!</b><br>Невозможно загрузить выбранный в настройках шаблон <b>%skin</b>. Автоматически загружен шаблон по умолчанию!<br>Проверьте наличие файлов шаблона на сервере!', array('skin' => $config['skin'])); ?>
+<tr>
+
+<?php
+}
+
+
+
+
+
+
+
+
+
+
+
+//----------------------------------
+// Is our PHP version old ?
+//----------------------------------
+if (!empty($phpversion) and $phpversion < '5.0.0'){
+?>
+
+<tr class="panel">
+ <td class="admin" colspan="5" height="1"><?php echo t('<b>Внимание!</b><br>Версия php-интерпретатора, установленная на сервере, слишком старая (%version). Для данной системы требуется php-интерпретатора не ниже 5 версии.<br>Свяжитесь с администрацией хостинга для обновления версии php! Скачать последнюю версию можно на <a href="http://php.net/" target="_blank">официальном сайте</a>.', array('version' => $phpversion)); ?>
+<tr>
+
+<?php
+}
+
+
+
+
+
+
+
+
+
+
+
+// Show Some stats
+
+$image_upload        = end($image_upload = explode('/', $config['path_image_upload']));
+$user_images_folder  = straw_parse_url($config['path_image_upload']);
+$user_images_folder  = $user_images_folder['abs'];
+
+$userpic_upload      = end($userpic_upload = explode('/', $config['path_userpic_upload']));
+$user_userpic_folder = straw_parse_url($config['path_userpic_upload']);
+$user_userpic_folder = $user_userpic_folder['abs'];
+
+$data_folder         = end($data_folder = explode('/', data_directory));
+$db_folder         = end($db_folder = explode('/', db_directory));
+$cache_folder        = end($cache_folder = explode('/', cache_directory));
+$backup_folder       = end($backup_folder = explode('/', backup_directory));
+$lang_folder         = end($lang_folder = explode('/', languages_directory));
+# $stpl_folder         = end($stpl_folder = explode('/', stpl_directory));
+$templates_folder         = end($templates_folder = explode('/', templates_directory));
+$languages_directory = languages_directory.'/'.$config['lang'];
+
+
+$test = array(
+        cache_directory      => $cache_folder,
+        backup_directory     => $backup_folder,
+        data_directory       => $data_folder,
+        db_directory => 'data/'.$db_folder,
+        templates_directory => 'data/'.$templates_folder,
+#      stpl_directory => 'data/tpl/'.$stpl_folder,
+        $user_images_folder  => $image_upload,
+        $user_userpic_folder => $userpic_upload,
+        $languages_directory => $lang_folder.'/'.$config['lang']
+        );
+
+$stat = array(
+#       'users'      => array('title' => t('<a href="?mod=editusers" title="Пользователи">пользователей</a>')),
+        'news'       => array('select' => 'id', 'title' => t('<a href="?mod=editnews" title="Редактировать новости">новостей</a>')),
+        'comments'   => array('title' => t('<a href="?mod=comments" title="Управление комментариями">комментариев</a>')),
+        'categories' => array('select' => 'id', 'title' => t('<a href="?mod=categories" title="Управление категориями">категорий</a>')),
+#        'links'           => array('select' => 'id', 'title' => t('<a href="?mod=links" title="Каталог ссылок">ссылок</a>')),
+        );
+
+// Check the table size
+$arr_size = array('users', 'news', 'story', 'comments', 'categories');
+
+
+    foreach ($arr_size as $table) {
+        $query = $db->sql_query("SHOW TABLE STATUS LIKE '".$config['dbprefix'].$table."' ");
+        while ($rrow = $db->sql_fetchrow($query)){
+        $size[$table] = $rrow['Data_length'];
+            if (!empty($row['Data_free']) and $row['Data_free'] > 0 and !empty($yaw)){
+                $results = $db->sql_query("optimize table ".$rrow['Name']." ");
+            }
+        }
+    }
+
+$size['news'] = ($size['story'] + $size['news']);
+
+?>
+
+<tr>
+ <td>
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+   <tr>
+    <td class="panel" width="45%">&nbsp;<b><?php echo t('Статистика'); ?></b></td>
+    <td></td>
+    <td class="panel" width="45%">&nbsp;<b><?php echo t('Проверка системы'); ?></b> <small>(<a href="<?php echo $PHP_SELF; ?>?action=chmod"><?php echo t('вся'); ?></a>)</small></td>
+</tr>
+   <tr>
+    <td valign="top">
+     <table width="100%" border="0" cellspacing="1" cellpadding="1">
+
+
+<?php
+/*
+<tr>
+ <td><?php echo t('Активных <a href="?mod=editusers" title="Управление пользователями">пользователей</a>'); ?></td>
+ <td width="130"><?php 
+  $cntu = 0;
+ $cuquery = $db->sql_query("SELECT COUNT(id) as cntu FROM ".$config['dbprefix']."users WHERE deleted = 0 ");
+ list($cntu) = $db->sql_fetchrow($cuquery);
+ echo (!empty($cntu) ? $cntu : "0");
+ ?> (<small><?php echo formatsize($size['users']); ?></small>)</td>
+</tr>
+*/
+?>
+
+
+
+
+<tr>
+ <td width="50%"><a href="?mod=editusers" title="<?php echo t('Управление пользователями'); ?>"><?php echo t('Пользователей в базе'); ?></a></td>
+ <td width="50%"><?php echo count($users); ?> (<small><?php echo formatsize($size['users']); ?></small>)</td>
+</tr>
+
+<?php
+foreach ($stat as $k => $v){
+?>
+
+<tr>
+ <td><?php echo t('Всего'); ?> <?php echo $v['title']; ?></td>
+ <td><?php
+  $cntu = 0;
+ $cuquery = $db->sql_query("SELECT COUNT(".(!empty($v['select']) ? $v['select'] : 'date').") as cntu FROM ".$config['dbprefix'].$k." ");
+ list($cntu) = $db->sql_fetchrow($cuquery);
+ echo (!empty($cntu) ? $cntu : "0");
+   ?> (<small><?php echo formatsize($size[$k]); ?></small>)</td>
+</tr>
+
+<?php
+}
+?>
+
+
+<tr>
+ <td><a href="?mod=mails" title="<?php echo t('Внутренняя почта'); ?>"><?php echo t('Входящие письма'); ?></a></td>
+ <td><?php
+  $cntu = 0;
+ $cuquery = $db->sql_query("SELECT COUNT(id) as cntu FROM ".$config['dbprefix']."mail ");
+ list($cntu) = $db->sql_fetchrow($cuquery);
+ echo (!empty($cntu) ? $cntu : "0");
+  ?> (<?php echo t('новых'); ?> <?php 
+ $cntu = 0;
+ $cuquery = $db->sql_query("SELECT COUNT(id) as cntu FROM ".$config['dbprefix']."mail WHERE active=1 ");
+ list($cntu) = $db->sql_fetchrow($cuquery);
+ echo (!empty($cntu) ? $cntu : "0");
+  ?>)</td>
+</tr>
+
+<tr>
+ <td><a href="?mod=gb" title="<?php echo t('Гостевая книга'); ?>"><?php echo t('Сообщения гостевой'); ?></a></td>
+ <td><?php
+ $cntu = 0;
+ $cuquery = $db->sql_query("SELECT COUNT(id) as cntu FROM ".$config['dbprefix']."gb ");
+ list($cntu) = $db->sql_fetchrow($cuquery);
+ echo (!empty($cntu) ? $cntu : "0");
+  ?> (<?php echo t('новых'); ?> <?php 
+ $cntu = 0;
+ $cuquery = $db->sql_query("SELECT COUNT(id) as cntu FROM ".$config['dbprefix']."gb WHERE active=1 ");
+ list($cntu) = $db->sql_fetchrow($cuquery);
+ echo (!empty($cntu) ? $cntu : "0");
+  ?>)</td>
+</tr>
+<?php
+if (!empty($config['stat'])) {
+$tmp = "";
+$and2 = "";
+$tmp2 = "putdate>=date_sub(date_format(now(),'%Y-%m-%d 23:59:59'),interval '1' day)";
+$tmp1 = "putdate<date_sub(date_format(now(),'%Y-%m-%d 23:59:59'),interval '0' day)";
+  if( !empty($tmp2) or !empty($tmp)) $and1 = " and ";
+  if( !empty($tmp2) and !empty($tmp)) $and2 = " and ";
+
+ $cntu = 0;
+ $cuquery = $db->sql_query("SELECT COUNT(distinct ip) as cntu FROM ".$config['dbprefix']."count_ip WHERE ".$tmp1.$and1.$tmp2.$and2.$tmp." ");
+ list($cntu) = $db->sql_fetchrow($cuquery);
+ $host_today = (!empty($cntu) ? $cntu : "0");
+
+}
+?>
+<tr>
+ <td valign="top"><?php echo t('%al Посетителей сегодня %aal', array('al'=>'<a href="?mod=statistic&amp;act=hours&amp;day=0" title="'.t('Кто? Где? Когда?').'">', 'aal'=>'</a>')); ?></td>
+ <td>
+ <?php
+ if (!empty($config['stat'])) {
+ echo $host_today; 
+ } else {
+ echo t("счетчик отключен");
+ }
+ if (!empty($config['online'])) {
+ ?> 
+ (<?php echo t('%alон-лайн %aal', array('al'=>'<a href="?mod=online" title="'.t('Кто тут?').'">', 'aal'=>'</a>')); ?> <?php
+ 
+$cntu = 0;
+$cuquery = $db->sql_query("SELECT COUNT(id) as cntu FROM ".$config['dbprefix']."session ");
+list($cntu) = $db->sql_fetchrow($cuquery);
+echo (!empty($cntu) ? $cntu : "0");
+   
+   ?>)
+ <?php  
+ } else {
+
+echo "<small>(".t('он-лайн статистика отключена').")</small>";
+
+ } 
+ ?>
+ </td>
+</tr>
+
+</table></td>
+<td>&nbsp;</td>
+<td valign="top">
+ <table width="100%" border="0" cellspacing="1" cellpadding="1">
+
+<?php
+foreach ($test as $k => $v){
+?>
+
+<tr>
+ <td width="50%"><?php echo t('Доступ к'); ?> /<?php echo $v; ?></td>
+ <td width="50%"><font color="<?php echo (is_writable($k) ? 'green' : 'red'); ?>"><?php echo (is_writable($k) ? t('Есть') : t('Нет')); ?></font></td>
+</td>
+</tr>
+<?php
+}
+?>
+</td></tr>
+</table>
+</td>
+</tr>
+
+
+<tr>
+<td colspan="3" align="center" height="15"></td>
+</tr>
+<tr>
+<td class="panel" width="45%">&nbsp;<b><?php echo t('Система, обработка, квота'); ?></b></td>
+<td></td>
+<td class="panel" width="45%">&nbsp;<b><?php echo t('Модули, безопастность'); ?></b></td>
+</tr>
+
+<tr>
+<td valign="top">
+<?php
+if (straw_get_rights('main', 'write')) {
+
+      $phpver = phpversion();
+      $osver = php_uname('s');
+      $gdver = php_gd();
+      $dbver = db_version();
+      
+### GZIP
+$gzip_in = "";
+if (extension_loaded('zlib')) { 
+//$dgx = explode(",", $HTTP_SERVER_VARS['HTTP_ACCEPT_ENCODING']);
+$dgx = explode(",", $_SERVER['HTTP_ACCEPT_ENCODING']);
+foreach ($dgx as $dgx_out) { $gzip_in .= $dgx_out.", "; }
+$gzip_in = substr($gzip_in, 0, -2);
+}
+
+
+      $phpver = ($phpver >= "4.5.0") ? "<font color=\"green\">$phpver</font>" : "<font color=\"red\">$phpver</font>";
+      $gdver = ($gdver >= "2.0") ? "<font color=\"green\">$gdver</font>" : "<font color=\"red\">$gdver</font>";
+      $dbver = ($dbver >= "4.0.0") ? "<font color=\"green\">$dbver</font>" : "<font color=\"red\">$dbver</font>";
+      $buff = (ini_get('output_buffering') == 1) ? "<font color=\"green\">".t("Включено")."</font>" : "<font color=\"red\">".t("Выключено")."</font>";
+      $globals = (ini_get('register_globals') == 1) ? "<font color=\"red\">".t("Включено")."</font>" : "<font color=\"green\">".t("Выключено")."</font>";
+      $safe_mode = (ini_get('safe_mode') == 1) ? "<font color=\"green\">".t("Включено")."</font>" : "<font color=\"red\">".t("Выключено")."</font>";
+      $magic_quotes = (ini_get('magic_quotes_gpc') == 1) ? "<font color=\"green\">".t("Включено")."</font>" : "<font color=\"red\">".t("Выключено")."</font>";
+      $p_max = "".formatsize(str_replace("M", "", ini_get('post_max_size')) * 1024 * 1024)."";
+      $u_max = "".formatsize(str_replace("M", "", ini_get('upload_max_filesize')) * 1024 * 1024)."";
+      $m_max = "".formatsize(str_replace("M", "", ini_get('memory_limit')) * 1024 * 1024)."";
+      $gzip_out = (!empty($gzip_in)) ? $gzip_in : t('недоступно');
+      $zend_out = (zend_version()) ? "<font color=\"green\">".zend_version()."</font>" : "<font color=\"red\">".t("недоступно")."</font>";
+      $mod_rewrite = (function_exists('apache_get_modules')) ? ( (array_search("mod_rewrite", apache_get_modules())) ? "<font color=\"green\">".t("Включено")."</font>" : "<font color=\"red\">".t("Выключено")."</font>" ) : "<font color=\"red\">".t("не могу определить")."</font>";
+
+    //  print_r(apache_get_modules());
+      echo "<table width=\"100%\" border=\"0\" cellspacing=\"1\" cellpadding=\"1\">"
+      ."<tr><td width=\"50%\">".t("Версия Strawberry").":</td><td width=\"50%\"><font color=\"blue\">".$default['version_id']."</font> <a href=\"".$PHP_SELF."?action=check\"><small title=\"".t("Проверить наличие новой версии")."\">".t('проверить')."</small></a></td></tr>"
+      ."<tr><td>".t("Операционная система").":</td><td><font color=\"blue\">".$osver."</font></td></tr>"
+      ."<tr><td>".t("Размер поста").":</td><td><font color=\"blue\">".$p_max."</font></td></tr>"
+      ."<tr><td>".t("Загружаемый файл").":</td><td><font color=\"blue\">".$u_max."</font></td></tr>"
+      ."<tr><td>".t("Предел памяти").":</td><td><font color=\"blue\">".$m_max."</font></td></tr>"
+      ."<tr><td>".t("Время выполнения").":</td><td><font color=\"blue\">".ini_get('max_execution_time')." ".t("сек").".</font></td></tr>"
+      ."<tr><td>".t("Доступное сжатие").":</td><td><font color=\"blue\">".$gzip_out."</font></td></tr>"
+      ."<tr><td>".t("Дисковая квота HDD").":</td><td><font color=\"blue\">".formatsize($dts)."</font></td></tr>"
+      ."<tr><td>".t("Свободно на диске").":</td><td><font color=\"blue\">".formatsize($dfs)."</font></td></tr>"
+      ."<tr><td>".t("Занято на диске").":</td><td><font color=\"blue\">".formatsize($dus)."</font></td></tr>"
+      ."<tr><td>".t("Загрузка сервера").":</td><td><font color=\"blue\">".$server_load."</font></td></tr>"
+      ."</table>";
+      }
+?>
+</td>
+<td></td>
+<td valign="top">
+<?php
+if (straw_get_rights('main', 'write')) {
+      echo "<table width=\"100%\" border=\"0\" cellspacing=\"1\" cellpadding=\"1\">"
+      ."<tr><td width=\"50%\">".t("Версия PHP").":</td><td width=\"50%\">".$phpver."</td></tr>"
+      ."<tr><td>".t("Библиотека PHP GD").":</td><td>".$gdver."</td></tr>"
+      ."<tr><td>".t("Версия Zend Engine").":</td><td>".$zend_out."</td></tr>"
+      ."<tr><td>".t("База MySQL").":</td><td>".$dbver."</td></tr>"
+      ."<tr><td>".t("Мод Rewrite").":</td><td>".$mod_rewrite."</td></tr>"
+      ."<tr><td>".t("Register globals").":</td><td>".$globals."</td></tr>"
+      ."<tr><td>".t("Safe mode").":</td><td>".$safe_mode."</td></tr>"
+      ."<tr><td>".t("Кавычки gpc").":</td><td>".$magic_quotes."</td></tr>"
+      ."<tr><td>".t("Буферизация").":</td><td>".$buff."</td></tr>"
+      ."<tr><td>".t("Библиотека Zlib").":</td><td>".(!empty($gzip_in) ? "<font color=\"green\">".t('Установлена')."</font>" : "<font color=\"red\">".t('Не установлена')."</font>")."</td></tr>"
+      ."<tr><td>".t("Ваш IP").":</td><td>".whois_ip(getip())."</td></tr>"
+      ."</table>";
+      }
+?>
+</td>
+</tr>
+<tr><td colspan="3" align="center" height="10"></td></tr>
+<tr><td colspan="3"> 
+<fieldset width="100%">
+<?php
+if (!empty($yaw)) {
+echo "<legend>".t('Дополнительно по серверу')."</legend>";
+echo t("IP адрес сервера").": ".whois_ip($_SERVER['SERVER_ADDR'])."<BR>";
+echo t("Хост сервера").": ".(gethostbyaddr($_SERVER['SERVER_ADDR']))."<br>";
+echo t("Имя сервера").": <a target=\"_blank\" href=\"".rurl($_SERVER['SERVER_NAME'])."\" title=\"".$_SERVER['SERVER_NAME']."\">".$_SERVER['SERVER_NAME']."</a><br>";
+echo t("Программная оболочка сервера").": ".$_SERVER['SERVER_SOFTWARE']."<br>";
+echo t("Корень сайта").": ".$_SERVER['DOCUMENT_ROOT'];
+}
+
+?>
+</fieldset>
+</td></tr>
+
+<?php
+if (!empty($action) and $action == 'chmod'){
+echo "<tr><td colspan=\"3\" align=\"center\"><hr></td></tr>";
+echo "<tr><td colspan=\"3\" align=\"left\">";
+chmod_check();
+echo "</td></tr>";
+}
+
+if ($action == 'check'){
+echo "<tr><td colspan=\"3\" align=\"center\"><hr></td></tr>";
+echo "<tr><td colspan=\"3\" align=\"left\">";
+echo t('Используется версия <b>%current_version</b>, последняя версия <b>%new_version</b>', array('current_version' => $config['version_id'], 'new_version' => '<script language="JavaScript" src="http://update.strawberry.su/check.php?version='.$config['version_id'].'"></script>'));
+echo "</td></tr>";
+}
+?>
+
+</table>
+</td></tr>
+</table>
+
+<?php
+echo on_page();
+echofooter(); 
+?>

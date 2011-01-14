@@ -1,0 +1,96 @@
+﻿<?php
+#_strawberry
+
+ if (!defined("str_setup")) die("Access dinaed");
+
+define ("SETUP", "Set Strawberry 1.2.0");
+define ("_LANG", "Select Language");
+define ("_LICENSE", "Lizenzvertrag");
+define ("_CONFIG", "Basic Configuration");
+define ("_SERRORPERM", "nicht über die erforderlichen Berechtigungen, um auf den Server schreiben <br> Geben Sie die erforderlichen Attribute.");
+define ("_NEXT", "Weiter");
+define ("_LICENSE_OK", "Ich akzeptiere die Nutzungsbedingungen.");
+define ("_CONF_1", "Datenbank-Server");
+define ("_CONF_2", "Datenbank Benutzername");
+define ("_CONF_3", "Benutzer-Passwort-Datenbank");
+define ("_CONF_4", "Datenbank-Name");
+define ("_CONF_5", "Präfix Tabellen in der Datenbank");
+define ("_CONF_6", "Dateiname an die Dienststelle der Verwaltung geben");
+define ("_TABLE", "Tabelle");
+define ("_ADMIN", "Add-Administrator");
+define ("_CONF_FILE", "Konfigurationsdatei");
+define ("_SETUP_NEW", "Eine neue Installation des Systems");
+define ("_SUPDATE", "Update");
+define ("_SUPDATE_TO", "bis 1,2");
+define ("_SUPDATE_TO_TEXT", "Punkt \"bis 1,2 Update\" wird verwendet, wenn Sie MySQL-Datenbank haben. Wenn nicht, dann <a href=\"".way(" setup.php?mod=no111")."\">gehen Sie hier</a> <und konvertieren Sie Ihre Text-Datenbank zur Datenbank MySQL.");
+define ("_SAVE_NEW", "Installation und Konfiguration");
+define ("_SAVE_UPDATE", "Upgrade und Konfiguration");
+define ("_PHPSETUP", "PHP-Version auf Ihrem Server entspricht nicht den Mindest-Systemanforderungen installiert, es muss mindestens PHP 5.0.0!");
+define ("_CONF_5_INFO", "Aus Sicherheitsgründen den Standard Name der Datei admin.php Benennen Sie es zu dem, was ihr daraus macht, zum Beispiel: %1\$s.php und geben den neuen Namen, aber nicht das Ende der «.php» In unserem Fall: %1\$s");
+define ("_SAVED", "Saved");
+define ("_OK", "erstellt");
+define ("_NO_OK", "existiert nicht");
+define ("_ERROR", "Fehler");
+define ("_ERROR2", "Fehler");
+define ("_LIC_TEXT_MENU", "Wenn Sie Ihr System auf Strawberry 1.2 aktualisieren möchten und haben ein System nicht weniger als eine Reihe von CuteNews 0.2x, dann sollten Sie dies predpodgotovku seiner Basis. <br> <li> ihre kopieren Sie die Dateien aus /data/ aus System CuteNewsRu 0.2x (0.3x) in den Ordner /system/setup/db/cn02x/. Wenn Sie Strawberry 1.1.1 haben, dann kopieren Sie die Dateien aus dem Ordner /data/db/base/ Ordner /system/setup/db/strawberry/. <a href=\"".way("setup.php?mod=no111")."\">nächstes müssen Sie diesem Link folgen</a>. Nach dem Upgrade, sollten Sie die folgende Nummer durchführen. <br> <li>Wenn Sie Ihre Datenbank MySQL aktualisieren, dann müssen Sie die Lizenz akzeptieren und weiter mit dem Upgrade in Übereinstimmung mit den System-Installation.");
+define ("_L_A_P_MHOLS", "Benutzername und Passwort dürfen nur lateinische Zeichen enthalten.");
+define ("_ADM_SETUP", "Add-Administrator");
+define ("_LOGIN", "Benutzername:");
+define ("_PASS", "Password:");
+define ("_ADD_ADM", "Add-Administrator");
+define ("_ADM_CREATED", "Administrator erstellt");
+define ("_GO_IN_ADPAN", "Zur Verwaltung Panel");
+define ("_INSTALL_COMPLITE", "Installation abgeschlossen! <br> Vielen Dank für Ihre Wahl! <br> Jetzt können Sie den Administrationsbereich des Systems gehen. <br> Konfigurieren der Administrator-Profil nach Ihren Wünschen. <br> Erforderliche löschen Sie die Installationsdateien von Ihrem Server ");
+define ("_zurück", "Return");
+define ("_NO_ADM_LOGIN", "Du hast nicht den Benutzernamen für den Administrator");
+define ("_NO_ADM_PASS", "Sie haben kein Passwort für den Administrator festgelegt");
+define ("_TXT_TO_MYSQL", "C txtSQL (text base) zu MySQL");
+define ("_FROM_CN_TO_STRAW", "Bewegen mit CuteNews.RU Serie 02x 03x und auf Strawberry 1.1.1");
+define ("_UPD_OLD_VERS", "Aktualisieren der Datenbank von früheren Versionen");
+define ("_UPD_OLD_VERS_TXT", "Bevor Sie ein Upgrade auf die Version Strawberry 1.2, müssen Sie Ihre Datenbank auf der Basis der entsprechenden Basis Strawberry 1.1.1 (MySQL) zu aktualisieren. Wählen Sie dann mit Erdbeer 1.2 aktualisieren. <br> Jetzt sollten Sie wählen die meisten für Sie geeignet aktualisieren. <br> <li> <a href=\"setup.php?mod=no111&act=mysql\"> C txtSQL (text base), MySQL für Strawberry 1.1.1 </ a> <a <li> href=\"setup.php?mod=no111&act=02x\"> Reihe C CuteNews.RU 02x oder 03x Serie CuteNews.RU auf MySQL für Strawberry 1.1.1 </ a> <br > <br> Nach der Aktualisierung sollten Sie die Standard-Verfahren von Datenbank-Upgrade auf Version 1.1.1 Strawberry Strawberry 1,2 <br> Wenn Sie Probleme mit der Aktualisierung von Datenbank haben, wenden Sie sich bitte für weitere Informationen über das offizielle Forum der strawberry.");
+define ("_USUALY_LH", "normalerweise localhost");
+define ("_PRIMER_PREFIX", "zum Beispiel strwbr_");
+define ("_PRIMER_AUTHOR", "zB Angela");
+define ("_NO_SLASH", "ohne den Schrägstrich/am Ende");
+define ("_SITE_AUTHOR", "Autor-Website");
+define ("_SITE_ADDRES", "Adresse der Website");
+define ("_CODER_SITE", "Standort-Codierung:");
+define ("_PRIMER_CODER", "zum Beispiel Windows-1251");
+define ("_CREATE_TABLES", "Erstellen von Tabellen.");
+define ("_IMPORT_DATA", "Importieren von Daten in der Tabelle.");
+define ("_CREATE_AND_UPD_TABLES", "Erstellen und Aktualisieren der Tabellen.");
+define ("_MESS_ABOUT_ERR", "Tabelle \"".$xprefix."news\" Fehler können auftreten, weil Sie vielleicht bereits nutzen könnten einige zusätzliche Plugins (zB wie Nachrichten Bewertung).");
+define ("_CONNECT_DB", "In dieser Phase wird eine Verbindung zu der Datenbank weiter zu erstellen die Tabellen in der Datenbank MySQL halten");
+define ("_LOGIN_DB", "Login-Datenbank");
+define ("_PASS_DB", "Passwort-Datenbank");
+define ("_SERVER_DB", "Datenbank-Server");
+define ("_NAME_DB", "Datenbank-Name");
+define ("_PREFIX_DB", "Tabelle Präfix");
+define ("_CRATE_TAB_IN_DB", "In diesem Stadium wird durchgeführt sozdanie MySQL Datenbank-Tabellen");
+define ("_table", "Tabelle");
+define ("_IMPORT_IN_PREPARE_DB", "In diesem Stadium wird ausgeführt Übertragung von Informationen aus dem Text-Datenbank, in die vorbereitete Datenbank MySQL");
+define ("_DATA_OF_TABLE", "Datentabellen");
+define ("_IT_IMPORT", "importiert");
+define ("_IT_NO_IMPORT", "nicht importiert");
+define ("_IT_NEXT", "Next");
+define ("_STEP", "Schritt");
+define ("_LAST_STEP", "letzten");
+define ("_DB_CONVERTED_111", "Ihre Datenbank ist die Datenbank MySQL übertragen Nun müssen Sie das neueste Update auf Version 1.2 laufen strawberry.");
+define ("_DO_LAST_UPD_DB", "Führen Sie die neuesten Update-Datenbank");
+define ("_WRITE_CAN", "Record ist");
+define ("_WRITE_CANT", "Kann nicht aufzeichnen");
+define ("_CHECK_CHMOD", "Check Dateiberechtigungen");
+define ("_MOVE", "Move");
+define ("_users", "User");
+define ("_CATS", "Kategorien");
+define ("_Aktuelles", "News");
+define ("_COMMS", "Kommentare");
+define ("_XFLDS", "Zusätzliche Felder (XFields)");
+define ("_MOVE_USERS_MESS", "diejenigen, die (mit einer ähnlichen Benutzername) wird alles aus der alten Datenbank übertragen werden, mit Ausnahme von Passwörtern haben");
+define ("_DB_NEWS_BEFORE", "Sie müssen erst wieder der Grundlage der Nachrichten");
+
+//define("", "");
+//define("", "");
+
+
+?>

@@ -1,0 +1,231 @@
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>Strawberry // Маленькое пособие по писанию плагинов</title>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
+<link href="_tpl/style.css" rel="stylesheet" type="text/css" media="screen">
+</head>
+
+<body>
+
+<h1>Оглавление</h1>
+<ul>
+<li><a href="#Чтобы написать плагин нужно:">Чтобы написать плагин нужно:</a></li>
+<li><a href="#Ду ю спик енглиш?">Ду ю спик енглиш?</a></li>
+<li><a href="#Фильтры и экшены">Фильтры и экшены</a></li>
+<li><a href="#В поисках нужного фильтра или экшена">В поисках нужного фильтра или экшена</a></li>
+<li><a href="#Описание плагина">Описание плагина</a></li>
+<li><a href="#Требования к плагину">Требования к плагину</a></li>
+<li><a href="#Комментарии">Комментарии</a></li>
+<li><a href="#Пострскриптум">Пострскриптум</a></li>
+</ul>
+<h1><a name="Чтобы написать плагин нужно:"></a><small><a href="#top">[^]</a></small>&nbsp;Чтобы написать плагин нужно:</h1>
+<ul>
+ <li>Знать синтаксис php
+ <li>Уметь работать с функциями
+ <li>Понять что нужно
+ <li>Найти нужный фильтр или экшен
+</ul>
+<h1><a name="Ду ю спик енглиш?"></a><small><a href="#top">[^]</a></small>&nbsp;Ду ю спик енглиш?</h1>
+<p>Чтобы в дальнейшем наши англоговорящие дружбаны могли перевести скрипт на свой язык была сделана функция t() в которую помещается текст:</p>
+<p class="code">&lt;?=t('Тутачки мы пишем какие-то очень умные и совсем непохабные слова.'); ?&gt;</p>
+<h1><a name="Фильтры и экшены"></a><small><a href="#top">[^]</a></small>&nbsp;Фильтры и экшены</h1>
+<p>По всему скрипту разбросаны фильтры и экшены. Создать свой фильтр (в плагине, например) можно так:</p>
+<p class="code">$var = run_filters('filter-name', $var);</p>
+<p>Как можно заметить, тут переменная $var пропускается через фильтр filter-name. Действие для этого фильтрп в плагине будет выглядеть так:</p>
+<p class="code">add_filter('filter-name', 'function_name');<br>
+ <br>
+ function functionname($param1 [, $param2]){<br>
+ <br>
+ return $param1;<br>
+ }</p>
+<p>$param1 это $var, который мы через фильтр пропускаем. $param2 это имя фильтра, то есть, в примере filter-name (обратите внимание, пробел нужно заменять знаком минуса, так уж пошло). Делать return для $param1 обязательно, иначе всё пропадёт, точнее, содержание $var пропадёт.</p>
+<p>Для экшенов ещё проще:</p>
+<p class="code">$var = 'что-то очень интересное';<br>
+ run_actions('action-name');</p>
+<p>В плагине вызывать так:</p>
+<p class="code">add_filter('action-name', 'function_name');<br>
+ <br>
+ function function_name([$param]){<br>
+ global $var;<br>
+ }</p>
+<p>$param в экшене это его имя, в примере - action-name.</p>
+<p>Ещё есть маленькая тонкость.</p>
+<p class="code">add_filter(string filter_name, string function_name[ , int приоритет]);<br>
+ add_action(string action_name, string function_name[ , int приоритет]);</p>
+<p>Первые два параметра понятны, мы их чуть выше разобрали. А вот третий, необязательный, это приоритет фильтра или экшена. По умолчанию он равен 50.</p>
+<h1><a name="В поисках нужного фильтра или экшена"></a><small><a href="#top">[^]</a></small>&nbsp;В поисках нужного фильтра или экшена</h1>
+<p>После того, как мы решили сделать плагин (об этом чуть ниже) нужно найти нужный фильтр или экшен. Честно говоря, это самый сложный из этапов.</p>
+<p>Итак, цель: заменить тег {ip} в комментарии на IP комментатора. Логично предположить, что искомый фильтр или экшен находится в файле отвечающем за вывод комментариев. Где же он прячется, этот фаил? В папке inc - фаил show.comments.php. Открываем его, пробегаемся глазами и видим:</p>
+<p class="code">$output = run_filters('news-comment', $output);</p>
+<p>Мы нашли. Мы мо-ло-дцы. Дело за малым, написать нужную функцию.</p>
+<p class="code">add_filter('news-comment', 'function_name');<br>
+ <br>
+ function function_name($param1){<br>
+ global $row;<br>
+ <br>
+ $param1 = str_replace('{ip}', $row['ip'], $param1);<br>
+ <br>
+ return $param1;<br>
+ }</p>
+<p>Всё. Плагин написан.</p>
+<h1><a name="Описание плагина"></a><small><a href="#top">[^]</a></small>&nbsp;Описание плагина</h1>
+<p>Теперь нужно плагину дать имя и описание. По большому счёту, это просто. Есть общий шаблон:</p>
+<p class="code">/*<br>
+ Plugin Name: 	Название плагина<br>
+ Plugin URI: Ссылка на плагин<br>
+ Description: 	Описание плагина<br>
+ Version: 		Версия плагина<br>
+ Application: 	Программа<br>
+ Author: 		Имя автора<br>
+ Author URI: Ссылка на хомпейдж автора<br>
+ */</p>
+<p> &quot;Название плагина&quot;* должно быть всегда по-английски, если это не плагин Ago или Кавычкер - они оба ориентированны на русский язык, имя их может быть и по-русски, англоговорящим такой плагин и не нужен вовсе.<br>
+ &quot;Ссылка на плагин&quot; это, обычно, УРЛ нашего сайта, потому что там можно будет скачать его, плагина, новую версию: http//cutenews.ru<br>
+ &quot;Описание плагина&quot;* должно выглядеть так: Описание по-русски&lt;br /&gt;&lt;br /&gt;Описание по-английски. То есть сверху по-русски, чуть ниже по-английски. Опять же, если это не чётко русский плагин, такой как Кавычкер.<br>
+ &quot;Версия плагина&quot; вообщем-то версия плагина. Например: 1.0. Что ещё сказать? :)<br>
+ &quot;Программа&quot;* либо CuteNews, либо Strawberry. Одно на другом работать не будет. Когда имя программы не совпадает с именем текущей программы, то в списке такой плагин не появится. Если его каким-то чудом активировать, то он всё равно будет дезактивирован скриптом.<br>
+ &quot;Имя автора&quot; имя автора плагина.<br>
+&quot;Ссылка на хомпейдж автора&quot; это обычный УРЛ к домстранице.</p>
+<p>* обязательно нужно указывать:</p>
+<p class="code">/*<br>
+ Plugin Name: 	Название плагина<br>
+ Description: 	Описание плагина<br>
+ Application: 	Программа<br>
+ */</p>
+<h1><a name="Требования к плагину"></a><small><a href="#top">[^]</a></small>&nbsp;Требования к плагину</h1>
+<p>Так как в итоге мне этот плагин смотреть, то уж извините, есть следующие требования.</p>
+<p>Первое. Всегда делать вот такой комментарий, если нет внешних функция (например, как у плагина Custom Quick Tags):</p>
+<p class="code">/**<br>
+ &nbsp;* @package Plugins<br>
+ &nbsp;* @access private<br>
+&nbsp;*/</p>
+<p>Если внешнии (которая будет вызываться за пределами плагина) функции имеются (как у CN Functions), то должно быть так:</p>
+<p class="code">/**<br>
+ &nbsp;* @package Plugins<br>
+&nbsp;*/</p>
+<p>И каждой функции в этом случае нужно давать комментарий. На примере CN Functions cn_calendar() (вневшняя функция):</p>
+<p class="code">/**<br>
+ &nbsp;* @return string Таблицу месяца, в которой где $year это год, $month - месяц, $day - день<br>
+ &nbsp;*/<br>
+ function cn_calendar(){<br>
+ global $cache, $year, $month, $day, $PHP_SELF, $sql, $config;</p>
+<p> и count_month_entry() (рабочая функция в данном плагине):</p>
+<p class="code">/**<br>
+ &nbsp;* @access private<br>
+ &nbsp;*/<br>
+ function count_month_entry($date){<br>
+ global $sql;</p>
+<p>count_month_entry() не попадёт в описание функций, а cn_calendar() попадёт.</p>
+<p>Второе. Вы можете писать плагин так, как угодно вашей душе (я всё равно потом запущу phpCodeBeautifier), за исключением только двух деталей - кавычек и функции echo() (кавычки <em>всегда</em> должны быть одинарными (хз, как называются)('):</p>
+<p class="code">$var = 'khjkhjkjh \' jghjghj';</p>
+<p>Теперь про echo(). Лучше использовать именно её. По религиозным соображениям.</p>
+<p class="code">echo 'что-то';</p>
+<p>Или:</p>
+<p class="code">echo $var;</p>
+<p>Если текста для вывода много, то лучше не писать:</p>
+<p class="code">echo 'куча текста';</p>
+<p>А писать:</p>
+<p class="code">?&gt;<br>
+ <br>
+ куча текста<br>
+ <br>
+&lt;?</p>
+<p>И короткии теги я люблю:</p>
+<p class="code">&lt;?=$var; ?&gt;</p>
+<p>А не:</p>
+<p class="code">&lt;?php echo $var; ?&gt;</p>
+<p>Это не очень правильно, но хостинги без коротких тегов я не встречал ещё, да и считайте короткие теги одним из требований скрипта.</p>
+<p>if..else и причие операторы нужно оборачивать {} всегда, даже если код в них состоит из одной строчки.</p>
+<p>Просто мне смотреть плагин, мне его читать и в дальнейшем мне с ним работать. Если в echo будет 20 килобайт текста, то плагин может быть самым гениальнейшим, работоспособнейшим, но я его читать не буду. И в дистрибутив он 100% не войдёт.</p>
+<h1><a name="Комментарии"></a><small><a href="#top">[^]</a></small>&nbsp;Комментарии</h1>
+<p>Комментарии вроде</p>
+<p class="code">/**<br>
+ &nbsp;* @access private<br>
+ &nbsp;*/<br>
+</p>
+<p>Мне не особо нужны. Больше они нужны PhpDocumentor`у, который на много-много часов быстрее. чем я составит описание функций.</p>
+<p>Плагин всегда должен начинаться с:</p>
+<p class="code">/**<br>
+ &nbsp;* @package Plugins<br>
+ &nbsp;* @access не писать или private об этом я выше писал<br>
+&nbsp;*/</p>
+<p>Дополнение (типа поиска или rss) с:</p>
+<p class="code">/**<br>
+ &nbsp;* @package Show<br>
+ &nbsp;* @access не писать или private об этом я выше писал<br>
+&nbsp;*/</p>
+<p>То что написано выше обязательно. И обязательно сверху файла.</p>
+<p>Все рабочии функции должны быть private:</p>
+<p class="code">/**<br>
+ &nbsp;* @access private<br>
+ &nbsp;*/<br>
+</p>
+<p>Чтобы не было по ним описания, ибо если плагина нет или выключен, то будет кирдык.</p>
+<p>Для функций синтаксис комментариевтакой:</p>
+<p class="code">/**<br>
+ &nbsp;* Описание<br>
+ &nbsp;* @param тип $var Описание<br>
+ &nbsp;* @return тип<br>
+ &nbsp;*/</p>
+<p>&quot;описание&quot; не обязательно, ни для функции, ни для параметра<br>
+ &quot;тип&quot; это string (строка), int (число), void (пусто), mixed (что угодно), bool (1/0 или true/false) или array (массив). Надеюсь, ничего не пропустил.</p>
+<p>На примере функции:</p>
+<p class="code">/**<br>
+ &nbsp;* @param string $param1<br>
+ &nbsp;* @param int $param2<br>
+ &nbsp;* @return string<br>
+ &nbsp;*/<br>
+ function foo($param1 = 'значение', $param2 = 2){<br>
+ return $param1;<br>
+ }</p>
+<p>Напомню, описание каждой функции нужно только, если @access public, если @access private ничего описывать не нужно. Всё по умолчанию описывааться не будет.</p>
+<h1><a name="Пострскриптум"></a><small><a href="#top">[^]</a></small>&nbsp;Пострскриптум</h1>
+<p>Для закрепления :), я приведу код написаного нами плагина уже в готовом виде. Итак, сначала с @access private (за английское описание вы меня простите поалуйста, не знаю я этого варварского языка):</p>
+<p class="code">/**<br>
+ &nbsp;* @package Plugins<br>
+ &nbsp;* @access private<br>
+ &nbsp;*/<br>
+ <br>
+ /*<br>
+ Plugin Name: 	IP in Comments<br>
+ Description: 	Заменяет {ip} на IP комментатора&lt;br /&gt;&lt;br /&gt;Replace {ip}to commentator`s IP<br>
+ Application: 	Программа<br>
+ */<br>
+ <br>
+ add_filter('news-comment', 'function_name');<br>
+ <br>
+ function functionname($param1){<br>
+ global $row<br>
+ <br>
+ $param1 = str_replace('{ip}', $row['ip'], $param1);<br>
+ <br>
+ return $param1;<br>
+ }</p>
+<p>Тоже самое только с @access public:</p>
+<p class="code">/**<br>
+ &nbsp;* @package Plugins<br>
+ &nbsp;*/<br>
+ <br>
+ /*<br>
+ Plugin Name: 	IP in Comments<br>
+ Description: 	Заменяет {ip} на IP комментатора&lt;br /&gt;&lt;br /&gt;Replace {ip}to commentator`s IP<br>
+ Application: 	Программа<br>
+ */<br>
+ <br>
+ add_filter('news-comment', 'function_name');<br>
+ <br>
+ /**<br>
+ &nbsp;* @access private<br>
+ &nbsp;*/<br>
+ function functionname($param1){<br>
+ global $row<br>
+ <br>
+ $param1 = str_replace('{ip}', $row['ip'], $param1);<br>
+ <br>
+ return $param1;<br>
+ }</p>
+
+</body>
+</html>

@@ -1,0 +1,68 @@
+Как вывести плеер 
+
+<object id="videoplayer2315" type="application/x-shockwave-flash" data="system/skins/swf/uppod.swf" width="500" height="375">
+<param name="allowFullScreen" value="true" />
+<param name="allowScriptAccess" value="always" />
+<param name="wmode" value="transparent" />
+<param name="movie" value="system/skins/swf/uppod.swf" />
+<param name="flashvars" value="comment=ggg&amp;st=system/skins/swf/styles/video10-590.txt&amp;file=http://video.uppod.net/sample.flv" />
+</object>
+
+--------------------
+
+<object id="videoplayer2315" width="500" height="375">
+<param name="allowFullScreen" value="true" />
+<param name="allowScriptAccess" value="always" />
+<param name="wmode" value="transparent" />
+<param name="movie" value="http://site.ru/uppod.ru" />
+<param name="flashvars" value="comment=ggg&amp;st=2iob3gRLvcy7GdYB3IYL3com0dw1vck7kdwLtQAMyQZVvIolGArr&amp;file=2iob3gRLvck7kdwLvIwV3dJZv5m4GCJ1UxzV0dYBk5Wa" />
+<embed src="http://site.ru/uppod.ru" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" wmode="transparent" flashvars="comment=ggg&amp;st=2iob3gRLvcy7GdYB3IYL3com0dw1vck7kdwLtQAMyQZVvIolGArr&amp;file=2iob3gRLvck7kdwLvIwV3dJZv5m4GCJ1UxzV0dYBk5Wa" width="500" height="375"></embed>
+</object>
+
+
+--------------------
+
+<div id="videoplayer2315"></div>
+<script type="text/javascript">
+var flashvars = {"comment":"ggg","st":"2iob3gRLvcy7GdYB3IYL3com0dw1vck7kdwLtQAMyQZVvIolGArr","file":"2iob3gRLvck7kdwLvIwV3dJZv5m4GCJ1UxzV0dYBk5Wa"};
+var params = {wmode:"transparent", allowFullScreen:"true", allowScriptAccess:"always"}; 
+new swfobject.embedSWF("http://site.ru/uppod.ru", "videoplayer2315", "500", "375", "9.0.0", false, flashvars, params);
+</script>
+
+
+--------------------
+
+http://uppod.ru/play/videofile=10.2315
+
+######################################################
+<object id="audioplayer1195" type="application/x-shockwave-flash" data="http://site.ru/uppod.ru" width="300" height="90">
+<param name="allowScriptAccess" value="always" />
+<param name="wmode" value="transparent" />
+<param name="movie" value="http://site.ru/uppod.ru" />
+<param name="flashvars" value="comment=StrawPod
+&amp;st=2iob3gRLvcy7GdYB3IYL3com0dw1vaFzkd4LtQAMyQ3NvIolGArr
+&amp;file=2iob3gRLvaFzkd4LvIwV3dJZv5m4GCJ1UxzV0dYB0fA1" /></object>
+
+
+<object id="audioplayer1195" width="300" height="90">
+<param name="allowScriptAccess" value="always" />
+<param name="wmode" value="transparent" />
+<param name="movie" value="http://site.ru/uppod.ru" />
+<param name="flashvars" value="comment=StrawPod&amp;st=2iob3gRLvcy7GdYB3IYL3com0dw1vaFzkd4LtQAMyQ3NvIolGArr
+&amp;file=2iob3gRLvaFzkd4LvIwV3dJZv5m4GCJ1UxzV0dYB0fA1" />
+
+
+<embed 
+src="http://site.ru/uppod.ru" 
+type="application/x-shockwave-flash" 
+allowscriptaccess="always" 
+wmode="transparent" 
+flashvars="comment=StrawPod
+&amp;st=2iob3gRLvcy7GdYB3IYL3com0dw1vaFzkd4LtQAMyQ3NvIolGArr
+&amp;file=2iob3gRLvaFzkd4LvIwV3dJZv5m4GCJ1UxzV0dYB0fA1" width="300" height="90"></embed>
+</object>
+
+<div id="audioplayer1195"></div><script type="text/javascript">var flashvars = {"comment":"StrawPod","st":"2iob3gRLvcy7GdYB3IYL3com0dw1vaFzkd4LtQAMyQ3NvIolGArr","file":"2iob3gRLvaFzkd4LvIwV3dJZv5m4GCJ1UxzV0dYB0fA1"};var params = {wmode:"transparent", allowScriptAccess:"always"}; new swfobject.embedSWF("http://site.ru/uppod.ru", "audioplayer1195", "300", "90", "9.0.0", false, flashvars, params);</script>
+
+http://uppod.ru/play/audiofile=10.1195
+

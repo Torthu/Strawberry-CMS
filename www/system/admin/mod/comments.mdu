@@ -1,0 +1,270 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+
+
+if (!straw_get_rights($modul, 'read')) {
+msg('error', t('Ошибка'), t('Вам запрещён доступ к этому модулю!'));
+} else {
+if (straw_get_rights($modul, 'write')) { $yaw = 1; } else { $yaw = 0; }
+
+
+
+
+if (empty($nid) and empty($act)) {
+echoheader('comments', t('Управление комментариями'));
+//<form method=\"post\" action=\"".$PHP_SELF."\" enctype=\"multipart/form-data\">
+echo "<table width=\"100%\" border=\"0\" cellpadding=\"5\" cellspacing=\"1\">
+<tr>
+ <td colspan=\"6\" height=\"33\" class=\"panel\"><b>".t('Управление комментариями. Вы можете редактировать, удалять и отвечать на комментарии пользователей')."</b></td>
+</tr><tr>
+ <td colspan=\"6\" height=\"20\" align=\"right\">".straw_number(50, 1)."</td>
+</tr>";
+
+echo "\n<tr align=\"center\" class=\"panel\">
+<th width=\"3%\"><b><a href=\"index.php?mod=".$modul."&amp;by=id".$lsort."\">№</a></b></th>
+<th width=\"8%\"><b><a href=\"index.php?mod=".$modul."&amp;by=author".$lsort."\">".t('Автор')."</a></b></th>
+<th width=\"2%\"><b><a href=\"index.php?mod=".$modul."&amp;by=post_id".$lsort."\">".t('Новость')."</a></b></th>
+<th width=\"57%\"><b><a href=\"index.php?mod=".$modul."&amp;by=comment".$lsort."\">".t('Коротко')."</a></b></td>
+<th width=\"15%\"><b><a href=\"index.php?mod=".$modul."&amp;by=date".$lsort."\">".t('Дата')."</a></b></th>
+<th width=\"5%\"><b>".t('Опции')."</b></th>
+</tr>\n";
+
+$dbcom = $db->sql_query("SELECT date, author, mail, comment, post_id, user_id, parent, id FROM ".$config['dbprefix']."comments ORDER BY ".$order." ".(!empty($number) ? " LIMIT ".((!empty($oskip) ? $oskip : 0) .", ".$number) : "")." ");
+$crl = $db->sql_numrows($dbcom);
+if (!empty($crl) and $crl > 0) {
+$parent = 0;
+while (list($date, $namesender, $cmail, $textsender, $postid, $userid, $parent, $id) = $db->sql_fetchrow($dbcom)) 
+{
+
+$strip = trim(str_replace("  ", " ", str_replace("<br>", " ", strip_tags(comm_out($textsender)))));
+$in_c = str_stop($strip, 50);
+$out_short_text = str_stop($strip, 600);
+$namesender = chuser($namesender, 1);
+
+if (langdate('j M Y', $date) == langdate('j M Y', time)) { 
+$activ = 1; 
+} else { 
+$activ = 0; 
+}
+
+if (!empty($parent)) { 
+$par = "<b><a href=\"".$PHP_SELF."?mod=comments&amp;act=view&amp;id=".$parent."\" title=\"".t('Перейти к основному комментарию № %n', array('n'=>$parent))."\">".t('Ответ на комментарий № %n', array('n'=>$parent))."</a></b><br>"; 
+$activ = 2; 
+$cnum = "/".$parent;
+} else { 
+$par = ""; 
+$cnum = ""; 
+}
+
+
+echo "\n<tr class=\"fon".$activ."\">
+<td align=\"center\" class=\"tabnum\"><small>".$id.$cnum."</small></td>
+<td><small>".$namesender."</small></td>
+<td align=\"center\"><small><a href=\"".$PHP_SELF."?mod=editnews&amp;id=".$postid."\">№ ".$postid."</a></small></td>
+
+
+<td><small>".$par.(!empty($out_short_text) ? 
+"<a href=\"".$PHP_SELF."?mod=".$modul."&amp;act=view&amp;id=".$id."\" title=\"".$out_short_text."\">".$in_c."</a>" :
+"<i>".t('текст недоступен (возможно, это изображение)')."</i>"
+)."</small></td>
+
+
+<td align=\"center\"><small>".langdate('j M Y H:i', $date)."</small></td>
+<td align=\"center\"><small><a href=\"".$PHP_SELF."?mod=comments&amp;act=view&amp;id=".$id."\" title=\"".t("Просмотр комментария № %n", array('n'=>$id))."\"><img src=\"admin/images/icons/edit.png\" alt=\"".t('Правка')."\"/></a>";
+
+if (!empty($yaw)) { echo " <a href=\"".$PHP_SELF."?mod=comments&amp;act=delete&amp;id=".$id."&amp;nid=".$postid."\" title=\"".t("Удалить комментарий № %n", array('n'=>$id))."\"><img src=\"admin/images/icons/delete.png\" alt=\"".t('Удалить')."\"/></a>"; } 
+
+echo "</small></td>
+
+</tr>\n";
+}
+if (!empty($yaw)) { echo "\n<tr><td align=\"right\" colspan=\"6\"><a href=\"".$PHP_SELF."?mod=comments&amp;act=delete&amp;id=all\" title=\"".t('Удалить все')."\">".t('Удалить все комментарии!')."</a></td></tr>\n"; }
+
+} else {
+echo "\n<tr><td align=\"center\"><hr width=\"50%\">".t('- комментариев нет -')."<hr width=\"50%\"></td></tr>\n";
+}
+echo "\n</table>";
+//</form>
+#################################################################################################
+if (!empty($crl)) {
+############## PAGES
+echo pnp("comments", intval($pnum), intval($number), 'default', (!empty($wheren) ? $wheren : ''), '', '', $lnk);
+unset($order, $lsort, $oskip, $lnk, $pnum);
+############## PAGES
+}
+
+} elseif (!empty($id) and $act == "view") {
+
+
+$dbcom = $db->sql_query("SELECT date, author, mail, homepage, ip, comment, reply, post_id, user_id, parent, level, id FROM ".$config['dbprefix']."comments WHERE id = '".$nid."' ORDER BY id DESC LIMIT 1");
+list($date, $namesender, $cmail, $chp, $cip, $textsender, $repl, $postid, $userid, $parent, $level, $cid) = $db->sql_fetchrow($dbcom); 
+$comnews = $db->sql_query("SELECT title, comments FROM ".$config['dbprefix']."news WHERE id='$postid' LIMIT 1");
+list($nt, $countcomm) = $db->sql_fetchrow($comnews); 
+$newstit = "<a href=\"".$PHP_SELF."?mod=editnews&amp;id=".$postid."\" title=\"".t('Редактировать новость № %n', array('n'=>$nt))."\">".$nt."</a>";
+$sitesender = !empty($sitesender) ? "<a target=\"_blank\" href=\"".$chp."\">".$chp."</a>" : t("не указано");
+
+$namesender = chuser($namesender, 1);
+
+echoheader('comments', t('Комментарий к новости %nt от %ns', array('nt'=>$newstit, 'ns'=>$namesender)));
+
+if (!empty($parent)) { 
+$par = "<b><a href=\"".$PHP_SELF."?mod=comments&amp;act=view&amp;id=".$parent."\" title=\"".t('Перейти к основному комментарию №%p', array('p'=>$parent))."\">".t('Ответ на комментарий №%p', array('p'=>$parent))."</a></b><br>"; 
+} else { 
+$par = ""; 
+}
+
+echo "<table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"2\">";
+echo "\n<tr class=\"fon0\">
+<td><small><b>".t('Автор записи').":</b></small> ".$namesender;
+if (!empty($cmail)) { echo "<br><small><b>".t('Почта').":</b></small> ".$cmail; }
+echo "<br><b><u>".t('Текст записи').":</u></b><div class=\"show_text\">".$par.comm_out($textsender);
+if (!empty($repl)) { echo "<br><br><b><u>".t('ОТВЕТ').":</u></b><div class=\"show_text_answ\"> ".comm_out($repl)."</div>"; }
+echo "</div></td></tr>\n
+<tr><td><u>".t('Дата отправки').":</u> ".langdate('j M Y H:i', $date)."<br><u>".t('IP отправителя').":</u> ".whois_ip($cip)."</td></tr>\n
+<tr><td>";
+
+if (!empty($yaw)) {
+
+echo "<div id=\"masterfild\">
+<form method=\"post\" action=\"index.php?mod=comments&amp;act=edit&amp;id=".$nid."\" name=\"addnews\" enctype=\"multipart/form-data\" onsubmit=\"return process_form(this)\">
+
+
+<table align=\"right\" width=\"100%\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" class=\"fon0\">
+
+<tr class=\"fon0\" valign=\"top\">
+<td width=\"50%\" onclick=\"sm('sub0')\" style=\"cursor:pointer;\"><hr><b>".t('Редактировать комментарий от %ns?', array('ns'=>$namesender))."</b> (".t('редактор').": ".$member['name']."):</td>
+<td width=\"50%\" onclick=\"sm('sub1')\" style=\"cursor:pointer;\"><hr><b>".t('Ответить на комментарий от %ns?', array('ns'=>$namesender))."</b> (".t('редактор').": ".$member['name']."):</td>
+</tr>
+
+<tr class=\"fon0\">
+<td colspan=\"2\">
+
+<div class=\"submenu\" id=\"sub0\"><b>".t('Правка комментария')."</b><noindex>".cnops(30, 'commin')."</noindex>
+<textarea name=\"commin_story\" style=\"height: 120;\">";
+echo str_replace("<br>", "\n", replace_comment('admin', $textsender))."\n\r [small] ".t('Отредактировал [b]%mm[/b] (%ld).', array('mm'=>$member['name'], 'ld'=>langdate('j M Y H:i', time)))."[/small] ";
+echo "</textarea><noindex>".smiles(10, 'commin')."</noindex>
+<div align=\"right\" width=\"100%\"><input type=\"submit\" name=\"red_ed\"  value=\"".t('Редактировать')."\"></div>
+</div>
+
+<div class=\"submenu\" id=\"sub1\"><b>".t('Ответ на комментарий')."</b><noindex>".cnops(30, 'commout')."</noindex>
+<textarea name=\"commout_story\" style=\"height: 120;\">".str_replace("<br>", "\n", replace_comment('admin', $repl))."\n";
+echo "[small] ".t('Ответ от %ld.', array('ld'=>langdate('j M Y H:i', time)))."[/small]\n";
+echo "</textarea><noindex>".smiles(10, 'commout')."</noindex>
+<div align=\"right\" width=\"100%\"><input type=\"submit\" name=\"answ_ed\" value=\"".t('Ответить')."\"></div>
+</div>
+
+<hr>
+
+</td>
+</tr>
+</table>
+<input type=\"hidden\" name=\"mod\" value=\"comments\">
+<input type=\"hidden\" name=\"id\" value=\"".$nid."\">
+<input type=\"hidden\" name=\"act\" value=\"edit\">
+</form>
+</div>";
+
+}
+
+echo "</td></tr>\n
+<tr class=\"fon1\"><td><u><a href=\"".$PHP_SELF."?mod=comments\" title=\"".t('Вернуться к комментариям')."\">".t('Вернуться к комментариям').".</a></u>";
+
+if (!empty($yaw)) { echo "&nbsp;&nbsp;&nbsp;&nbsp;<u><a href=\"".$PHP_SELF."?mod=comments&amp;act=delete&amp;id=".$nid."&amp;nid=".$postid."\" title=\"".t('Удалить комментарий № %nd', array('nd'=>$nid))."\">".t('Удалить комментарий № %nd', array('nd'=>$nid)).".</a></u>"; }
+
+echo "</td>\n";
+echo "\n</table>";
+
+
+} elseif (!empty($_POST['id']) and $act == "edit" and $act != "delete" and !empty($yaw)) {
+
+
+echoheader('comments', t('Редактирование комментария номер '.$nid));
+
+
+if (!empty($_POST['answ_ed']) and $yaw) {
+$dbcom = $db->sql_query("SELECT comment FROM ".$config['dbprefix']."comments WHERE id = '".$nid."' ORDER BY id DESC LIMIT 1");
+list($textsender) = $db->sql_fetchrow($dbcom);
+$aminanswer = $_POST['commout_story'];
+$amansw = comm_in($aminanswer);
+$db->sql_query("UPDATE ".$config['dbprefix']."comments SET reply='".$amansw."', admin='".$member['name']."' WHERE id='".$nid."'");
+}
+
+ if (!empty($_POST['red_ed']) and $yaw) {
+$textsender = $_POST['commin_story'];
+$textsender = comm_in($textsender);
+$db->sql_query("UPDATE ".$config['dbprefix']."comments SET comment='".$textsender."', admin='".$member['name']."' WHERE id='".$nid."'");
+}
+
+
+echo "<table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"2\">";
+
+
+
+if (!empty($db)) {
+
+echo "\n<tr class=\"fon0\">
+<td>".t('Комментарий номер %nd успешно отредактирован!', array('nd'=>$nid))."<p><u>".$member['name'].", ".t('Ваш результат').":</u><br><br>
+<u><b>".t('КОММЕНТАРИЙ').":</b></u><br>".comm_out($textsender)."<br>".(!empty($amansw) ? "<br><br>
+<u><b>".t('ОТВЕТ от %mm', array('mm'=>$member['name'])).":</b></u><br>".comm_out($amansw) : '')."</p></td>
+</tr>";
+
+} else {
+
+echo "\n<tr class=\"fon0\"><td>".t('Во время редактирования комментария номер %nd произошла ошибка! Проверте базу.', array('nd'=>$nid))."</td></tr>";
+
+}
+
+
+echo "<tr><td><a href=\"".$PHP_SELF."?mod=comments\">".t('Вернуться к комметариям').".</a>  <a href=\"".$PHP_SELF."?mod=comments&amp;act=view&amp;id=".$nid."\">".t('Вернуться к редактированию').".</a></td></tr>\n";
+echo "\n</table>";
+
+
+} elseif (!empty($nid) and $nid != "all" and $act == "delete" and $yaw) {
+
+
+echoheader('gb', t('Удаление комментария номер %nd', array('nd'=>$nid)));
+$db->sql_query("DELETE FROM ".$config['dbprefix']."comments WHERE id='".$nid."'");
+$db->sql_query("UPDATE ".$config['dbprefix']."news SET comments=comments-1 WHERE id='".$nid."'");
+echo "<table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"2\">";
+echo "\n<tr class=\"fon0\">
+<td>".t('Комментарий номер %nd успешно удален!', array('nd'=>$nid))."</td>
+</tr>
+<tr><td><a href=\"".$PHP_SELF."?mod=comments\"><u>".t('Вернуться к записям').".</u></a></td>
+</tr>\n";
+echo "\n</table>";
+
+
+} elseif ($act == "delete" and $nid == "all" and !empty($yaw)) {
+
+
+echoheader('error', t('Удаление всех комментариев'));
+$db->sql_query("DELETE FROM ".$config['dbprefix']."comments");
+echo "<table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"2\">";
+echo "\n<tr class=\"fon0\">
+<td>".t('Все комментарии удалены!')."</td>
+</tr>
+<tr><td><a href=\"".$PHP_SELF."?mod=comments\"><u>".t('Вернуться на главную модуля').".</u></a></td>
+</tr>\n";
+echo "\n</table>";
+
+
+} else {
+
+
+echoheader('error', t('Управление комментариями'));
+echo "<table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"2\">";
+echo "\n<tr class=\"fon0\">
+<td>".t('Произведена недопустимая операция!!!')."</td>
+</tr>
+<tr><td><a href=\"".$PHP_SELF."?mod=comments\"><u>".t('Вернуться к записям').".</u></a></td>
+</tr>\n";
+echo "\n</table>";
+
+}
+
+}
+echo on_page();
+echofooter();
+?>

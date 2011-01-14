@@ -1,0 +1,956 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+$adfile = "index";
+
+function bnav() {
+	global $adfile, $mod;
+echo "<center><h5>[ ";
+if (!straw_get_rights($mod, 'read') or !straw_get_rights($mod, 'write')) {
+echo t("Меню недоступно");
+} else {
+	echo "<a href=\"".$adfile.".php?mod=sblocks\">".t("Главная")."</a>"
+	." | <a href=\"".$adfile.".php?mod=sblocks&amp;act=bnew\">".t("Добавить блок")."</a>"
+	." | <a href=\"".$adfile.".php?mod=sblocks&amp;act=bfile\">".t("Файловый блок")."</a>"
+	." | <a href=\"".$adfile.".php?mod=sblocks&amp;act=bfedit\">".t("Правка блока")."</a>"
+	." | <a href=\"".$adfile.".php?mod=sblocks&amp;act=bfixweight\">".t("Авто-сортировка")."</a>";
+	}
+echo " ]</h5></center>";	
+}
+
+
+function badmin() {
+	global $config, $db, $currentlang, $conf, $adfile, $sql, $mod;
+
+
+
+if (!straw_get_rights($mod, 'read')) {
+msg('error', t('Ошибка'), t('Вам запрещён доступ к этому модулю!'));
+} else {
+if (straw_get_rights($mod, 'write')) { $yaw = 1; } else { $yaw = 0; }
+
+
+
+echoheader('search', t('Управление блоками'));	
+	bnav();
+
+	echo "<table border=\"0\" cellpadding=\"1\" cellspacing=\"1\" width=\"100%\"><tr class=\"panel\">"
+	."<th>№</th><th>".t("Название")."</th><th>".t("Положение")."</th>";
+if ($yaw) echo "<th colspan=\"2\">".t("Номер/Позиция")."</th>";
+	echo "<th>".t("Тип")."</th><th>".t("Доступ")."</th>";
+if ($yaw) echo "<th>".t("Операции")."</th></tr>";
+	$result = $db->sql_query("SELECT a.bid, a.title, a.bposition, a.weight, a.active, a.blockfile, a.view, b.bid, b.bposition, b.weight, c.bid, c.bposition, c.weight FROM ".$config['dbprefix']."blocks AS a LEFT JOIN ".$config['dbprefix']."blocks AS b ON (b.bposition = a.bposition AND b.weight = a.weight-1) LEFT JOIN ".$config['dbprefix']."blocks AS c ON (c.bposition = a.bposition AND c.weight = a.weight+1) ORDER BY a.bposition, a.weight");
+	if ($db->sql_numrows($result) > 0) 
+{
+	
+	while (list($bid, $title, $bposition, $weight, $active, $blockfile, $view, $con1, $bposition1, $weight1, $con2, $bposition2, $weight2) = $db->sql_fetchrow($result)) {
+
+		$weight_minus = $weight - 1;
+		$weight_plus = $weight + 1;
+		if ($bposition == "l") {
+			$bposition = "Левый";
+			$bcolor = "#FCFDD7";
+		} elseif ($bposition == "r") {
+			$bposition = "Правый";
+			$bcolor = "#ECFFDD";
+		} elseif ($bposition == "c") {
+			$bposition = "Верхний";
+			$bcolor = "#F0FDFF";
+		} elseif ($bposition == "d") {
+			$bposition = "Нижний";
+			$bcolor = "#F9F0FB";
+		}
+		
+		echo "\n\n<tr onmouseover=\"this.style.backgroundColor='#ebebeb';\" onmouseout=\"this.style.backgroundColor='".$bcolor."';\" style=\"background:".$bcolor.";height:25px;\">";
+		echo "<td align=\"center\" class=\"tabnum\">".$bid."</td>";
+		echo "<td>&nbsp;".$title."</td>";
+		echo "<td align=\"center\">".t($bposition)."</td>";
+		
+if (!empty($yaw)) { echo "<td align=\"center\">$weight</td><td align=\"center\">";
+		if ($con1) echo"<a href=\"".$adfile.".php?mod=sblocks&amp;act=border&weight=$weight&bidori=$bid&weightrep=$weight_minus&bidrep=$con1\" title=\"".t("Переместить выше")."\"><img src=\"admin/images/icons/upit.png\" alt=\"".t("Переместить выше")."\"/></a> ";
+		if ($con2) echo "<a href=\"".$adfile.".php?mod=sblocks&amp;act=border&weight=$weight&bidori=$bid&weightrep=$weight_plus&bidrep=$con2\" title=\"".t("Переместить ниже")."\"><img src=\"admin/images/icons/downit.png\" alt=\"".t("Переместить ниже")."\"/></a>";
+		echo"</td>";
+	     }
+		  $type = "HTML";
+		  if ($blockfile != "") $type = t("Файл");
+
+		echo "<td align=\"center\">$type</td>";
+
+
+$block_act = $active;
+if ($active == 1) {
+$dacter = t("Отключить");
+$imdacter = "activate";
+} else {
+$dacter = t("Активировать");
+$imdacter = "inactive";
+}
+
+$who_view = "";
+$w_m = explode(",", $view);
+$who_view = ($w_m[0] == "sno") ? t("Никто") : "";
+if ($w_m[0] != "sno") { $who_view = ($w_m[0] == "sall") ? t("Все") : ""; } else { $who_view = ($w_m[1] == "sall") ? t("Никто")."<br>" : t("Никто"); }
+if ($w_m[0] != "sno" && $w_m[0] != "sall") {
+
+if ($w_m[0] == "sgt" && $w_m[1] == "sus") {
+$who_view = t("Все");
+} else {
+
+if ($w_m[0] != "sno" && $w_m[0] != "sall") 
+{ $who_view .= ($w_m[0] == "sgt") ? t("Гости")."<br>" : ""; } 
+elseif ($w_m[0] == "sno" && $w_m[1] == "sall") 
+{ $who_view .= ($w_m[2] == "sgt") ? t("Гости")."<br>" : ""; } 
+else 
+{ $who_view .= ($w_m[1] == "sgt") ? t("Гости")."<br>" : ""; }
+
+if ($w_m[0] != "sno" && $w_m[0] != "sall" && $w_m[0] != "sgt") 
+{ $who_view .= ($w_m[0] == "sus") ? t("Юзеры")."<br>" : ""; } 
+elseif ($w_m[0] == "sno" && $w_m[1] == "sall" && $w_m[2] == "sgt") 
+{ $who_view .= ($w_m[3] == "sus") ? t("Юзеры")."<br>" : ""; } 
+elseif (($w_m[0] == "sno" && $w_m[1] == "sall") or ($w_m[0] == "sall" && $w_m[1] == "sgt") or ($w_m[0] == "sno" && $w_m[1] == "sgt")) 
+{ $who_view .= ($w_m[2] == "sus") ? t("Юзеры")."<br>" : ""; } 
+else 
+{ $who_view .= ($w_m[1] == "sus") ? t("Юзеры")."<br>" : ""; }
+
+if ($w_m[0] != "sgt" && $w_m[0] != "sus") {
+foreach ($sql->select(array('table' => 'usergroups')) as $row){
+$cel_ug = "";
+foreach ($w_m as $val_ug) {
+if ($val_ug == $row['id']) $who_view .= "<a target=\"_blank\" href=\"".$adfile.".php?mod=usergroups&edit=".$row['id']."\"><small title=\"".t("Править группу")." ".$row['name']."\">".$row['name']."</small></a><br>";
+}}}
+
+}
+
+if (!$who_view) $who_view = t("Никто");
+}
+
+
+
+		echo "<td align=\"center\">$who_view</td>";
+if ($yaw) echo "<td align=\"center\"><small><a href=\"".$adfile.".php?mod=sblocks&amp;act=bedit&bid=".$bid."\"><img src=\"admin/images/icons/edit.png\" alt=\"".t('Правка')."\"/></a> <a href=\"".$adfile.".php?mod=sblocks&amp;act=bchange&bid=".$bid."\"><img src=\"admin/images/icons/".$imdacter.".png\" alt=\"".$dacter."\"/></a> <a href=\"".$adfile.".php?mod=sblocks&amp;act=bdelete&bid=".$bid."\"><img src=\"admin/images/icons/delete.png\" alt=\"".t('Удалить')."\"/></a></small></td>";
+		echo "</tr>";
+	} 
+	echo "</table>";
+} else {
+	echo "<table width=\"100%\"><tr><td align=\"center\">- ".t('блоков нет')." -</td></tr></table>";
+	}	
+	
+echo on_page();
+echofooter();
+}
+}
+
+
+
+
+function bnew() {
+	global $config, $db, $currentlang, $conf, $adfile, $PHP_SELF, $sql, $mod;
+
+
+if (!straw_get_rights($mod, 'read')) {
+msg('error', t('Ошибка'), t('Вам запрещён доступ к этому модулю!'));
+} else {
+if (straw_get_rights($mod, 'write')) { $yaw = 1; } else { $yaw = 0; }
+
+
+echoheader('search', t('Добавить новый блок'));	
+	bnav();
+	
+	echo "\n\n<form action=\"".$PHP_SELF."?mod=sblocks&amp;act=badd\" method=\"post\">\n"
+	."<table border=\"0\" align=\"center\" width=\"100%\">"
+	."\n<tr><td style=\"width:100px;\">".t("Название").":</td><td><input type=\"text\" name=\"title\" size=\"65\" style=\"width:300px;\" maxlength=\"60\"></td></tr>"
+	."\n<tr><td>".t("Имя файла").":</td><td>"
+	."<select name=\"blockfile\" style=\"width:300px;\">"
+	."<option name=\"blockfile\" value=\"\" selected=\"selected\">".t('Пусто')."</option>";
+	$handle = opendir("blocks");
+	while ($file = readdir($handle)) {
+		if (preg_match("/^bl\-(.+)\.php/", $file, $matches)) {
+			$found = str_replace("_", " ", $matches[1]);
+			if ($db->sql_numrows($db->sql_query("SELECT * FROM ".$config['dbprefix']."blocks WHERE blockfile='$file'")) == 0) echo "<option value=\"$file\">$found</option>\n";
+		}
+	}
+	closedir($handle);
+	echo "</select></td></tr>"
+	."\n<tr><td>".t("Позиция").":</td><td><select name=\"bposition\">"
+	."<option name=\"bposition\" value=\"l\">".t('Левый')."</option>"
+	."<option name=\"bposition\" value=\"c\">".t('Верхний')."</option>"
+	."<option name=\"bposition\" value=\"d\">".t('Нижний')."</option>"
+	."<option name=\"bposition\" value=\"r\">".t('Правый')."</option>"
+	."</select></td></tr>"
+	
+
+
+
+########### Модули
+."\n<tr><td valign=\"top\">".t("Где показывать").":</td><td>\n\n
+<table border=\"0\" cellpadding=\"3\" cellspacing=\"0\" width=\"100%\">
+<tr class=\"disabled\">"
+	."\n<td width=\"1%\"><input type=\"checkbox\" name=\"blockwhere[]\" value=\"ihome\"></td><td width=\"24%\">".t('Главная')."</td>"
+	."\n<td width=\"1%\"><input type=\"checkbox\" name=\"blockwhere[]\" value=\"iall\"></td><td width=\"24%\">".t('Везде')."</td>"
+	."\n<td width=\"1%\"><input type=\"checkbox\" name=\"blockwhere[]\" value=\"ino\"></td><td width=\"24%\">".t('Нигде')."</td>"
+	."\n<td width=\"1%\"></td><td width=\"24%\"></td>"
+	."\n</tr><tr>";
+
+
+	$a = 1;
+	$handle = opendir(modul_directory);
+    while ($file = readdir($handle)){
+        if ($file != '.' and $file != '..' and is_dir(modul_directory.'/'.$file)){
+
+		echo "\n<td><input type=\"checkbox\" name=\"blockwhere[]\" value=\"".$file."\"></td><td>".str_replace("_", " ", $file)."</td>";
+		if ($a == 4) {
+			echo "\n</tr><tr>";
+			$a = 1;
+		} else {
+			$a++;
+		}
+            
+        }
+    }
+########### Модули
+
+
+echo "\n</tr><tr><td colspan=\"6\"><b>".t("Примечания").":</b><br>".t("Режим \"Нигде\" доминирует над всеми остальными режимами.<br>Режим \"Везде\" доминирует над режимами \"Главная\" и \"В модулях\".<br>Режим \"Главная\" работает совместно с режимами \"В модулях\"")."</td></tr></table>\n\n<tr><td>".t("Активировать").":</td><td><input type=\"radio\" name=\"active\" value=\"1\" checked=\"checked\">".t("ДА")." &nbsp;&nbsp; <input type=\"radio\" name=\"active\" value=\"0\">".t("НЕТ")."</td></tr>"
+	."\n<tr><td valign=\"top\">".t("Кто видит").":</td><td>";
+
+########### Группы
+echo "<table border=\"0\" cellpadding=\"3\" cellspacing=\"0\" width=\"100%\">
+        <tr class=\"disabled\">"
+	."<td width=\"1%\"><input type=\"checkbox\" name=\"view[]\" value=\"sno\"></td><td width=\"24%\">".t("Никто")."</td>"
+	."<td width=\"1%\"><input type=\"checkbox\" name=\"view[]\" value=\"sall\"></td><td width=\"24%\">".t("Все группы")."</td>"
+	."<td width=\"1%\"><input type=\"checkbox\" name=\"view[]\" value=\"sgt\"></td><td width=\"24%\">".t("Только гости")."</td>"
+	."<td width=\"1%\"><input type=\"checkbox\" name=\"view[]\" value=\"sus\"></td><td width=\"24%\">".t("Только юзеры")."</td>
+	</tr>
+	<tr>";
+	
+$g = 1;
+foreach ($sql->select(array('table' => 'usergroups')) as $row){
+		echo "<td><input type=\"checkbox\" name=\"view[]\" value=\"".$row['id']."\"></td><td>".$row['name']."</td>";
+		if ($g == 4) {
+			echo "\n</tr><tr>";
+			$g = 1;
+		} else {
+			$g++;
+		}
+    }
+########### Группы
+
+echo "</tr><tr><td colspan=\"8\"><b>".t('Примечания').":</b>
+<br>".t("Очень важно, чтобы администраторы всегда имели доступ к блокам!
+<br>Старайтесь для каждого блока выбрать максимальное число групп для доступа.
+<br>Режим \"Никто\" доминирует над всеми группами!
+<br>Режим \"Все группы\" доминирует над группами гостей, пользователей и над группами общего списка.
+<br>Режим \"Только гости\" доминирует над группами из общего списка.
+<br>Режим \"Только гости\" может работать совместно с режимом \"Только юзеры\". Совместное использование этих двух режимов аналогично режиму \"Все группы\".
+<br>Режим \"Только юзеры\" доминирует над группами общего списка.
+<br>Группы из общего списка блокируют блок от просмотра, если пользователь не авторизован и/или не обладает указанной группой.")."
+</td></tr></table>";
+	
+echo "</td></tr>"
+	."\n<tr><td colspan=\"2\" align=\"center\">
+<br>";
+
+if ($yaw) echo "<input type=\"hidden\" name=\"mod\" value=\"sblocks\">
+<input type=\"hidden\" name=\"act\" value=\"badd\">
+<input type=\"submit\" value=\"".t("Создать блок")."\">";
+
+echo "</td></tr>
+</table>
+</form>";
+echo on_page();
+	echofooter();
+}
+}
+
+
+
+
+
+
+
+
+
+function bfile() {
+	global $config, $adfile, $PHP_SELF, $flag, $mod;
+	
+if (!straw_get_rights($mod, 'read')) {
+msg('error', t('Ошибка'), t('Вам запрещён доступ к этому модулю!'));
+} else {
+if (straw_get_rights($mod, 'write')) { $yaw = 1; } else { $yaw = 0; }
+	
+	echoheader('search', t('Добавить файловый блок'));
+	bnav();
+	
+	echo "<form action=\"".$adfile.".php?mod=sblocks&amp;act=bbfedit\" method=\"post\" enctype=\"multipart/form-data\">"
+	."<table border=\"0\" align=\"center\" width=\"100%\">"
+	."<tr><td>".t('Имя файла').":</td><td><input type=\"text\" name=\"bf\" style=\"width:300px;\" maxlength=\"200\">"
+	."<tr><td>".t('Тип').":</td><td><input type=\"radio\" name=\"flag\" value=\"php\" checked=\"checked\">PHP &nbsp;&nbsp; <input type=\"radio\" name=\"flag\" value=\"html\">HTML</td></tr>"
+	."<tr><td colspan=\"2\" align=\"center\"><br>";
+	
+if ($yaw) { echo"<input type=\"hidden\" name=\"mod\" value=\"sblocks\">
+<input type=\"hidden\" name=\"act\" value=\"bbfedit\">
+<input type=\"submit\" value=\"".t('Создать блок')."\">";
+}
+	echo "</td></tr></table></form>";
+	echo on_page();
+	echofooter();
+}
+}
+
+
+
+
+
+
+function bfedit() {
+	global $config, $db, $adfile, $mod;
+	
+if (!straw_get_rights($mod, 'read')) {
+msg('error', t('Ошибка'), t('Вам запрещён доступ к этому модулю!'));
+} else {
+if (straw_get_rights($mod, 'write')) { $yaw = 1; } else { $yaw = 0; }
+
+	echoheader('search', t('Редактирование блока'));
+	bnav();
+	
+	echo "<form action=\"".$adfile.".php?mod=sblocks&amp;act=bbfedit\" method=\"post\">"
+	."<table border=\"0\" align=\"center\" width=\"370\">"
+	."<tr><td style=\"width:100px;\">".t('Имя файла').":</td><td>"
+	."<select name=\"bf\" style=\"width:200px;\">";
+	$handle = opendir(block_directory);
+	while ($file = readdir($handle)) {
+		if (preg_match("/^bl\-(.+)\.php/", $file, $matches)) {
+			$found = str_replace("_", " ", $matches[1]);
+			if ($db->sql_numrows($db->sql_query("SELECT * FROM ".$config['dbprefix']."blocks WHERE blockfile='$file'")) == 0) echo "<option value=\"$file\">$found</option>\n";
+		}
+	}
+	closedir($handle);
+	echo "</select></td>
+	</tr>
+	<tr>
+	<td colspan=\"2\"><br>".t('Можно править только те блоки, что еще не используются.')."</td>
+	</tr>"
+	."<tr><td colspan=\"2\" align=\"center\"><br>";
+	
+if ($yaw) echo "<input type=\"hidden\" name=\"mod\" value=\"sblocks\">
+<input type=\"hidden\" name=\"act\" value=\"bbfedit\">
+<input name=\"submit\" type=\"submit\" value=\"".t('Править блок')."\">";
+	
+	echo "</td></tr></table>
+	</form>";
+	//print_r($_POST);
+	echo on_page();
+	echofooter();
+	}
+}
+
+
+
+
+
+
+function bfixweight() {
+	global $config, $db, $adfile, $mod;
+
+if (straw_get_rights($mod, 'write')) {
+	$leftpos = "l";
+	$rightpos = "r";
+	$centerpos = "c";
+	$result = $db->sql_query("SELECT bid FROM ".$config['dbprefix']."blocks WHERE bposition='$leftpos' ORDER BY weight ASC");
+	$weight = 0;
+	while ($row = $db->sql_fetchrow($result)) {
+		$bid = intval($row['bid']);
+		$weight++;
+		$db->sql_query("UPDATE ".$config['dbprefix']."blocks SET weight='$weight' WHERE bid='$bid'");
+	}
+	$result2 = $db->sql_query("SELECT bid FROM ".$config['dbprefix']."blocks WHERE bposition='$rightpos' ORDER BY weight ASC");
+	$weight = 0;
+	while ($row2 = $db->sql_fetchrow($result2)) {
+		$bid = intval($row2['bid']);
+		$weight++;
+		$db->sql_query("UPDATE ".$config['dbprefix']."blocks SET weight='$weight' WHERE bid='$bid'");
+	}
+	$result3 = $db->sql_query("SELECT bid FROM ".$config['dbprefix']."blocks WHERE bposition='$centerpos' ORDER BY weight ASC");
+	$weight = 0;
+	while ($row3 = $db->sql_fetchrow($result3)) {
+		$bid = intval($row3['bid']);
+		$weight++;
+		$db->sql_query("UPDATE ".$config['dbprefix']."blocks SET weight='$weight' WHERE bid='$bid'");
+	}
+	}
+	
+	Header("Location: ".$adfile.".php?mod=sblocks&act=badmin");
+}
+
+
+
+
+
+
+function border($weightrep,$weight,$bidrep,$bidori) {
+	global $config, $db, $adfile, $mod;
+
+if (straw_get_rights($mod, 'write')) { 
+	$result = $db->sql_query("UPDATE ".$config['dbprefix']."blocks SET weight='$weight' WHERE bid='$bidrep'");
+	$result2 = $db->sql_query("UPDATE ".$config['dbprefix']."blocks SET weight='$weightrep' WHERE bid='$bidori'");
+	}
+	
+	Header("Location: ".$adfile.".php?mod=sblocks&act=badmin");
+}
+
+
+
+
+
+function badd($title, $bposition, $active, $blockfile, $view) {
+	global $config, $db, $adfile, $mod;
+
+
+if (straw_get_rights($mod, 'write')) {
+
+	list($weight) = $db->sql_fetchrow($db->sql_query("SELECT weight FROM ".$config['dbprefix']."blocks WHERE bposition='$bposition' ORDER BY weight DESC"));
+	$weight++;
+
+	if (!empty($blockfile)) {
+		if (empty($title)) {
+			$title = str_replace("bl-", "", $blockfile);
+			$title = str_replace(".php", "", $title);
+			$title = str_replace("_", " ", $title);
+		}
+	}
+
+
+     if (empty($blockfile)) {
+echoheader('error', t('Ошибка добавления блока'));	
+bnav();
+echo t('Внимание! Операция прошла неуспешно!');
+echo on_page();
+echofooter();	
+	} else {
+
+
+		if (!empty($_POST['blockwhere'])) {
+			$blockwhere = $_POST['blockwhere'];
+			$which = "";
+			$which = (in_array("iall", $blockwhere)) ? "iall" : $which;
+			$which = (in_array("ihome", $blockwhere)) ? $which : $which;
+			$which = (in_array("ino", $blockwhere)) ? "ino" : $which;
+			if ($which == "") {
+				while(list($key, $val) = each($blockwhere)) {
+					$which .= "{$val},";
+					
+				}
+			}
+		}
+
+#########################
+
+$bview = $_POST['view'];
+$view = "";
+// if (in_array("sall", $bview)) $view = "sall";
+// if (in_array("sno", $bview)) $view = "sno";	
+while(list($vkey, $vval) = each($bview)) {
+$view .= "{$vval},";
+}
+
+###########
+$db->sql_query("INSERT INTO ".$config['dbprefix']."blocks VALUES (NULL, '$title', '$bposition', '$weight', '$active', '$blockfile', '$view', '$which')");
+Header("Location: ".$adfile.".php?mod=sblocks&act=badmin");
+	}
+	} else {
+Header("Location: ".$adfile.".php?mod=sblocks");	
+	}
+}
+
+
+
+
+
+
+
+function bbfedit() {
+	global $config, $db, $adfile,  $flag, $mod;
+if (!straw_get_rights($mod, 'read')) {
+msg('error', t('Ошибка'), t('Вам запрещён доступ к этому модулю!'));
+} else {
+
+if (straw_get_rights($mod, 'write')) { $yaw = 1; } else { $yaw = 0; }
+
+	if (!empty($_REQUEST['bf'])) {
+		$bf = $_REQUEST['bf'];
+		if (isset($_POST['flag'])) {
+			$flaged = $_POST['flag'];
+			$bf = str_replace("bl-", "",$bf);
+			$bf = str_replace(".php", "",$bf);
+			$bf = 'bl-'.$bf.'.php';
+			
+if (!empty($_POST['flag']) and  $_POST['flag'] == "php") {
+$ifp = '<br>'.t('Выходным параметром в режиме РНР является переменная $bl_out<br>Имейте ввиду, что "echo " и "print " (обязательно с пробелами) меняются на переменную вывода автоматически!');
+} else {
+$ifp = '<br>'.t('В этом режиме вы можите использовать обычный html и java без экранирования кавычек!');
+}	
+
+		} else {
+			$bfstr = file_get_contents(block_directory.'/'.$bf);
+			
+			if (strpos($bfstr,'BLOCKHTML') === false) {
+				$flaged = 'php';
+				preg_match("/<\?php.*if.*\(\!defined\(\"str_block\"\)\).*exit;.*?}(.*)\?>/is", $bfstr, $out);
+				unset($out[0]);
+				$ifp = '<br>'.t('Выходным параметром в режиме РНР является переменная $bl_out<br>Имейте ввиду, что "echo " и "print " (обязательно с пробелами) меняются на переменную вывода автоматически!');
+			} else {
+				$flaged = 'html';
+				preg_match("/<<<BLOCKHTML(.*)BLOCKHTML;/is", $bfstr, $out);
+				unset($out[0]);
+				$ifp = '<br>'.t('В этом режиме вы можите использовать обычный html и java без экранирования кавычек!');
+			}
+		}
+		
+		
+		
+		
+	echoheader('search', t('Редактирование блока: %bn', array('bn'=>$bf)));	
+		bnav();
+		
+		//$permtest = end_chmod(block_directory, 777);
+		//if (!empty($permtest)) echo $permtest." нет прав.";
+		
+		echo "<form action=\"".$adfile.".php?mod=sblocks&amp;act=bbfsave\" method=\"post\" enctype=\"multipart/form-data\">"
+		."<table border=\"0\" align=\"center\" width=\"100%\">"
+		."<tr>
+		<td><b>".t('Содержание %flaged блока с названием %bf', array("flaged"=>$flaged, "bf"=>$bf)).":</b>".$ifp."</td>
+		</tr><tr>
+		<td><textarea wrap=\"virtual\" name=\"blocktext\" style=\"width: 100%; height: 300px;\">".(!empty($out[1]) ? $out[1] : "")."</textarea></td>
+		</tr>"
+		."<tr><td align=\"center\">";
+		
+if (!empty($yaw)) {	
+                echo "<input type=\"submit\" value=\"".t('Сохранить')."\"></td></tr></table>"
+		."<input type=\"hidden\" name=\"mod\" value=\"sblocks\">"
+		."<input type=\"hidden\" name=\"act\" value=\"bbfsave\">"
+		."<input type=\"hidden\" name=\"bf\" value=\"".$bf."\">"
+		."<input type=\"hidden\" name=\"flag\" value=\"".$flaged."\">";
+	     }
+		echo "</form>";
+echo on_page();
+echofooter();
+	} else {
+		Header("Location: ".$adfile.".php?mod=sblocks&act=bfedit");
+	}
+	
+}
+}
+
+
+
+
+
+
+function bbfsave() {
+	global $config, $db, $adfile, $config, $mod;
+
+if (straw_get_rights($mod, 'write')) {
+
+		if (!empty($_POST['blocktext'])) {
+			if (isset($_POST['bf'])) {
+				$bf = $_POST['bf'];
+				if ($handle = fopen(block_directory.'/'.$bf, 'w')) {
+					$htmlB = "";
+					$htmlE = "";
+					if (isset($_POST['flag'])) {
+						$flaged = $_POST['flag'];
+						if ($flaged == 'html') {
+							$htmlB = "\$bl_out = <<<BLOCKHTML\r\n";
+							$htmlE = "\r\nBLOCKHTML;\r\n";
+						}
+					}
+					
+		/*
+		if (get_magic_quotes_gpc()) {
+			$str_set = stripslashes($_POST['blocktext']);
+		} else {
+			$str_set = $_POST['blocktext'];
+		}
+		*/
+		
+					$str_set = $_POST['blocktext'];
+					$str_set = str_replace("echo ", "\$bl_out = ", $str_set);
+					$str_set = str_replace("print ", "\$bl_out = ", $str_set);
+					fwrite($handle, "<?php\r\n#_strawberry\r\nif (!defined(\"str_block\")) {\r\n\theader(\"Location: ../../index.php\");\r\n\texit;\r\n}\r\n".$htmlB.$str_set.$htmlE."\r\n?>");
+					Header("Location: ".$adfile.".php?mod=sblocks&act=bnew");
+				}
+				fclose($handle);
+			}
+		}
+	
+	} else {
+	Header("Location: ".$adfile.".php?mod=sblocks");
+	}
+}
+
+
+
+
+
+
+
+function bedit($bid) {
+	global $sql, $config, $db, $conf, $adfile, $mod, $PHP_SELF;
+	
+
+if (straw_get_rights($mod, 'write')) { 
+	$bid = intval($bid);
+	list($title, $bposition, $weight, $active, $blockfile, $view, $which) = $db->sql_fetchrow($db->sql_query("SELECT title, bposition, weight, active, blockfile, view, which FROM ".$config['dbprefix']."blocks WHERE bid='$bid'"));
+
+      if ($blockfile != "") {
+		$type = "(".t("файловый блок").")";
+	} else {
+		$type = "(".t("html блок").")";
+	}
+
+	echoheader('search', t('Редактирование блока: %tit %type', array('tit'=>$title, 'type'=>$type)));
+bnav();
+	echo "<form action=\"".$adfile.".php?mod=sblocks&act=besave\" method=\"post\" enctype=\"multipart/form-data\">"
+	."<table border=\"0\" align=\"center\" width=\"100%\">"
+	."<tr>
+	<td style=\"width:100px;\">".t("Название").":</td>
+	<td><input type=\"text\" name=\"title\" maxlength=\"50\" style=\"width:300px;\" value=\"$title\"></td></tr>";
+
+echo "<tr>
+<td>".t("Имя файла").":</td>
+<td><select name=\"blockfile\" style=\"width:300px;\">";
+
+ 		
+		$dir = opendir(block_directory);
+		//echo $dir;
+		while ($file = readdir($dir)) {
+			if (preg_match("/^bl\-(.+)\.php/", $file, $matches)) {
+				$found = str_replace("_", " ", $matches[1]);
+				$selected = ($blockfile == $file) ? "selected" : "";
+				echo "<option value=\"$file\" $selected>".$found."</option>";
+			}
+		}
+		closedir($dir);
+
+	$oldposition = $bposition;
+	echo "<input type=\"hidden\" name=\"oldposition\" value=\"$oldposition\">";
+	$sel1 = ($bposition == "l") ? "selected" : "";
+	$sel2 = ($bposition == "c") ? "selected" : "";
+	$sel3 = ($bposition == "r") ? "selected" : "";
+	$sel4 = ($bposition == "d") ? "selected" : "";
+	echo "<tr><td>".t("Позиция").":</td><td><select name=\"bposition\">"
+	."<option name=\"bposition\" value=\"l\" $sel1>".t("Левый")."</option>"
+	."<option name=\"bposition\" value=\"c\" $sel2>".t("Верхний")."</option>"
+	."<option name=\"bposition\" value=\"d\" $sel4>".t("Нижний")."</option>"
+	."<option name=\"bposition\" value=\"r\" $sel3>".t("Правый")."</option>"
+	."</select></td></tr>";
+	echo "<tr><td valign=\"top\">".t("Где показывать").":</td><td align=\"center\"><table border=\"0\" cellpadding=\"3\" cellspacing=\"0\" align=\"center\" width=\"100%\"><tr class=\"panel\">";
+
+	$where_mas = explode(",", $which);
+	$cel = ($where_mas[0] == "ihome") ? "checked" : "";
+	echo "<td width=\"1%\"><input type=\"checkbox\" name=\"blockwhere[]\" value=\"ihome\" ".$cel."></td>";
+	if (!$cel) {
+	$cel_iall = ($where_mas[0] == "iall") ? "checked" : "";
+	} else {
+	$cel_iall = ($where_mas[1] == "iall") ? "checked" : "";
+	}
+	echo "<td width=\"32%\">".t("Главная")."</td><td width=\"1%\"><input type=\"checkbox\" name=\"blockwhere[]\" value=\"iall\" ".$cel_iall."></td>";
+	if (!$cel and !$cel_iall) {
+	$cel_ino = ($where_mas[0] == "ino") ? "checked" : "";
+	} else {
+	$cel_ino = ($where_mas[1] == "ino") ? "checked" : "";
+	if (empty($cel_ino)) $cel_ino = (!empty($where_mas[2]) and $where_mas[2] == "ino") ? "checked" : "";
+	}
+	echo "<td width=\"32%\">".t("Везде")."</td><td width=\"1%\"><input type=\"checkbox\" name=\"blockwhere[]\" value=\"ino\" ".$cel_ino."></td><td width=\"32%\">".t("Нигде")."</td></tr><tr>";
+	$a = 1;
+$handle = opendir(modul_directory);
+while ($file = readdir($handle)){
+        if ($file != '.' and $file != '..' and is_dir(modul_directory.'/'.$file)){
+		$cel = "";
+		foreach ($where_mas as $val) {
+			if ($val == $file) $cel="checked";
+		}
+		echo "\n<td><input type=\"checkbox\" name=\"blockwhere[]\" value=\"".$file."\" ".$cel."></td><td>".str_replace("_", " ", $file)."</td>";
+		if ($a == 3) {
+			echo "\n</tr><tr>\n";
+			$a = 1;
+		} else {
+			$a++;
+		}
+            
+        }
+}
+	echo "</td><tr><td colspan=\"6\"><b>".t("Примечания").":</b><br>".t("Режим \"Нигде\" доминирует над всеми остальными режимами.<br>Режим \"Везде\" доминирует над режимами \"Главная\" и \"В модулях\".<br>Режим \"Главная\" работает совместно с режимами \"В модулях\"")."</td></tr></table></td></tr>";
+	$sel1 = ($active == 1) ? "checked" : "";
+	$sel2 = ($active == 0) ? "checked" : "";
+
+	echo "<tr><td>".t("Активировать").":</td><td><input type=\"radio\" name=\"active\" value=\"1\" $sel1>".t("Да")." &nbsp;&nbsp;"
+	."<input type=\"radio\" name=\"active\" value=\"0\" $sel2>".t("Нет")."</td></tr>";
+	echo "<tr><td valign=\"top\">".t("Кто видит").":</td><td>";
+	
+	
+########### Группы ###########################
+$w_m = explode(",", $view);
+$cel_sno = ($w_m[0] == "sno") ? "checked" : "";
+if (!$cel_sno) { $cel_sall = ($w_m[0] == "sall") ? "checked" : ""; } else { $cel_sall = ($w_m[1] == "sall") ? "checked" : ""; }
+if (!$cel_sno && !$cel_sall) { $cel_sgt = ($w_m[0] == "sgt") ? "checked" : ""; } elseif ($cel_sno && $cel_sall) { $cel_sgt = ($w_m[2] == "sgt") ? "checked" : ""; } else { $cel_sgt = ($w_m[1] == "sgt") ? "checked" : ""; }
+if (!$cel_sno && !$cel_sall && !$cel_sgt) { $cel_sus = ($w_m[0] == "sus") ? "checked" : ""; } elseif ($cel_sno && $cel_sall && $cel_sgt) { $cel_sus = ($w_m[3] == "sus") ? "checked" : ""; } elseif (($cel_sno && $cel_sall) or ($cel_sall && $cel_sgt) or ($cel_sno && $cel_sgt))  { $cel_sus = ($w_m[2] == "sus") ? "checked" : ""; } else { $cel_sus = ($w_m[1] == "sus") ? "checked" : ""; }
+echo "<table border=\"0\" cellpadding=\"3\" cellspacing=\"0\" width=\"1000%\"><tr class=\"panel\">"
+	."\n<td width=\"1%\"><input type=\"checkbox\" name=\"view[]\" value=\"sno\" ".$cel_sno."></td><td width=\"25%\">".t("Никто")."</td>"
+	."\n<td width=\"1%\"><input type=\"checkbox\" name=\"view[]\" value=\"sall\" ".$cel_sall."></td><td width=\"25%\">".t("Все группы")."</td>"
+	."\n<td width=\"1%\"><input type=\"checkbox\" name=\"view[]\" value=\"sgt\" ".$cel_sgt."></td><td width=\"25%\">".t("Только гости")."</td>"
+	."\n<td width=\"1%\"><input type=\"checkbox\" name=\"view[]\" value=\"sus\" ".$cel_sus."></td><td width=\"25%\">".t("Только юзеры")."</td></tr><tr>";
+	
+$g = 1;
+foreach ($sql->select(array('table' => 'usergroups')) as $row){
+$cel_ug = "";
+foreach ($w_m as $val_ug) {
+		if ($val_ug == $row['id']) $cel_ug = "checked";
+		}
+		echo "\n<td><input type=\"checkbox\" name=\"view[]\" value=\"".$row['id']."\" ".$cel_ug."></td><td>".$row['name']."</td>";
+		if ($g == 4) {
+			echo "\n</tr><tr>";
+			$g = 1;
+		} else {
+			$g++;
+		}
+    }
+echo "\n</tr><tr><td colspan=\"8\"><b>".t("Примечания").":</b>
+<br>".t("Очень важно, чтобы администрторы всегда имели доступ к блокам!
+<br>Старайтесь для каждого блока выбрать максимальное число групп для доступа.
+<br>Режим \"Никто\" доминирует над всеми группами!
+<br>Режим \"Все группы\" доминирует над группами гостей, пользователей и над группами общего списка.
+<br>Режим \"Только гости\" доминирует над группами из общего списка.
+<br>Режим \"Только гости\" может работать совместно с режимом \"Только юзеры\". Совместное использование этих двух режимов аналогично режиму \"Все группы\".
+<br>Режим \"Только юзеры\" доминирует над группами общего списка.
+<br>Группы из общего списка блокируют блок от просмотра, если пользователь не авторизован и/или не обладает указанной группой.")."
+</td></tr></table>\n\n";
+########### Группы ###########################
+
+
+echo "</td></tr></table><br>"
+	."<center><input type=\"hidden\" name=\"mod\" value=\"sblocks\">"
+	."<input type=\"hidden\" name=\"act\" value=\"besave\">"
+	."<input type=\"hidden\" name=\"bid\" value=\"$bid\">"
+	."<input type=\"hidden\" name=\"weight\" value=\"$weight\">"
+	."<input type=\"submit\" value=\"".t("Сохранить")."\"></form></center>";
+echo on_page();
+echofooter();	
+} else {
+Header("Location: ".$adfile.".php?mod=sblocks");
+}	
+}
+
+
+
+
+
+function SortWeight($bposition) {
+	global $_GET, $_POST, $config,  $db;
+	$numbers = 1;
+	$number_two = 1;
+	$result = $db->sql_query("SELECT bid, weight FROM ".$config['dbprefix']."blocks WHERE bposition='$bposition' ORDER BY weight");
+	while (list($bid, $weight) = $db->sql_fetchrow($result)) {
+		$result2 = $db->sql_query("UPDATE ".$config['dbprefix']."blocks SET weight='$numbers' WHERE bid='$bid'");
+		$numbers++;
+	}
+	if ($bposition == l) {
+		$position_two = "r";
+	} else {
+		$position_two = "l";
+	}
+	$result_two = $db->sql_query("SELECT bid, weight FROM ".$config['dbprefix']."blocks WHERE bposition='$position_two' ORDER BY weight");
+	while (list($bid2, $weight) = $db->sql_fetchrow($result_two)) {
+		$result_two2 = $db->sql_query("UPDATE ".$config['dbprefix']."blocks SET weight='$number_two' WHERE bid='$bid2'");
+		$number_two++;
+	}
+	return $numbers;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+function besave($bid, $title, $oldposition, $bposition, $active, $weight, $blockfile) {
+global $config, $db, $adfile, $mod;
+
+if (straw_get_rights($mod, 'write')) {
+
+###########
+if (isset($_POST['blockwhere']) or isset($_POST['view'])) {
+$blockwhere = $_POST['blockwhere'];
+$which = "";
+// if (in_array("all", $blockwhere)) $which = "all";
+// if (in_array("home", $blockwhere)) $which = "home";
+while(list($key, $val) = each($blockwhere)) {
+$which .= "{$val},";
+}	
+$db->sql_query("UPDATE ".$config['dbprefix']."blocks SET which='$which' WHERE bid='$bid'");
+} else {
+$db->sql_query("UPDATE ".$config['dbprefix']."blocks SET which='' WHERE bid='$bid'");
+}
+#########################
+if (isset($_POST['view'])) {
+$bview = $_POST['view'];
+$view = "";
+// if (in_array("sall", $bview)) $view = "sall";
+// if (in_array("sno", $bview)) $view = "sno";	
+while(list($vkey, $vval) = each($bview)) {
+$view .= "{$vval},";
+}
+$db->sql_query("UPDATE ".$config['dbprefix']."blocks SET view='$view' WHERE bid='$bid'");
+} else {
+$db->sql_query("UPDATE ".$config['dbprefix']."blocks SET view=''  WHERE bid='$bid'");
+}
+###########
+
+
+if ($oldposition != $bposition) {
+			$result5 = $db->sql_query("SELECT bid FROM ".$config['dbprefix']."blocks WHERE weight>='$weight' AND bposition='$bposition'");
+			$fweight = $weight;
+			$oweight = $weight;
+			while (list($nbid) = $db->sql_fetchrow($result5)) {
+				$weight++;
+				$db->sql_query("UPDATE ".$config['dbprefix']."blocks SET weight='$weight' WHERE bid='$nbid'");
+			}
+			$result6 = $db->sql_query("SELECT bid FROM ".$config['dbprefix']."blocks WHERE weight>'$oweight' AND bposition='$oldposition'");
+			while (list($obid) = $db->sql_fetchrow($result6)) {
+				$db->sql_query("UPDATE ".$config['dbprefix']."blocks SET weight='$oweight' WHERE bid='$obid'");
+				$oweight++;
+			}
+			list($lastw) = $db->sql_fetchrow($db->sql_query("SELECT weight FROM ".$config['dbprefix']."blocks WHERE bposition='$bposition' ORDER BY weight DESC LIMIT 0,1"));
+			if ($lastw <= $fweight) {
+				$lastw++;
+				$db->sql_query("UPDATE ".$config['dbprefix']."blocks SET title='$title', bposition='$bposition', weight='$lastw', active='$active', blockfile='$blockfile', view='$view' WHERE bid='$bid'");
+			} else {
+				$db->sql_query("UPDATE ".$config['dbprefix']."blocks SET title='$title', bposition='$bposition', weight='$fweight', active='$active', blockfile='$blockfile', view='$view' WHERE bid='$bid'");
+			}
+		} else {
+			$result8 = $db->sql_query("UPDATE ".$config['dbprefix']."blocks SET title='$title', bposition='$bposition', weight='$weight', active='$active', blockfile='$blockfile', view='$view' WHERE bid='$bid'");
+		}
+}
+Header("Location: ".$adfile.".php?mod=sblocks");
+exit;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+function bchange($bid, $ok=0) {
+	global $config, $db, $adfile, $mod;
+	$bid = intval($_GET['bid']);
+	$row = $db->sql_fetchrow($db->sql_query("SELECT active FROM ".$config['dbprefix']."blocks WHERE bid='$bid'"));
+	$active = intval($row['active']);
+//	if (!empty($_GET['ok']) || ($active == 1)) {
+		if ($active == 0) {
+			$active = 1;
+		} elseif ($active == 1) {
+			$active = 0;
+		}
+		$result2 = $db->sql_query("UPDATE ".$config['dbprefix']."blocks SET active='$active' WHERE bid='$bid'");
+		Header("Location: ".$adfile.".php?mod=sblocks&act=badmin");
+/*
+	} else {
+		list($title) = $db->sql_fetchrow($db->sql_query("SELECT title FROM ".$config['dbprefix']."blocks WHERE bid='$bid'"));
+	echoheader('search', t('Активация блока %tit', array('tit'=>$title)));	
+bnav();
+
+	echo "<center>".t("Активировать блок \"%tit\"?", array('tit'=>$title))."<br><br>";
+
+if (straw_get_rights($mod, 'write')) { 
+echo "[ <a href=\"".$adfile.".php?mod=sblocks&amp;act=bchange&amp;bid=$bid&amp;ok=1\">".t("Да")."</a> | <a href=\"".$adfile.".php?mod=sblocks&amp;act=badmin\">".t("Нет")."</a> ]</center>";
+} else { 
+echo "[ ".t("опции недоступны")." ]</center>";
+}
+	echo on_page();
+	echofooter();	
+	}
+*/
+}
+
+
+
+
+
+
+switch($act) {
+	default:
+	badmin();
+	break;
+	
+	case "bnew":
+	bnew();
+	break;
+	
+	case "bfile":
+	bfile();
+	break;
+	
+	case "bfedit":
+	bfedit();
+	break;
+	
+	case "badd":
+	badd($title, $bposition, $active, $blockfile, $view);
+	break;
+	
+	case "bedit":
+	bedit($bid);
+	break;
+	
+	case "besave":
+	besave($bid, $title, $oldposition, $bposition, $active, $weight, $blockfile, $view);
+	break;
+	
+	case "bchange":
+	bchange($bid, $ok="", $de="");
+	break;
+	
+	case "bdelete":
+	$bid = intval($_REQUEST['bid']);
+	list($bposition, $weight) = $db->sql_fetchrow($db->sql_query("SELECT bposition, weight FROM ".$config['dbprefix']."blocks WHERE bid='$bid'"));
+	$result = $db->sql_query("SELECT bid FROM ".$config['dbprefix']."blocks WHERE weight>'$weight' AND bposition='$bposition'");
+	while (list($nbid) = $db->sql_fetchrow($result)) {
+		$db->sql_query("UPDATE ".$config['dbprefix']."blocks SET weight='$weight' WHERE bid='$nbid'");
+		$weight++;
+	}
+	$db->sql_query("DELETE FROM ".$config['dbprefix']."blocks WHERE bid='$bid'");
+	Header("Location: ".$adfile.".php?mod=sblocks&act=badmin");
+	break;
+	
+	case "border":
+	border($weightrep, $weight, $bidrep, $bidori);
+	break;
+	
+	case "bfixweight":
+	bfixweight();
+	break;
+	
+	case "bbfedit":
+	bbfedit();
+	break;
+	
+	case "bbfsave":
+	bbfsave();
+	break;
+}
+
+
+?>

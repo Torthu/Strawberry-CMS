@@ -1,0 +1,252 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+//img_resizer
+// ********************************************************************************
+// Personal Options
+// ********************************************************************************
+
+  $userpic_folder = straw_parse_url($config['path_userpic_upload']);
+  $userpic_path = way($userpic_folder['path']);
+  $userpic_folder = $userpic_folder['abs'];
+
+if (empty($action)){
+    echoheader('user', t('Личные настройки'));
+
+    foreach ($member as $key => $value){
+         $member[$key] = stripslashes(str_replace(array('"', '\''), array('&quot;', '&#039;'), $member[$key]));
+    }
+    
+     if (!empty($config['user_avatar'])){
+
+          if (!empty($member['avatar'])){
+            $member['avatar'] = '<img src="'.$userpic_path.'/'.$member['username'].'.'.$member['avatar'].'" alt="'.$member['name'].'" title="'.t('Пользователь ресурса: %mem', array('mem'=>$member['name'])).'" style="margin: 5px; border: 0px;">';
+            $delava = '<input type="checkbox" name="delavatar" id="delavatar"> <label for="delavatar">'.t('Удалить аватар?').'</label>';
+          } else {
+            unset($member['avatar'], $delava);
+          }
+
+	    $showrow_avatar = '<tr '.straw_that().'><td height="21">&nbsp;&nbsp;'.t('Аватар').':<td height="21"><input type="hidden" name="max_file_size" value="110000"><input tabindex="6" name="newavatar" type="file" size="27"></td><td>'.$delava;
+     } else {
+     	 unset($member['avatar']);
+     }
+     
+echo "<form action=\"\" method=\"post\" name=\"personal\" enctype=\"multipart/form-data\">";
+?>
+
+<table border="0" height="1" width="100%" cellspacing="0" cellpadding="0">
+ <tr>
+  <td colspan="2" style="padding-bottom: 10px;"><b><?php echo t('Общие данные'); ?></b>
+ <tr <?php echo straw_that(); ?>>
+  <td height="21">&nbsp;&nbsp;<?php echo t('Ник'); ?>
+  <td height="21" width="400" colspan="2"><input type="hidden" name="editusername" value="<?php echo $member['username']; ?>"><?php echo $member['username']; ?>
+ <tr <?php echo straw_that(); ?>>
+  <td height="21" width="150">&nbsp;&nbsp;<?php echo t('Дата регистрации'); ?>
+  <td height="21" width="400" colspan="2"><?php echo langdate('l, j M Y - h:i', $member['date']); ?>
+ <tr <?php echo straw_that(); ?>>
+  <td height="21">&nbsp;&nbsp;<?php echo t('Группа'); ?>
+  <td height="21" width="400" colspan="2"><?php echo $usergroups[$member['usergroup']]['name']; ?>
+<tr <?php echo straw_that(); ?>>
+ <td height="21" width="150">&nbsp;&nbsp;<?php echo t('Публикаций'); ?>
+ <td height="21" width="400" colspan="2"><?php echo $member['publications']; ?>
+<tr>
+ <td colspan="2" style="padding-top: 10px;padding-bottom: 10px;"><b><?php echo t('Ваш профиль'); ?></b>
+<tr <?php echo straw_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?php echo t('Новый пароль'); ?>
+ <td height="21" width="400" colspan="2"><input name="editpassword">&nbsp;&nbsp;&nbsp;<?php echo t('если хотите изменить текущий'); ?>
+<tr <?php echo straw_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?php echo t('Имя'); ?>
+ <td height="21" width="400" colspan="2"><input type="text" name="editnickname" value="<?php echo $member['name']; ?>">
+<tr <?php echo straw_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?php echo t('E-mail'); ?>
+ <td height="21" width="400" colspan="2"><input type="text" name="editmail" value="<?php echo $member['mail']; ?>">&nbsp;&nbsp;&nbsp;<input type="checkbox" name="edithidemail" <?php echo ($member['hide_mail'] ? 'checked' : ''); ?> id="edithidemail">&nbsp;<label for="edithidemail"><?php echo t('спрятать адрес'); ?></label>
+<tr <?php echo straw_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?php echo t('Сайт'); ?>
+ <td height="21" width="400" colspan="2"><input type="text" name="editsite" value="<?php echo $member['homepage']; ?>">
+<tr <?php echo straw_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?php echo t('ICQ'); ?>
+ <td height="21" width="400" colspan="2"><input type="text" name="editicq" value="<?php echo $member['icq']; ?>">
+<tr <?php echo straw_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?php echo t('Аккаунт в ЖЖ'); ?>
+ <td height="21" width="400" colspan="2"><input type="text" name="editlj" value="<?php echo $member['lj_username']; ?>">
+<tr <?php echo straw_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?php echo t('Пароль от ЖЖ'); ?>
+ <td height="21" width="400" colspan="2"><input type="text" name="editljpass" value="<?php echo $member['lj_password']; ?>">
+<tr <?php echo straw_that(); ?>>
+ <td height="21">&nbsp;&nbsp;<?php echo t('Откуда'); ?>
+ <td height="21" width="400" colspan="2"><input type="text" name="editfrom" value="<?php echo $member['location']; ?>">
+<tr <?php echo straw_that(); ?>>
+ <td height="21" valign="top" style="padding-top:3px;">&nbsp;&nbsp;<?php echo t('О себе'); ?>
+ <td height="21"><textarea type="text" name="editabout" style="width: 300px; height: 120px; padding: 5px; overflow-x: hidden; overflow-y: visible; "><?php echo str_replace("{nl}", "\n", $member['about']); ?></textarea><?php echo $member['avatar']; ?>
+ <td width="200" align="left">&nbsp;
+<?php echo $showrow_avatar; ?>
+<tr>
+ <td height="1" colspan="2" colspan="3"><br />
+   <input type="hidden" name="mod" value="personal">
+  <input type="hidden" name="action" value="dosavepersonal">
+  <input type="submit" value="<?php echo t('Сохранить'); ?>" accesskey="s">
+
+</table>
+
+<?php
+echo "</form>";
+?>
+
+<br /><br /><div class="panelm"><b><?php echo t('15 последних комментариев'); ?></b></div><br />
+<table width="100%" border="0" cellspacing="0" cellpadding="0" class="smnbtext">
+<?php 
+$dbcom = $db->sql_query("SELECT date, comment, post_id, id FROM ".$config['dbprefix']."comments WHERE author='".$member['username']."' ORDER BY date DESC LIMIT 0,15");
+$k=0;
+while (list($date, $textsender, $postid, $cmid) = $db->sql_fetchrow($dbcom)) {
+$k++;
+$textsender = str_stop(preg_replace("# {2,}#si", " ", strip_tags(comm_out($textsender))), 50);
+?>
+<tr>
+<td style="padding: 3px;width:20px;"><?php echo $cmid; ?>)</td>
+<td style="padding: 3px;"> <a href="<?php echo way($config['home_page']."?mod=news&amp;id=".$postid."#comment".$cmid); ?>"><?php echo (!empty($textsender) and strlen($textsender) > 2) ? $textsender : "<i>".t('нет текста')."</i>"; ?></a></td>
+</tr>
+<?php } ?>
+</table>
+
+<?php
+	echofooter();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+// ********************************************************************************
+// Save Personal Options
+// ********************************************************************************
+if (!empty($action) and $action == 'dosavepersonal'){
+
+
+$avatar_error = "";
+$editnickname = !empty($_POST['editnickname']) ? cheker($_POST['editnickname']) : "";
+$editmail = (!empty($_POST['editmail']) and remail($_POST['editmail'])) ? cheker($_POST['editmail']) : "";
+$mess = "";
+
+$aquery = $db->sql_query("SELECT * FROM ".$config['dbprefix']."users WHERE id!='".$member['id']."' and (name='".$editnickname."' OR mail='".$editmail."') LIMIT 0,1 ");
+$aqrow = $db->sql_fetchrow($aquery);
+
+		if (!empty($editnickname) and strtolower($aqrow['name']) == strtolower($editnickname)) {
+			$mess .= "<br />".t('Ошибка')."<br />".t('Такое имя уже кто-то использует');
+			$tit = t('Изменения не сохранены');
+		} elseif (!empty($editmail) and strtolower($aqrow['mail']) == strtolower($editmail)) {
+			$mess .= "<br />".t('Ошибка')."<br />".t('Такой e-mail уже кто-то использует');
+			$tit = t('Изменения не сохранены');
+		} elseif (empty($editnickname) or empty($editmail)) {
+		        $tit = t('Изменения не сохранены');
+		        if (empty($editnickname)) {$mess .= "<br />".t('Ошибка')."<br />".t('Не заполнено поле Имя');}
+		        if (empty($editmail))        {$mess .= "<br />".t('Ошибка')."<br />".t('Не заполнено поле e-mail');}
+		} else {
+##############################################################
+
+
+    if (!is_dir($userpic_folder)) {
+      @mkdir($userpic_folder, "0".$config['chm_dir']);
+      @chmod($userpic_folder, "0".$config['chm_dir']);
+    }
+
+
+    if (!empty($_POST['delavatar'])) {
+    	unset($change_avatar);
+    	@unlink($userpic_folder.'/'.$member['username'].'.'.$member['avatar']);
+    } else {
+    	$change_avatar = $member['avatar'];
+    }
+
+    if (!empty($_POST['editljpass'])) {
+    	$editljpass = cheker($_POST['editljpass']);
+    } else {
+    	$editljpass = $member['lj_password'];
+    }
+    
+    if (!empty($_FILES) and empty($_FILES['newavatar']['error'])) {
+	    // Загружаем файл(ы)
+	    $avatarname = $_FILES['newavatar']['name'];
+	    $avatartemp = $_FILES['newavatar']['tmp_name'];
+	    $type          = end($type = explode('.', $avatarname));
+
+	    // Проверяем картинку или фигню какую-то пытается закачать юзер
+	    if (!in_array($type, $allowed_extensions) or !in_array(strtolower($type), $allowed_extensions)){
+	        @unlink($userpic_folder.'/'.$avatarname);
+
+	        $change_avatar = $member['avatar'];
+	        $avatar_error  = t('Аватар не загружен!<br>Загрузка таких типов файлов запрещена');
+	    } else {
+	        @unlink($userpic_folder.'/'.$member['username'].'.'.$member['avatar']);
+	        @move_uploaded_file($avatartemp, $userpic_folder.'/'.$avatarname);
+
+	        $size = @getimagesize($userpic_folder.'/'.$avatarname);
+	        $avatar_error = "";
+	        // Проверяем размеры загружаемой картинки
+	        if (($size[0] > $config['avatar_w']) or ($size[1] > $config['avatar_h'])){
+	            $avatar_error  = t('Аватар не загружен!<br>Размеры картинки должны быть %ww x %hh', array('ww'=>$config['avatar_w'], 'hh'=>$config['avatar_h']));
+	            $change_avatar = $member['avatar'];
+	            @unlink($userpic_folder.'/'.$avatarname);
+	        } else {
+	            $change_avatar = @rename($userpic_folder.'/'.$avatarname, $userpic_folder.'/'.$member['username'].'.'.$type);
+	            $change_avatar = $type;
+	            $avatar_error = "";
+	        }
+	    }
+    }
+
+        if (!empty($_POST['editpassword'])) {
+            $row_pass = md5x($_POST['editpassword']);
+            $_SESSION['md5_password'] = $row_pass;
+            straw_setcookie('md5_password', $row_pass);
+        } else {
+            $row_pass = $member['password'];
+        }
+
+
+
+$db->sql_query("UPDATE ".$config['dbprefix']."users SET 
+password='".$row_pass."', 
+name='".$editnickname."', 
+mail='".$editmail."', 
+hide_mail='".(!empty($_POST['edithidemail']) ? 1 : 0)."', 
+avatar='".$change_avatar."', 
+homepage='".replace_comment('add', rurl($_POST['editsite'], 'http'))."', 
+icq='".replace_comment('add', cheker($_POST['editicq']))."', 
+location='".replace_comment('add', cheker($_POST['editfrom']))."', 
+about='".replace_comment('add', $_POST['editabout'])."', 
+lj_username='".replace_comment('add', cheker($_POST['editlj']))."', 
+lj_password='".$editljpass."' 
+WHERE id=".$member['id']." ");
+
+
+
+
+##############################################################
+            }
+
+
+  
+  if (!empty($mess)) {
+    msg('info', t('Изменения не сохранены'), $mess, $PHP_SELF.'?mod=personal');
+  } else {
+  
+  
+    if (!empty($avatar_error)) {
+      msg('info', t('Изменения сохранены'), t('Изменения в профиле изменены, но при редактировании возникли проблемы с аватаром.')."<br />".$avatar_error, $PHP_SELF.'?mod=personal');
+    } else {
+      msg('info', t('Изменения сохранены'), t('Изменения в профиле успешно изменены!'), $PHP_SELF.'?mod=personal');
+    }
+    
+  }
+
+
+	
+}
+?>

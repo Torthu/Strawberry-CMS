@@ -1,0 +1,4 @@
+Order Deny,Allow
+Allow from all
+
+AddType text/plain .cgi .pl .shtml .shtm .php .php3 .php4 .php5 .phtml .phtm .phps .htm .html

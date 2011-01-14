@@ -1,0 +1,259 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+
+
+$number = 10;
+
+
+if (!straw_get_rights($modul, 'read')) {
+msg('error', t('Ошибка'), t('Вам запрещён доступ к этому модулю!'));
+} else {
+if (straw_get_rights($modul, 'write')) { $yaw = 1; } else { $yaw = 0; }
+
+if (empty($nid) and empty($act)) {
+
+echoheader('gb', t('Гостевая книга'));
+//echo "<form method=\"post\" action=\"".$PHP_SELF."\" enctype=\"multipart/form-data\">";
+echo "<table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"2\">
+<tr>
+ <td colspan=\"6\" height=\"33\" class=\"panel\"><b>".t('Список сообщений в гостевой книге')."</b></td>
+</tr>
+<tr>
+ <td colspan=\"6\" height=\"20\" align=\"right\">".straw_number(50, 1)."</td>
+</tr>";
+
+$dbgb = $db->sql_query("SELECT id, namesender, emailsender, textsender, date, activ FROM ".$config['dbprefix']."gb  ORDER BY ".$order." ".(!empty($number) ? " LIMIT ".((!empty($oskip) ? $oskip : 0) .", ".$number) : "")." ");
+$crl = $db->sql_numrows($dbgb);
+if (!empty($crl) and $crl > 0) {
+echo "\n<tr align=\"center\" class=\"panel\">
+<td width=\"1%\"><b><a href=\"index.php?mod=".$modul."&amp;by=id".$lsort."\">№</a></b></td>
+<td width=\"10%\"><b><a href=\"index.php?mod=".$modul."&amp;by=namesender".$lsort."\">".t("Автор")."</a></b></td>
+<td width=\"10%\"><b><a href=\"index.php?mod=".$modul."&amp;by=emailsender".$lsort."\">".t("E-Mail")."</a></b></td>
+<td width=\"59%\"><b><a href=\"index.php?mod=".$modul."&amp;by=textsender".$lsort."\">".t("Коротко")."</a></b></td>
+<td width=\"15%\"><b><a href=\"index.php?mod=".$modul."&amp;by=date".$lsort."\">".t("Дата")."</a></b></td>
+<td width=\"5%\"><b>".t("Опции")."</b></td>";
+echo "</tr>\n";
+while (list($id, $namesender, $emailsender, $textsender, $date, $activ) = $db->sql_fetchrow($dbgb)) 
+{
+
+$strip = strip_tags(comm_out($textsender));
+$in_c = str_replace("<br>", " ", substr($strip, 0, 50));
+$out_short_text = str_replace("  ", "", $strip);
+$namesender = chuser($namesender, 1);
+
+
+echo "\n<tr class=\"fon".$activ."\">
+<td align=\"center\" class=\"tabnum\">".$id."</td>
+<td><small>".$namesender."</small></td>
+<td><pre>".$emailsender."</pre></td>
+
+
+<td><small>".(!empty($out_short_text) ? 
+"<a href=\"".$PHP_SELF."?mod=".$modul."&amp;act=view&amp;id=".$id."\" title=\"".$out_short_text."\">".$in_c.((strlen($in_c) < 50) ? "" : " ...")."</a>" :
+"<i>".t('текст недоступен')."</i>"
+)."</small></td>
+
+<td align=\"center\"><small>".langdate('j M Y H:i', $date)."</small></td>
+<td align=\"center\"><small><a href=\"".$PHP_SELF."?mod=gb&amp;act=view&amp;id=".$id."\"><img src=\"admin/images/icons/edit.png\" alt=\"".t('Просмотр')."\"/></a>";
+
+ if ($yaw) { echo " <a href=\"".$PHP_SELF."?mod=gb&amp;act=delete&amp;id=".$id."\"><img src=\"admin/images/icons/delete.png\" alt=\"".t('Удалить')."\"/></a>"; }
+
+echo "</small></td>
+</tr>\n";
+}
+if (!empty($yaw)) { echo "\n<tr><td align=\"right\" colspan=\"6\"><b><a href=\"".$PHP_SELF."?mod=gb&amp;act=delete&amp;id=all\">".t('Удалить все записи!')."</a></b></td></tr>\n"; }
+} else {
+echo "\n<tr><td align=\"center\"><hr width=\"50%\">".t('- записей нет -')."<hr width=\"50%\"></td></tr>\n";
+}
+echo "\n</table></form>";
+
+
+############## PAGES
+if (!empty($crl)) {
+echo pnp("gb", intval($pnum), ((!empty($number) and is_numeric($number)) ? $number : 0), (!empty($template) ? $template : 'default'), (!empty($wheren) ? $wheren : ''), '', '', $lnk);
+unset($order, $lsort, $oskip, $lnk, $pnum);
+}
+############## PAGES
+
+
+} elseif (!empty($nid) and $act == "view") {
+
+
+$dbgb = $db->sql_query("SELECT id, namesender, emailsender, isqsender, sitesender, textsender, ipsender, date, activ, admin, answer FROM ".$config['dbprefix']."gb WHERE id = '".$nid."' ORDER BY id DESC LIMIT 1");
+list($id, $namesender, $emailsender, $isqsender, $sitesender, $textsender, $ipsender, $date, $activ, $adm, $ans) = $db->sql_fetchrow($dbgb); 
+if (!empty($activ)) {
+$db->sql_query("UPDATE ".$config['dbprefix']."gb SET activ=0 WHERE id='".$nid."'");
+}
+echoheader('gb', t('Запись от %ns', array('ns'=>$namesender)));
+$isqsender = $isqsender ? $isqsender : t('не указано');
+$sitesender = $sitesender ? "<a target=\"_blank\" href=\"".$sitesender."\">".$sitesender."</a>" : "не указано";
+
+$namesender = chuser($namesender, 1);
+
+echo "<table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"2\">";
+echo "\n<tr>
+<td><small><b>".t('Автор записи').":</b></small> ".$namesender."
+<br><small><b>".t('Почта').":</b></small> ".$emailsender."
+<br><small><b>".t('ICQ').":</b></small> ".$isqsender."
+<br><small><b>".t('URL').":</b></small> ".$sitesender;
+echo "<br><b><u>".t('Текст записи').":</u></b><div class=\"show_text\">".comm_out($textsender)."</div>";
+if (!empty($ans)) echo "<br><br><b><u>".t('ОТВЕТ').":</u></b><br> ".comm_out($ans);
+echo "<tr><td><u>".t('Дата отправки').":</u> ".langdate('j M Y H:i', $date)."<br><u>".t('IP отправителя').":</u> ".whois_ip($ipsender)."</td></tr>\n
+<tr><td>";
+
+
+
+if ($yaw) { 
+
+echo "<div id=\"masterfild\">
+<form action=\"index.php?mod=gb&amp;act=edit&amp;id=".$nid."\" method=\"post\" name=\"addnews\" onsubmit=\"return process_form(this)\" enctype=\"multipart/form-data\">
+<table align=\"right\" width=\"100%\" border=\"0\" cellpadding=\"1\" cellspacing=\"1\" class=\"fon0\">
+<tr class=\"fon0\" valign=\"top\">
+<td width=\"50%\" onclick=\"sm('sub0')\" style=\"cursor:pointer;\"><b>".t('Редактировать сообщение от %ns?</b> (редактор: %mn)', array('ns'=>$namesender, 'mn'=>$member['name'])).":</td>
+<td width=\"50%\" onclick=\"sm('sub1')\" style=\"cursor:pointer;\"><b>".t('Ответ администратора</b> (%mn)', array('mn'=>$member['name'])).":</td>
+</tr>
+
+<tr class=\"fon0\">
+<td colspan=\"2\">
+
+<div class=\"submenu\" id=\"sub0\"><b>".t('Правка сообщения')."</b><noindex>".cnops(30, 'gbin')."</noindex>
+<textarea name=\"gbin_story\" style=\"height: 120;\">";
+echo str_replace("<br>", "\n", replace_comment('admin', $textsender))."\n\r [small] ".t('Отредактировал [b]%mn[/b]', array('mn'=>$member['name']))." (".langdate('j M Y H:i', time)."). [/small] ";
+echo "</textarea><noindex>".smiles(10, 'gbin')."</noindex>
+<div align=\"right\" width=\"100%\"><input type=\"submit\" name=\"red_ed\"  value=\"".t('Редактировать')."\"></div>
+</div>
+
+<div class=\"submenu\" id=\"sub1\"><b>".t('Ответ на сообщение')."</b><noindex>".cnops(30, 'gbout')."</noindex>
+<textarea name=\"gbout_story\" style=\"height: 120;\">";
+if (!empty($ans)) {
+echo replace_comment('admin', $ans)."\n[hr]\n[b]".$member['name']."[/b](".langdate('j M Y H:i', time).") ".t('добавляет').":\n\n[hr]";
+} else {
+echo replace_comment('admin', $ans);
+}
+echo "</textarea><noindex>".smiles(10, 'gbout')."</noindex>
+<div align=\"right\" width=\"100%\"><input type=\"submit\" name=\"answ_ed\" value=\"".t('Ответить')."\"></div>
+</div>
+
+
+
+<hr>
+</td>
+</tr>
+</table>
+<input type=\"hidden\" name=\"mod\" value=\"gb\">
+<input type=\"hidden\" name=\"act\" value=\"edit\">
+<input type=\"hidden\" name=\"id\" value=\"".$nid."\">
+</form>
+</div>";
+
+}
+
+
+echo "</td></tr>\n
+<tr class=\"fon1\"><td><a href=\"".$PHP_SELF."?mod=gb\"><u>".t('Вернуться к записям').".</u></a>";
+if ($yaw) { 
+echo "&nbsp;&nbsp;&nbsp;&nbsp;<a href=\"".$PHP_SELF."?mod=gb&amp;act=delete&amp;id=".$id."\"><u>".t('Удалить запись номер %nid', array('nid'=>$nid)).".</u></a>";
+}
+echo "</td>\n";
+echo "\n</table>";
+
+
+
+} elseif (!empty($nid) and $act == "edit" and $act != "delete" and (!empty($_POST['answ_ed']) or !empty($_POST['red_ed']))) {
+
+
+
+echoheader('gb', t('Редактирование записи номер %nid', array('nid'=>$nid)));
+
+if (!empty($_POST['answ_ed']) and $yaw) {
+$dbcom = $db->sql_query("SELECT textsender FROM ".$config['dbprefix']."gb WHERE id = '".$nid."' ORDER BY id DESC LIMIT 1");
+list($textsender) = $db->sql_fetchrow($dbcom);
+$amansw = comm_in($_POST['gbout_story']);
+$db->sql_query("UPDATE ".$config['dbprefix']."gb SET answer='".$amansw."', admin='".$member['name']."' WHERE id='".$nid."'");
+}
+
+ if (!empty($_POST['red_ed']) and $yaw) {
+$textsender = comm_in($_POST['gbin_story']);
+$db->sql_query("UPDATE ".$config['dbprefix']."gb SET textsender='".$textsender."', admin='".$member['name']."' WHERE id='".$nid."'");
+}
+
+if ($yaw) { 
+echo "<table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"2\">";
+
+
+if ($db) {
+
+echo "\n<tr class=\"fon0\">
+<td>".t('Запись номер %nid успешно отредактирована!<p><u>Ваш, %mn, результат:', array('nid'=>$nid, 'mn'=>$member['name']))."</u><br><br>
+<u><b>".t('ЗАПИСЬ').":</b></u><br>".comm_out($textsender)."<br><br>
+<u><b>".t('ОТВЕТ от $mn', array('mn'=>$member['name'])).":</b></u><br>".comm_out($amansw)."</p></td>
+</tr>";
+
+} else {
+
+echo "\n<tr class=\"fon0\"><td>".t('Во время редактирования записи номер %nid произошла ошибка! Проверте базу.', array('nid'=>$nid))."</td></tr>";
+
+}
+
+
+} else {
+echo "\n<tr class=\"fon0\"><td>".t('У вас нет на это прав!')."</td></tr>";
+}
+echo "<tr><td><a href=\"".$PHP_SELF."?mod=gb\">".t('Вернуться к записям').".</a>  <a href=\"".$PHP_SELF."?mod=gb&amp;act=view&amp;id=".$nid."\">".t('Вернуться к редактированию').".</a></td>
+</tr>\n";
+echo "\n</table>";
+
+
+
+} elseif (!empty($nid) and $id != "all" and $act == "delete") {
+
+echoheader('gb', t('Удаление записи номер %nid', array('nid'=>$nid)));
+if ($yaw) { 
+$db->sql_query("DELETE FROM ".$config['dbprefix']."gb WHERE id='".$nid."'");
+}
+echo "<table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"2\">";
+echo "\n<tr class=\"fon0\">";
+if ($yaw) { 
+echo "<td>".t('Запись номер %nid успешно удалена!', array('nid'=>$nid))."</td>";
+} else {
+echo "<td>".t('У вас нет на это прав!')."</td>";
+}
+echo "</tr>
+<tr><td><a href=\"".$PHP_SELF."?mod=gb\"><u>".t('Вернуться к записям').".</u></a></td>
+</tr>\n";
+echo "\n</table>";
+
+} elseif ($act == "delete" and $id == "all") {
+
+echoheader('error', t('Удаление записей'));
+if ($yaw) {
+$db->sql_query("DELETE FROM ".$config['dbprefix']."gb");
+}
+echo "<table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"2\">";
+echo "\n<tr class=\"fon0\">";
+if ($yaw) {
+echo "<td>".t('Все записи удалены!')."</td>";
+} else {
+echo "<td>".t('У вас нет на это прав!')."</td>";
+}
+echo "</tr>
+<tr><td><a href=\"".$PHP_SELF."?mod=gb\"><u>".t('Вернуться на главную модуля').".</u></a></td>
+</tr>\n";
+echo "\n</table>";
+
+} else {
+
+echoheader('error', t('Гостевая книга'));
+echo "<table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"2\">";
+echo "\n<tr class=\"fon0\">
+<td>".t('Произведена недопустимая операция!')."</td>
+</tr>
+<tr><td><a href=\"".$PHP_SELF."?mod=gb\"><u>".t('Вернуться к записям').".</u></a></td>
+</tr>\n";
+echo "\n</table>";
+}
+}
+echo on_page();
+echofooter();
+?>

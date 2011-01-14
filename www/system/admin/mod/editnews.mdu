@@ -1,0 +1,923 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("location: ../../../../index.php"); exit; }
+
+if (!empty($_POST['fld'])) {
+$cpp = "checked";
+} else {
+$cpp = "";
+}
+
+
+
+
+
+function makelist($array, $every = 0, $null = ""){
+global $modul, $categories;
+static $i, $result, $jj;
+
+    if (!empty($i) and $i > 1){
+        $result = '';
+    }
+
+    foreach ($array as $k => $v){
+        if (is_array($v)){
+          $i--;
+          $result .= '<tr '.straw_that().'>';
+          makelist($v, $every, $null);
+        } else {
+          $result .= ((!empty($every) and $k%$every == 0) ? '<tr>' : '');
+          $result .= '<td><nobr>'.$v.'</nobr></td>';
+        }
+    }
+
+    $i++;
+
+return '<table id="'.$modul.'" name="'.$modul.'" width="100%" cellspacing="1" cellpadding="5">'.$result.'</table>';
+}
+
+
+
+
+
+
+
+
+// ********************************************************************************
+// list all news available for editing
+// ********************************************************************************
+$parent = 0; $lsaddc = ""; $lsadda = "";
+
+$scat = (!empty($_GET['category']) ? cheker($_GET['category']) : 0);
+$action = !empty($_POST['action']) ? cheker($_POST['action']) : (!empty($_GET['action']) ? cheker($_GET['action']) : '');
+$actiont = !empty($_POST['actiont']) ? cheker($_POST['actiont']) : '';
+$author = !empty($_POST['author']) ? cheker($_POST['author']) : (!empty($_GET['author']) ? cheker($_GET['author']) : '');
+$skip = !empty($skip) ? cheker($skip) : 0;
+$by = (!empty($_GET['by'])) ? cheker($_GET['by']) : "date";
+$order = ((!empty($_GET['sort']) and $_GET['sort'] == 'asc') ? 'desc' : 'asc');
+$sort = '&nbsp;<img src="admin/images/'.$order.'.png" alt="" border="0" align="absmiddle">';
+$lsadd = "";
+if (!empty($scat)){
+  $lsaddc = "&amp;category=".$scat;
+}
+if (!empty($author)){
+  $lsadda = "&amp;author=".$author;
+}
+$lsadd = $lsaddc.$lsadda;
+
+if (empty($action) and empty($actiont)) {
+$action = "";
+} else if (!empty($action) and empty($actiont)) {
+$action = $action;
+} else if (empty($action) and !empty($actiont)) {
+$action = $actiont;
+}
+
+
+
+
+
+if (empty($id) and empty($action)){
+  echoheader('editnews', t('редактировать новости'));
+
+
+
+  if (straw_get_rights('edit') and !straw_get_rights('edit_all') and !is_admin()){
+      $author = $member['username'];
+  }
+
+$wheren = "";
+$where = array();
+
+  if (!straw_get_rights('edit') and !straw_get_rights('edit_all')){
+      $where[] = 'id = 0';
+  } else {
+      $where[] = 'id > 0';
+  }
+
+  if (!empty($not_published)){
+      $where[] = 'hidden = 1';
+  }
+
+  if (!empty($author)){
+      $where[] = " author = '".(!empty($author) ? $author : $user)."'";
+  }
+
+               // Запрос категорий переписан. 06.12.2009
+    if (!empty($category)){
+                // удаляем из запроса возможные пробелы
+     $category = str_replace(' ', '', $category);
+                // Начало формирования условия по категоии    
+      $catarr = explode(',', $category);
+      $cvc = count($catarr);
+      $cvs = 0;
+      $czo = "";
+           foreach ($catarr as $cat_var) {
+                if (!empty($cat_var)) {
+                     $cvs++;
+                     if ($cvs != ($cvc+1) and $cvs != 1) { $czo .= ' OR '; }
+                     $czo .= "category LIKE '%,".$cat_var.",%'";
+                }
+           }
+     $where[]  = " (".$czo.")";
+                // Конец формирования условия по категоии
+  } else {
+  $category = "";
+  }
+
+
+$wheren = $wheren.implode(" AND ", $where);
+echo straw_number(50, 1);
+
+$arr_query = $db->sql_query("SELECT * FROM ".$config['dbprefix']."news ".(!empty($wheren) ? "WHERE ".$wheren : "")." ORDER BY ".$order." ".(!empty($number) ? " LIMIT ".((!empty($oskip) ? $oskip : 0) .", ".$number) : "")." ");
+
+$count = $db->sql_query("SELECT COUNT('id') as c FROM ".$config['dbprefix']."news ".(!empty($wheren) ? "WHERE ".$wheren : "")." ");
+$count = $db->sql_fetchrow($count);
+$count = $count['c'];
+
+
+$crl = $db->sql_numrows($arr_query);
+while($query[] = $db->sql_fetchrow($arr_query));
+array_pop($query); // удаляем лишний
+
+
+//if (!empty($crl) and $crl > 0) {}
+
+
+
+#################################################################################################
+if (!empty($crl)) {
+$pages = pnp("news", intval($pnum), intval($number), 'default', (!empty($wheren) ? $wheren : ''), '', '', $lnk);
+} else {
+$pages = "";
+}
+#################################################################################################
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+  foreach ($query as $row){
+      $cat_arr = array();
+      $row['category'] = substr(substr($row['category'], 0, -1), 1);
+       
+      foreach (explode(',', $row['category']) as $cat){
+          if (!empty($cat)){
+              if (empty($categories[$cat]['name'])){
+                  $cat_arr[] = '<font color="red">'.t('id <b>ошибка</b>').'</font>';
+              } else {
+                  $cat_arr[] = '<a href="?mod=editnews&amp;category='.$categories[$cat]['id'].'">'.$categories[$cat]['name'].'</a>';
+              }
+          } else {
+              $cat_arr[] = '---';
+          }
+      }
+
+
+
+      $list[] = array(
+                '<div align="center" class="tabnum">'.$row['id'].'</div>',
+                date('d.m.y', $row['date']),
+                '<nobr><a href="'.$PHP_SELF.'?mod=editnews&amp;id='.$row['id'].'">'.replace_news('show', str_stop($row['title'], 30)).'</a></nobr>',
+                '<div align="center">'.$row['comments'].'</div>',
+                '<div align="center">'.$row['views'].'</div>',
+                ($row['hidden'] ? t('не опубл.') : t('опубл.')),
+                join(', ', $cat_arr),
+                '<nobr><a href="'.$PHP_SELF.'?mod=editnews'.$lsaddc.'&amp;by='.$by.$lsort.'&amp;author='.$users[$row['author']]['username'].'">'.$users[$row['author']]['name'].'</a></nobr>',
+                '<div align="right"><a href="'.$PHP_SELF.'?mod=editnews&amp;id='.$row['id'].'"><img src="admin/images/icons/edit.png" alt="'.t('Правка').'"/></a> <input name="selected_news[]" value="'.$row['id'].'" type="checkbox"></div>'
+                );     
+  }
+//////////////////////////////////////////////////////////////
+
+
+
+
+
+  if (!empty($list)){
+  
+  
+
+  
+  
+  
+      $list = array_merge(
+      
+                    array(
+              '<div align="center"><b><a href="'.$PHP_SELF.'?mod=editnews'.$lsadd.'&amp;by=id'.$lsort.'">#'.($by == 'id' ? $sort : '').'</a></b></div>',
+              '<b><a href="'.$PHP_SELF.'?mod=editnews'.$lsadd.'&amp;by=date'.$lsort.'">'.t('дата').($by == 'date' ? $sort : '').'</a></b>',
+              '<b><a href="'.$PHP_SELF.'?mod=editnews'.$lsadd.'&amp;by=title'.$lsort.'">'.t('заголовок').($by == 'title' ? $sort : '').'</a></b>',
+              '<b><a href="'.$PHP_SELF.'?mod=editnews'.$lsadd.'&amp;by=comments'.$lsort.'">'.t('ком.').($by == 'comments' ? $sort : '').'</a></b>',
+              '<b><a href="'.$PHP_SELF.'?mod=editnews'.$lsadd.'&amp;by=views'.$lsort.'">'.t('просм.').($by == 'views' ? $sort : '').'</a></b>',
+              '<b><a href="'.$PHP_SELF.'?mod=editnews'.$lsadd.'&amp;by=hidden'.$lsort.'">'.t('статус').($by == 'hidden' ? $sort : '').'</a></b>',
+              '<b><a href="'.$PHP_SELF.'?mod=editnews'.$lsadd.'&amp;by=category'.$lsort.'">'.t('категория').($by == 'category' ? $sort : '').'</a></b>',
+              '<b><a href="'.$PHP_SELF.'?mod=editnews'.$lsadd.'&amp;by=author'.$lsort.'">'.t('автор').($by == 'author' ? $sort : '').'</a></b>',
+              '<div align="right"><input type="checkbox" name="master_box" title="'.t('выбрать все').'" onclick="javascript:ckeck_uncheck_all(\'editnews\')"></div>'
+              ),
+              $list
+              );
+      
+  }
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////
+$dop_table ='<p><a href="?mod=editnews"><b>'.t('все категории').'</b></a>';
+$selcat = array();
+foreach ($categories as $row) {
+    if (!empty($_GET['category']) and $row['id'] == $_GET['category']) { $selcat[$row['id']] = 'style="color: green; font-weight: bold;"'; }
+    if (!empty($row['name'])) { $dop_table .= ' | <a href="?mod=editnews&amp;category='.$row['id'].'" '.(!empty($selcat[$row['id']]) ? $selcat[$row['id']] : '').'>'.$row['name'].'</a>'; }
+}
+$dop_table .= '</p>';
+echo $dop_table;
+////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+ if (!empty($list)) { ?>
+<form method="post" name="editnews">
+<?php if (straw_get_rights('edit_all') or straw_get_rights('delete_all')){ ?>
+<div align="right">
+<select name="action">
+<option value=""><?php echo t('- действие -'); ?></option>
+<option value="delete"><?php echo t('удалить'); ?></option>
+<option value="movetocat"><?php echo t('изменить категорию'); ?></option>
+<option value="publish"><?php echo t('опубликовать'); ?></option>
+<option value="unpublish"><?php echo t('скрыть'); ?></option>
+</select>
+<input type="submit" value="<?php echo t('ok'); ?>">
+</div>
+<?php } ?>
+<?php
+echo $pages;
+echo makelist($list);
+echo $pages; 
+?>
+<div align="right">
+<select name="actiont">
+<option value=""><?php echo t('- действие -'); ?></option>
+<option value="delete"><?php echo t('удалить'); ?></option>
+<option value="movetocat"><?php echo t('изменить категорию'); ?></option>
+<option value="publish"><?php echo t('опубликовать'); ?></option>
+<option value="unpublish"><?php echo t('скрыть'); ?></option>
+</select>
+<input type="hidden" name="mod" value="editnews">
+<input type="submit" value="<?php echo t('ok'); ?>">
+</div>
+</form>
+<?php 
+} else { 
+?>
+<div align="center"><hr width=\"50%\"><?php echo t('- новостей нет -'); ?><hr width=\"50%\"></div>
+<?php 
+}
+echo $dop_table;
+unset($order, $lsort, $oskip, $lnk, $pnum);
+echo on_page();
+  echofooter();
+}
+
+$moved_news = 0;
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  mass delete
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+if ($action == "delete") {
+
+$selected_news = !empty($_POST['selected_news']) ? $_POST['selected_news'] : (!empty($_GET['selected_news']) ? $_GET['selected_news'] : '');
+
+  if (empty($selected_news)) {
+      msg('error', t('ошибка'), t('не выбрано новостей для удаления.'), $PHP_SELF.'?mod=editnews');
+  }
+
+  echoheader('options', t('удаление новостей'));
+?>
+
+<form method="post" action="">
+<table border="0" cellpading="0" cellspacing="0" width="100%" height="100%">
+ <tr>
+  <td><?php echo t('уверены, что хотите удалить выбранные(<b>%selected</b>) новости?', array('selected' => count($selected_news))); ?>
+   <br><br>
+   <input type="button" value="   <?php echo t('нет'); ?>   " onclick="javascript:document.location='<?php echo $PHP_SELF; ?>?mod=editnews'"> &nbsp; <input type="submit" value="   <?php echo t('да'); ?>   ">
+   <input type="hidden" name="action" value="dodelete">
+   <input type="hidden" name="mod" value="editnews">
+
+<?php  
+foreach ($selected_news as $newsid){
+?>
+
+<input type="hidden" name="selected_news[]" value="<?php echo $newsid; ?>">
+
+<?php  
+}
+?>
+
+</table>
+</form>
+
+<?php  
+echo on_page();
+echofooter();
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  do mass delete
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+if ($action == 'dodelete'){
+  if (empty($_POST['selected_news'])){
+      msg('error', t('ошибка'), t('не выбрано новостей для удаления.'), $PHP_SELF.'?mod=editnews');
+  }
+
+    if (straw_get_rights('delete_all') or (straw_get_rights('delete') and $member['username'] == $row['author'])){
+    $righ_have = true;
+  } else {
+    $righ_have = false;
+  }
+
+  run_actions('mass-deleted');
+
+if (!empty($righ_have)){
+
+  $in_arr = join(',', $_POST['selected_news']);
+  $u_query = $db->sql_query("SELECT id, author FROM ".$config['dbprefix']."news WHERE id in (".$in_arr.") ");
+  $db->sql_query("delete from ".$config['dbprefix']."news where id in (".$in_arr.") ");
+  $db->sql_query("delete from ".$config['dbprefix']."comments where post_id in (".$in_arr.") ");
+  $db->sql_query("delete from ".$config['dbprefix']."story where post_id in (".$in_arr.") ");
+            
+  while ($uurow = $db->sql_fetchrow($u_query)){
+  //echo $uurow['author'];
+  $db->sql_query("update ".$config['dbprefix']."users set publications=publications-1 where username='".$uurow['author']."'");        
+  }
+  
+  $moved_news=count($_POST['selected_news']);
+  
+}
+
+  msg('info', t('удаление новостей'), t('<b>%deleted</b> из <b>%selected</b> выбранных вами новостей было удалено', array('deleted' => $moved_news, 'selected' => count($_POST['selected_news']))), $PHP_SELF.'?mod=editnews');
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  mass move to cat
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+if ($action == 'movetocat'){
+  if (empty($_POST['selected_news'])){
+      msg('error', t('ошибка'), t('не выбрано новостей для изменения категории.'), $PHP_SELF.'?mod=editnews');
+  }
+
+  echoheader('options', t('изменение категории'));
+?>
+
+<form action="" method="post">
+<table border="0" cellpading="0" cellspacing="0" width="100%" height="100%">
+ <tr>
+  <td><?php echo t('изменить категорию для выбранных (<b>%selected</b>) новостей на:', array('selected' => count($_POST['selected_news']))); ?>
+   <select name="move_to_category"><option value=""> </option>
+   <?php echo category_GET_tree('&nbsp;', '<option value="{id}">{prefix}{name}</option>'); ?>
+   </select>
+
+<?php
+foreach ($_POST['selected_news'] as $newsid){
+?>
+<input type="hidden" name="selected_news[]" value="<?php echo $newsid; ?>">
+<?php
+}
+?>
+
+<input type="hidden" name="action" value="domovetocat">
+<input type="hidden" name="mod" value="editnews">
+<input type="submit" value="ok">
+</table>
+</form>
+
+<?php 
+echo on_page();
+ echofooter();
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  do mass move to one category
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+if ($action == 'domovetocat'){
+  if (empty($_POST['selected_news'])){
+      msg('error', t('ошибка'), t('не выбрано новостей для изменения категории.'), $PHP_SELF.'?mod=editnews');
+  }
+
+    if (straw_get_rights('edit_all') or (straw_get_rights('edit') and $member['username'] == $row['author'])){
+    $righ_have = true;
+  } else {
+    $righ_have = false;
+  }
+
+   run_actions('mass-move-to-category');
+
+        if (!empty($righ_have)){
+            $db->sql_query("UPDATE ".$config['dbprefix']."news SET category=',".$_POST['move_to_category'].",' WHERE id in (".join(',', $_POST['selected_news']).") ");
+            $moved_news=count($_POST['selected_news']);
+        }
+
+  msg('info', t('изменение категории'), t('для <b>%moved</b> из <b>%selected</b> новостей категория была изменена.', array('moved' => $moved_news, 'selected' => count($_POST['selected_news']))), $PHP_SELF.'?mod=editnews');
+}
+
+
+
+
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  mass publish
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+if ($action == 'publish'){
+  if (empty($_POST['selected_news'])){
+      msg('error', t('ошибка'), t('не выбрано новостей для опубликования.'), $PHP_SELF.'?mod=editnews');
+  }
+
+  echoheader('options', t('опубликовать новости'));
+?>
+
+<form method="post" action="">
+<table border="0" cellpading="0" cellspacing="0" width="100%" height="100%">
+ <tr>
+  <td><?php echo t('уверены, что хотите опубликовать выбранные(<b>%selected</b>) новости?', array('selected' => count($_POST['selected_news']))); ?>
+   <br /><br />
+   <input type="button" value="   <?php echo t('нет'); ?>   " onclick="javascript:document.location='<?php echo $PHP_SELF; ?>?mod=editnews'"> &nbsp; <input type="submit" value="   <?php echo t('да'); ?>   ">
+   <input type="hidden" name="action" value="dopublish">
+   <input type="hidden" name="mod" value="editnews">
+
+<?php
+foreach ($_POST['selected_news'] as $newsid) {
+?>
+
+<input type="hidden" name="selected_news[]" value="<?php echo $newsid; ?>">
+
+<?php
+}
+?>
+
+</table>
+</form>
+
+<?php 
+echo on_page();
+ echofooter();
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  do mass publish news
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+if ($action == 'dopublish'){
+  if (empty($_POST['selected_news'])){
+      msg('error', t('ошибка'), t('не выбрано новостей для опубликования.'), $PHP_SELF.'?mod=editnews');
+  }
+
+  if (!straw_get_rights('approve_news') and straw_get_rights('edit_all')){
+    $righ_have = true;
+  } else {
+    $righ_have = false;
+  }
+
+  run_actions('mass-publish');
+
+  if ($righ_have){
+     $db->sql_query("update ".$config['dbprefix']."news set hidden='0' where id in (".implode(",", $_POST['selected_news']).")");
+  }
+
+  msg('info', t('опубликовать новости'), t('<b>%moved</b> из <b>%selected</b> выбранных вами новостей было опубликовано.', array('moved' => count($_POST['selected_news']), 'selected' => count($_POST['selected_news']))), $PHP_SELF.'?mod=editnews');
+}
+
+
+
+
+
+
+
+
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  mass unpublish
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+if ($action == 'unpublish'){
+  if (empty($_POST['selected_news'])){
+      msg('error', t('ошибка'), t('не выбрано новостей для скрытия.'), $PHP_SELF.'?mod=editnews');
+  }
+
+  echoheader('options', t('скрыть новости'));
+?>
+
+<form method="post" action="">
+<table border="0" cellpading="0" cellspacing="0" width="100%" height="100%">
+ <tr>
+  <td><?php echo t('уверены, что хотите скрыть выбранные(<b>%selected</b>) новости?', array('selected' => count($_POST['selected_news']))); ?>
+   <br /><br />
+   <input type="button" value="   <?php echo t('нет'); ?>   " onclick="javascript:document.location='<?php echo $PHP_SELF; ?>?mod=editnews'"> &nbsp; <input type="submit" value="   <?php echo t('да'); ?>   ">
+   <input type="hidden" name="action" value="dounpublish">
+   <input type="hidden" name="mod" value="editnews">
+
+<?php
+foreach ($_POST['selected_news'] as $newsid) {
+?>
+
+<input type="hidden" name="selected_news[]" value="<?php echo $newsid; ?>">
+
+<?php
+}
+?>
+
+</table>
+</form>
+
+<?php 
+echo on_page();
+ echofooter();
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  do mass publish news
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+if ($action == 'dounpublish'){
+  if (empty($_POST['selected_news'])){
+      msg('error', t('ошибка'), t('не выбрано новостей для скрытия.'), $PHP_SELF.'?mod=editnews');
+  }
+
+  if (!straw_get_rights('approve_news') and straw_get_rights('edit_all')){
+    $righ_have = true;
+  } else {
+    $righ_have = false;
+  }
+
+  run_actions('mass-publish');
+
+  if ($righ_have){
+    $db->sql_query("update ".$config['dbprefix']."news set hidden='1' where id in (".implode(",", $_POST['selected_news']).")");
+  }
+
+  msg('info', t('скрыть новости'), t('<b>%moved</b> из <b>%selected</b> выбранных вами новостей было скрыто.', array('moved' => count($_POST['selected_news']), 'selected' => count($_POST['selected_news']))), $PHP_SELF.'?mod=editnews');
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ********************************************************************************
+// edit news article
+// ********************************************************************************
+
+
+if ((empty($action) and !empty($_GET['id'])) or $action == 'editnews' or (!empty($fldsum_go) and $fldsum_go == t('изменить'))) {
+
+  if (empty($post['id']) or $post['id'] != $_GET['id']) {
+    msg('error', t('ошибка'), t('новость с id <b>%id</b> не найдена', array('id' => $_GET['id'])));
+    exit;
+  }
+
+  if (!straw_get_rights('edit_all') and (straw_get_rights('edit') and $post['author'] != $member['username'])){
+    header('location: '.$PHP_SELF.'?mod=editnews');
+    exit;
+  }
+
+  echoheader('editnews', t('редактирование новости %title', array('title' => replace_news('show', $post['title']))));
+
+?>
+
+<form method="post" name="addnews" action="" enctype="multipart/form-data">
+
+<table border="0" width="100%" cellspacing="0" cellpadding="0">
+<tr>
+<td valign="top">
+
+<!-- заголовок -->
+<fieldset id="title"><legend><?php echo t('заголовок'); ?></legend>
+<input type="text" name="title" value="<?php echo htmlspecialchars(replace_news('admin', $post['title'])); ?>">
+<?php if (!empty($config['atitle'])) { ?>
+<br><small><?php echo t('если поле заголовка оставить пустым, то заголовком будут первые 10 символов короткой новости.'); ?></small>
+<?php } ?>
+</fieldset>
+
+<!-- короткая -->
+<fieldset id="short"><legend><?php echo t('короткая новость'); ?></legend>
+<?php
+echo run_filters('new-advanced-options', 'short'); 
+echo cnops(15, 'short');
+?>
+<textarea name="short_story"><?php echo htmlspecialchars(replace_news('admin', $post['short'])); ?></textarea><br><small><?php echo t('внимание! короткая новость обязательна к заполнению!'); ?></small>
+</fieldset>
+
+<?php
+if (empty($post['full'])) {
+$fa = "onclick=\"javascript:ShowOrHide('fulln')\" style=\"cursor: pointer;\"";
+$fb = "<div id=\"fulln\" style=\"display: none;\">";
+$fc = "</div>";
+} else {
+$fa = "";
+$fb = "";
+$fc = "";
+}
+?>
+
+<!-- полная -->
+<fieldset id="full"><legend <?php echo $fa; ?>><?php echo t('полная новость'); ?> (<?php echo t(!empty($fa) ? 'добавить' : 'редактировать'); ?>)</legend>
+<?php
+echo $fb;
+echo run_filters('edit-advanced-options', 'full'); 
+echo cnops(15, 'full');
+?>
+<textarea name="full_story"><?php echo htmlspecialchars(replace_news('admin', $post['full'])); ?></textarea>
+<?php echo $fc; ?>
+</fieldset>
+
+<?php
+
+?>
+<!-- доп поля -->
+<!-- mr.miksar fields development -->
+
+<fieldset id="full"><legend><?php echo t('дополнительные поля'); ?></legend>
+<?php
+$skoka = !empty($_POST['fldsum']) ? $_POST['fldsum'] : $config['dop_fields'];
+
+######################## запихнуть бы в функцию
+$res = $db->sql_query("select fid, fname, fvalue, fnum, status from ".$config['dbprefix']."fields where modul = 'news' and content_id = '".$id."' order by fnum");
+if ($db->sql_numrows($res) > '0') {
+echo t('в данной новости использовались поля').": <br>";
+$tf = 0;
+while ($frow = $db->sql_fetchrow($res)) {
+if ($frow['status'] == 1) {
+$cel_a = "checked";
+$cel_b = "";
+} else {
+$cel_a = "";
+$cel_b = "checked";
+}
+
+$tf++;
+#if ($tf != $frow['fnum'])
+for ($ctf = $tf; $ctf < $frow['fnum']; $ctf++) {
+echo "\n<input type=\"hidden\" name=\"add_field[".$ctf."]\" value=\"".$ctf."\">\n";
+echo "\n<table width=\"100%\" border=\"0\" cellspacing=\"1\" cellpadding=\"2\" ".straw_that().">\n"
+."<tr><td><b>".t('имя поля')." <u>№".$ctf."</u>:</b><br><input type=\"text\" name=\"fname".$ctf."\" size=\"50\" value=\"\"></td></tr>\n"
+."<tr><td>".t('заполнение поля').":<br><textarea type=\"text\" name=\"fvalue".$ctf."\" style=\"width:100%; height:50px;\"></textarea></td></tr>\n";
+echo "<tr><td align=\"right\">".t('активировать')."? 
+<input type=\"radio\" name=\"fact".$ctf."\" checked value=\"1\"> ".t('да')." 
+<input type=\"radio\" name=\"fact".$ctf."\" value=\"0\"> ".t('нет')."
+</td></tr>";
+echo "</table>\n<input type=\"hidden\" name=\"fnumn".$ctf."\" value=\"".$ctf."\">\n";
+}
+echo "\n<input type=\"hidden\" name=\"add_field[".$frow['fnum']."]\" value=\"".$frow['fnum']."\">\n";
+echo "\n<table width=\"100%\" border=\"0\" cellspacing=\"1\" cellpadding=\"2\" ".straw_that().">\n"
+."<tr><td><b>".t('имя поля')." <u>№".$frow['fnum']."</u>:</b><br><input type=\"text\" name=\"fname".$frow['fnum']."\" size=\"50\" value=\"".htmlspecialchars(replace_news('admin', $frow['fname']))."\"></td></tr>\n"
+."<tr><td>".t('заполнение поля').":<br><textarea type=\"text\" name=\"fvalue".$frow['fnum']."\" style=\"width:100%; height:50px;\">".htmlspecialchars(replace_news('admin', $frow['fvalue']))."</textarea></td></tr>\n";
+echo "<tr><td align=\"right\">".t('активировать')."? 
+<input type=\"radio\" name=\"fact".$frow['fnum']."\" ".$cel_a." value=\"1\"> ".t('да')." 
+<input type=\"radio\" name=\"fact".$frow['fnum']."\" ".$cel_b." value=\"0\"> ".t('нет')."
+<input type=\"radio\" name=\"fact".$frow['fnum']."\" value=\"dell\"> ".t('удалить')."!
+</td></tr>";
+echo "</table>\n";
+
+$lfn = $frow['fnum'];
+}
+}
+$lfn = (!empty($lfn) ? $lfn : 0);
+$doaf = $skoka + $lfn;
+
+echo "<div id=\"masterfild\">";
+echo t('добавить еще полей')."? <input type=\"checkbox\" name=\"fld\" ".$cpp." onclick=\"sm('sub0')\" > ".t('да')."<br>";
+$z = 0;
+for ($c = 0; $c < $skoka; $c++) {
+$lfn++;
+$z++;
+$display = "style=\"display:none;\"";
+
+if ($c == 0) {
+$additions = "<tr><td bgcolor=\"#ffffff\">".t('сейчас полей добавлено').": <input type=\"text\" name=\"fldsum\" maxlength=\"2\" size=\"2\" value=\"".$skoka."\"> <input type=\"submit\" name=\"fldsum_go\" value=\"".t('изменить')."\"></td></tr>";
+$endded = "";
+} else {
+$additions = "";
+$endded = "</div>";
+}
+
+echo "\n\n<div id=\"sub".$c."\" ".$display.">\n";
+echo "<input type=\"hidden\" name=\"add_field[".$lfn."]\" value=\"".$lfn."\">\n";
+echo "<table width=\"100%\" border=\"0\" cellspacing=\"1\" cellpadding=\"2\" ".straw_that().">\n"
+.$additions
+."<tr><td><b>".t('имя поля <u>№%lfn</u>', array('lfn'=>$lfn))." :</b><br><input type=\"text\" name=\"fname".$lfn."\" size=\"50\"></td></tr>\n"
+."<tr><td>".t('заполнение поля').":<br><textarea type=\"text\" name=\"fvalue".$lfn."\" style=\"width:100%; height:50px;\"></textarea></td></tr>\n";
+if ($lfn < $doaf) echo "<tr><td align=\"right\" onclick=\"sm('sub".$z."')\" style=\"cursor:pointer;\">".t("добавить поле №%lfn", array('lfn'=>($lfn + 1)))." / ".t("убрать поле №%lfn", array('lfn'=>($lfn + 1)))."?</td></tr>";
+echo "</table>\n";
+echo $endded."\n\n";
+	}
+######################## запихнуть бы в функцию
+?>
+</div>
+</div><hr>
+<small><?php echo t('внимание! если вы "спрятали" заполненное поле, то оно все равно добавится. если поле не нужно - его следует очистить!'); ?></small>
+</fieldset>
+<!-- mr.miksar fields development -->
+<?php
+
+?>
+
+
+<!-- кнопки -->
+<fieldset id="actions"><legend><?php echo t('действие'); ?></legend>
+<input type="submit" name="go_news" value="<?php echo t('редактировать'); ?>" accesskey="s">
+<input type="button" onclick="preview('editnews');" value="<?php echo t('предварительный просмотр'); ?>" accesskey="p">
+<input type="button" onclick="javascript:confirmdelete('?mod=editnews&amp;action=delete&amp;selected_news[]=<?php echo $_GET['id']; ?>')" value="<?php echo t('удалить'); ?>" accesskey="d">
+</fieldset>
+
+
+</td>
+<td valign="top" width="200" class="main">
+
+
+<fieldset id="options"><legend><?php echo t('настройки'); ?></legend><div>
+<?php echo run_actions('edit-advanced-options'); ?>
+</div></fieldset>
+
+
+</td>
+</tr>
+</table>
+
+
+<input type="hidden" name="id" value="<?php echo $_GET['id']; ?>">
+<input type="hidden" name="mod" value="editnews">
+<input type="hidden" name="action" value="doeditnews">
+</form>
+
+<?php  if (!empty($post['comments'])) {
+?>
+
+<!-- комментарии -->
+<fieldset id="comments"><legend><a title="<?php echo t('модуль управления комментариями'); ?>" href="<?php echo $PHP_SELF; ?>?mod=comments"><?php echo t('комментарии'); ?></a></legend>
+<?php include 'editcomments.mdu'; ?>
+</fieldset>
+
+<?php    
+}
+echo on_page();
+      echofooter();
+}
+
+
+
+
+
+
+
+
+// ********************************************************************************
+// do update news to db
+// ********************************************************************************
+if (!empty($_POST['go_news']) and $_POST['action'] == "doeditnews") {
+
+
+if (($added_time = strtotime($_POST['day'].' '.$_POST['month'].' '.$_POST['year'].' '.$_POST['hour'].':'.$_POST['minute'].':'.$_POST['second'])) == -1){
+$added_time = time;
+}
+
+
+  if (empty($_POST['title']) and !empty($config['atitle']) and !empty($_POST['short_story'])){
+      $title = substr($_POST['short_story'], 0, 10).'...';
+  } else {
+      $title = $_POST['title'];
+  }
+
+
+if (empty($_POST['template']) or (!empty($_POST['template']) and $_POST['template'] == "...")) { 
+$template = "";
+} else {
+$template = $_POST['template'];
+}
+
+
+$author = ((!empty($_POST['author']) and is_admin()) ? $_POST['author'] : (!empty($member['username']) ? $member['username'] : t('Неизвестный')));
+$с_short = strlen(replace_news('add', $_POST['short_story']));
+$с_full = !empty($_POST['full_story']) ? strlen(replace_news('add', $_POST['full_story'])) : 0;
+
+
+ ## run_actions('del-files-entry');
+  run_actions('edit-save-entry');
+
+
+// тип поста (плагин)
+    if (!empty($pt_values) and is_array($pt_values)) {
+    $pt_type = !empty($pt_values['type']) ? $pt_values['type'] : "";
+    $pt_password = !empty($pt_values['password']) ? $pt_values['password'] : "";
+    $pt_parent = !empty($pt_values['parent']) ? intval($pt_values['parent']) : 0;
+    $pt_level = !empty($pt_values['level']) ? intval($pt_values['level']) : 0;
+    } else {
+    $pt_type = $pt_password = "";
+    $pt_parent = $pt_level = 0;
+    }
+
+
+  $db->sql_query("update ".$config['dbprefix']."news set 
+  date = '".$added_time."', 
+  author = '".$author."', 
+  title = '".replace_news('add', $title)."', 
+  с_short = '".$с_short."', 
+  с_full = '".$с_full."', 
+  category = '".(!empty($category) ? $category : '')."',
+  url = '".(!empty($_POST['url']) ? straw_namespace(totranslit($_POST['url'])) : straw_namespace(totranslit($title)))."', 
+  hidden = '".(straw_get_rights('approve_news') ? 1 : 0)."', 
+  sticky = '".(!empty($_POST['sticky_post']) ? 1 : 0)."', 
+  type = '".$pt_type."', 
+  parent = '".$pt_parent."', 
+  level = '".$pt_level."', 
+  password = '".$pt_password."',
+  template = '".$template."',
+  bookmark = '".(!empty($_POST['bookmark']) ? 1 : 0)."'
+  where id = ".$_POST['id']." limit 1 ");
+
+  $db->sql_query("update ".$config['dbprefix']."story set 
+  short = '".replace_news('add', $_POST['short_story'])."', 
+  full = '".replace_news('add', $_POST['full_story'])."', 
+  metatitle = '".replace_news('add', $_POST['meta_info_title'])."',
+  metakeywords = '".replace_news('add', $_POST['meta_info_keywords'])."',
+  metadescription = '".replace_news('add', $_POST['meta_info_description'])."',
+  ico = '".(!empty($news_ico) ? $news_ico : '')."',
+  add_comm = '".(!empty($_POST['endiscomments']) ? 'on' : 'no')."',
+  stop_comm = '".(!empty($_POST['stopcomments']) ? 'on' : 'no')."',
+  format = '".(!empty($_POST['fs_format']) ? $_POST['fs_format'] : 'html_with_br')."'
+  where post_id=".$_POST['id']." limit 1 ");
+
+
+
+
+
+
+
+##############################################################################################
+###################### add field
+if (!empty($config['use_dop_fields'])) {
+$fid_POST_id = $_POST['id'];
+## считаем, сколько полей активно...
+     $b = count($_POST['add_field']);
+     $a = 0;
+## пока цикл не достигнет числа полей, добавление не остановится...
+  while ($a<$b) {
+## начинаем цикл
+     $a++;
+## содержание полей
+     $fnom = $_POST['add_field'][$a];
+     $fvalue = !empty($_POST['fvalue'.$a]) ? $_POST['fvalue'.$a] : '';
+## переменная масива данных для поля с номером цикла $a для данной новости
+     $fn = $db->sql_fetchrow($db->sql_query("select * from ".$config['dbprefix']."fields where modul = 'news' and content_id = '".$fid_POST_id."' and fnum='".$a."' "));
+
+  if ((!empty($_POST['fact'.$a]) and $_POST['fact'.$a] == "dell") or empty($fvalue)) {
+## если поле с номером $a незаполнено или выбрано его удаление, то проверяем существование такого поля в базе и удаляем его, если оно есть
+     if (!empty($fn['fnum'])) { $db->sql_query("delete from ".$config['dbprefix']."fields where fnum='".$a."' and content_id = '".$fid_POST_id."' "); }
+  } else {
+## если поле заполнено и выбран режим активации (1 или 0)
+     $fvalue = replace_news('add', $fvalue);
+     $fname = $_POST['fname'.$a] ? $_POST['fname'.$a] : substr($_POST['fvalue'.$a], 0, 10).'...';
+     $fname = replace_news('add', $fname);
+     $fld_act = $_POST['fact'.$a];
+         if (!empty($fn['fnum'])) {
+## если поле данной новости существует с таким номером $a цикла, то обновляем его
+     $db->sql_query("update ".$config['dbprefix']."fields set fname='$fname', fvalue='$fvalue', status='$fld_act' where fnum='".$a."' and modul = 'news' and content_id = '".$fid_POST_id."' ");
+         } else {
+## иначе добавляем новое поле с номером $a цикла для текущей новости и общим номером $fid
+     $db->sql_query("insert into ".$config['dbprefix']."fields values (null, 'news', '$fid_POST_id', '$fname', '$fvalue', '$fnom', '1', '0', '0')");
+         }
+  }
+## заканчиваем текущий цикл
+  }
+}
+###################### add field
+##############################################################################################
+
+
+
+
+
+  //run_actions('edit-save-entry');
+
+  msg('info', t('новость отредактирована'), t('новость <b>%title</b> была успешно отредактирована', array('title' => $title)), $PHP_SELF.'?mod=editnews&id='.$_POST['id']);
+}
+?>
