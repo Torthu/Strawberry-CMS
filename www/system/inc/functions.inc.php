@@ -1090,7 +1090,7 @@ return strtr($string, $trans_tbl);
  * @param string $str
  * @return string
  */
-function straw_namespace($str){
+/*function straw_namespace($str){
 global $sql, $modul, $db, $config, $nid;
  # foreach ($sql->select(array('table' => 'news')) as $row)
 $result = array();
@@ -1114,8 +1114,25 @@ $row_news_db = $db->sql_query("SELECT * FROM ".$config['dbprefix']."news WHERE i
     }
 
 return $str.((!empty($count) and $count != 1) ? ' '.$count : '');
-}
+}*/
 
+function straw_namespace($str){
+global $sql, $modul, $db, $config, $nid;
+$result = array();
+$count = 0;
+  if (!empty($str)) {
+    $row_news_db = $db->sql_query("SELECT * FROM ".$config['dbprefix']."news ".(!empty($nid) ? "WHERE id!='".$nid."'" : "")." ");
+////////////
+    while ($row=$db->sql_fetchrow($row_news_db)) {
+      if (@preg_match("#".$str."-([0-9]+)?#i", $row['url']) or $str==$row['url']) $count++;
+      if (@preg_match("#".$str."-([0-9]+)?#i", $row['id'])  or $str==$row['id'])  $count++;
+    }
+////////////
+  } else {
+    $str = "";
+  }
+return $str.(!empty($count) ? '-'.$count : '');
+}
 
 
 
