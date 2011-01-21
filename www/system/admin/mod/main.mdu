@@ -481,7 +481,7 @@ echo "</td></tr>";
 if ($action == 'check'){
 echo "<tr><td colspan=\"3\" align=\"center\"><hr></td></tr>";
 echo "<tr><td colspan=\"3\" align=\"left\">";
-echo t('»спользуетс€ верси€ <b>%current_version</b>, последн€€ верси€ <b>%new_version</b>', array('current_version' => $config['version_id'], 'new_version' => '<script language="JavaScript" src="http://update.strawberry.su/check.php?version='.$config['version_id'].'"></script>'));
+echo t('»спользуетс€ верси€ <b>%current_version</b>, последн€€ верси€ <b>%new_version</b>', array('current_version' => $version_id, 'new_version' => '<script language="JavaScript" src="http://update.strawberry.su/check.php?version='.$config['version_id'].'"></script>'));
 echo "</td></tr>";
 }
 ?>

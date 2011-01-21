@@ -193,7 +193,7 @@ return;
 function strawberry_array_fields($fo_where = "") {
 global $db, $config, $sfields, $cache;
 
-  if (!$sfields = $cache->unserialize('sfields') and $config['use_dop_fields']){
+  if (!$sfields = $cache->unserialize('sfields') and !empty($config['use_dop_fields'])){
             $row_sfil_db = $db->sql_query("SELECT * FROM ".$config['dbprefix']."fields WHERE status='1' ".$fo_where." ORDER BY fid ASC");
         while ($frow=$db->sql_fetchrow($row_sfil_db)) {
 	    $sfields[$frow['modul']][$frow['content_id']][$frow['fnum']] = $frow;
@@ -701,18 +701,16 @@ $ref_env = cheker(getenv("HTTP_REFERER"));
 ### Проверка pin
 function pin_check($tip="1") {
 	global $config, $is_logged_in, $rand_out;
-	if (empty($is_logged_in)) {
+	if (empty($is_logged_in) and !empty($config['pin'])) {
 	$p_ch = !empty($_POST['pin_check']) ? intval($_POST['pin_check']) : '';
 //intval($_REQUEST['rand']);
   $code = substr(hexdec(md5(date("F j").(!empty($_SESSION[$tip.'_pin']) ? $_SESSION[$tip.'_pin'] : $p_ch).$config['sitekey']."")), 2, 6);
-  
 		if (extension_loaded("gd") && $code != $p_ch) {
 			return 1;
 		} else {
 	                unset($_SESSION[$tip.'_pin'], $code, $p_ch, $_POST['pin_check']);	
 			return 0;
 		}
-		
 	} else {
 		return 0;
 	}
@@ -724,16 +722,11 @@ function pin_cod($styler="", $tip="1") {
 global $config, $is_logged_in;
 if (!empty($config['pin'])) {
 if (extension_loaded("gd") and empty($is_logged_in)) {
-
 //$tpl['capcha']['img'] = "<img src=\"/index.php?pin=1&amp;tip=".$tip."\" border=\"1\" alt=\"".t("Код безопасности")."\">";
 //$tpl['capcha']['img'] = "<div OnClick=\"gload('1', '".$tip."', '1', 'img', '', '', '".$tip."', '', '', ''); return false;\" class=\"strawptcha\"><div id=\"ajx".$tip."\"><img src=\"/active.php?go=1&amp;tip=".$tip."\" alt=\"".t("Код безопасности")."\"></div></div>";
 //$tpl['capcha']['img'] = "<div OnClick=\"wcompleted('".$tip."', '".$tip."', ''); return false;\"><div id=\"ajx".$tip."\"><img src=\"/active.php?go=1&amp;tip=".$tip."\" alt=\"".t("Код безопасности")."\"></div></div>";
-
-
-$tpl['capcha']['img'] = "<div OnClick=\"pinload('1', '".$tip."', '2', '".$tip."', ''); return false;\" class=\"strawptcha\"><div id=\"ajx".$tip."\"><img src=\"/active.php?go=1&amp;tip=".$tip."\" alt=\"\"><img src=\"/system/admin/images/icons/arrow_refresh.png\" border=\"0\" class=\"pinrefresh\" alt=\"\"/></div></div>";
+$tpl['capcha']['img'] = "<div OnClick=\"pinload('1', '".$tip."', '2', '".$tip."', '".way()."'); return false;\" class=\"strawptcha\"><div id=\"ajx".$tip."\"><img src=\"".way("active.php?go=1&amp;tip=".$tip)."\" alt=\"\"><img src=\"".sway("admin/images/icons/arrow_refresh.png")."\" border=\"0\" class=\"pinrefresh\" alt=\"\"/></div></div>";
 $tpl['capcha']['enter'] = "<input type=\"text\" name=\"pin_check\" size=\"10\" maxlength=\"10\" class=\"pin_enter\">";
-
-
 if (is_file(stpl_directory.'/captcha/'.$styler.'.tpl')) {
 ob_start();
 include stpl_directory.'/captcha/'.$styler.'.tpl';
@@ -768,11 +761,6 @@ return;
 function str_meta(){
 global $tit, $config, $TheYear, $nid, $siteurl, $sesuser;
 
-$fha = straw_parse_url($config['http_script_dir']);
-$fhb = straw_parse_url($config['http_home']);
-$fhap = $fha['path'];
-$fhbp = $fhb['path'] ? "/".$fhb['path']."/" : "/";
-
 $metas = "\n<title>".$config['delitel']." ".$config['home_title']." ".$config['delitel']; 
 if (!empty($tit)) $metas .= " ".$tit." ".$config['delitel']; 
 if (function_exists('metainfo') and !empty($nid)) $metas .= " ".metainfo('title')." ".$config['delitel'];
@@ -790,23 +778,21 @@ $metas .= "\">\r";
 
 $metas .= "<meta name=\"description\" content=\"";
 if (function_exists('metainfo') and !empty($nid)) {
-$metas .= metainfo('description');
-
+  $metas .= metainfo('description');
 } elseif (!empty($_GET['category']) and !empty($categories[category_get_id($_GET['category'])]['description'])) {
-$metas .= $categories[category_get_id($_GET['category'])]['description'];
-
+  $metas .= $categories[category_get_id($_GET['category'])]['description'];
 } else {
-$metas .= $config['description'];
+  $metas .= $config['description'];
 } 
 
 if (!empty($_GET['mod'])) {
-$metas .= " ".$config['delitel']." модуль ".cheker($_GET['mod']);
+  $metas .= " ".$config['delitel']." модуль ".cheker($_GET['mod']);
 }
 
 $metas .= "\">\r";
 
 if (!empty($config['home_author'])) { 
-$metas .= "<meta name=\"author\" content=\"".$config['home_author']."\">\r"; 
+  $metas .= "<meta name=\"author\" content=\"".$config['home_author']."\">\r"; 
 }
 
 $metas .= "<meta name=\"copyright\" content=\"© Strawberry 1.2 2009 - ".$TheYear."\">\r";
@@ -826,20 +812,24 @@ if (!empty($config['rss_potok'])) {
   }
 }
 
-$metas .= "<link rel=\"search\" type=\"application/opensearchdescription+xml\" href=\"".$fhbp.$config['home_page']."?mod=search\" title=\"".$config['home_title']." ".$config['delitel']." Search\">\r";
-$metas .= "<link href=\"".$fhbp."favicon.ico\" type=\"image/x-icon\" rel=\"shortcut icon\">\r"
-."<link href=\"".$fhbp."favicon.ico\" type=\"image/x-icon\" rel=\"icon\">";
+$metas .= "<link rel=\"search\" type=\"application/opensearchdescription+xml\" href=\"".way($config['home_page']."?mod=search")."\" title=\"".$config['home_title']." ".$config['delitel']." Search\">\r";
+$metas .= "<link href=\"".way("favicon.ico")."\" type=\"image/x-icon\" rel=\"shortcut icon\">\r"
+."<link href=\"".way("favicon.ico")."\" type=\"image/x-icon\" rel=\"icon\">";
 
 if ($sesuser != "robot"){ 
- $metas .= "<link href=\"/".$fhap."/data/themes/".$config['mytheme']."/style.css\" type=\"text/css\" media=\"screen\" rel=\"stylesheet\">\r";
+ $metas .= "<link href=\"".sway("data/themes/".$config['mytheme']."/style.css")."\" type=\"text/css\" media=\"screen\" rel=\"stylesheet\">\r";
 }
 
 if (!empty($config['js_potok']) and $sesuser != "robot") {
 $in_filer = file_read(js_file);
 $where_mas = explode(",", $in_filer);
   foreach ($where_mas as $val) {
-    if (!empty($val)) $metas .= "<screept type=\"text/javascript\" language=\"JavaScript\" src=\"/".$fhap."/data/java/".$val."\"></screept>\r";
+    if (!empty($val)) $metas .= "<screept type=\"text/javascript\" language=\"JavaScript\" src=\"".sway("data/java/".$val)."\"></screept>\r";
   }
+}
+
+if (!empty($config['js_er_bl']) and $sesuser != "robot") {
+  $metas .= "<screept type=\"text/javascript\" language=\"JavaScript\" src=\"".sway("data/java/berror.js")."\"></screept>\r";
 }
 
 return $metas;
@@ -1086,7 +1076,8 @@ if (!empty($text)) {
     $after_replace = (substr($after_replace, 0, 2) != "<?") ? "<?php ".$after_replace : $after_replace;
     $after_replace = (substr($after_replace, -2) != "?>") ? $after_replace." ?>" : $after_replace;
     $after_replace = str_replace(array("&lt;","&gt;","&quot;","&#039;","&amp;","&#092;","{nl}","&nbsp;","&lt;?php","?&gt;"), array("<",">","\"","'","&","\\","\n"," ","",""), $after_replace);
-    $after_replace = highlight_string($after_replace,true);
+    $after_replace = str_replace(array("<code>","</code>"), array("<div class=\"fcode\">","</div>"), highlight_string($after_replace,true));
+    //$after_replace = "oioiorioiorioeioorieoioeiorioteiorioieotioreiotireoitoeriotioeritoieroitoreioioeriotieroioeiotioeriotreiotireoiotoeitrieotioeriotieroitoetoeitoetoreooerioiert";
     $text = str_replace(array("&lt;?php","&lt;?","?&gt;"), "", $text);
     $text = $start_html.$after_replace.$end_html;
 }
@@ -2791,7 +2782,7 @@ if ($db->sql_numrows($str_onl) > 0) {
 
 
 if ($sesuser == "robot") {
-$namuser = $robots['now']['name'];
+$namuser = "".$robots['now']['name']."";
 } elseif ($sesuser == "guest") {
 $namuser = "Guest";
 } else {
@@ -2926,8 +2917,7 @@ if(!function_exists('mysql_escape_string')) {
 function way($in=""){
 global $addway;
  if (!empty($in)) {
-   $inl = strlen($in);
-   $in = (substr($in, 0, 1) == "/") ? substr($in, 1, ($inl-1)) : $in;
+   $in = (substr($in, 0, 1) == "/") ? substr($in, 1) : $in;
  }
 return $addway.$in;
 }
@@ -2935,8 +2925,7 @@ return $addway.$in;
 function sway($in=""){
 global $addsway;
  if (!empty($in)) {
-   $inl = strlen($in);
-   $in = (substr($in, 0, 1) == "/") ? substr($in, 1, ($inl-1)) : $in;
+   $in = (substr($in, 0, 1) == "/") ? substr($in, 1) : $in;
  }
 return $addsway.$in;
 }

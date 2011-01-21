@@ -29,7 +29,7 @@ $i++;
 $go .= ($gk == "go" and $i == 1) ? $gv : "&".$gk."=".$gv;
 }
 
-$go = rurl($go, "http");
+$go = urldecode(rurl($go, "http"));
 
 } else {
 @header("Location: ".way($config['home_page']));
@@ -60,7 +60,8 @@ $db->sql_query("UPDATE ".$config['dbprefix']."golink SET link = '".$go."', refer
 } else {
 $db->sql_query("INSERT INTO ".$config['dbprefix']."golink VALUES (NULL, '".$go."', '".$from."', 1, '".time."', '".$ip."')");
 }
-
+// spesta
+loggg(db_directory."/clicks.txt", $go);
 @header("Location: ".$go);
 
 } elseif (!empty($from) and $sesuser == "robot") {

@@ -44,11 +44,11 @@ ob_start();
 <div id="wrapper">
 
 <div id="nav">{menu}</div>
-<div id="header"><img border="0" src="admin/themes/<?php echo $skin_prefix; ?>/images/{image-name}.gif"" align="absmiddle" vspace="5" hspace="5"> {header-text}</div>
+<div id="header"><img border="0" src="{image-name}" align="absmiddle" vspace="5" hspace="5"> {header-text}</div>
 
 <table border="0" cellpadding="0" cellspacing="10" id="maintable">
 <tr>
-<?php if ($is_logged_in){ ?>
+<?php if (!empty($is_logged_in)){ ?>
 <td class="admmenu"><?php echo options_menu_ap(); ?></td>
 <?php } ?>
 
@@ -59,9 +59,7 @@ ob_start();
 </tr>
 </table>
 
-<div id="wrapfooter">
-	{copyrights}
-</div>
+<div id="wrapfooter">{copyrights}</div>
 
 </div>
 

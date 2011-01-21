@@ -59,7 +59,7 @@ ob_start();
 <td height="19">
 <table border="0" cellpading="0"cellspacing="15" width="100%" height="100%">
 <tr>
-<td><div class="header"><img border="0" src="admin/themes/<?php echo $skin_prefix; ?>/images/{image-name}.gif" align="absmiddle"> {header-text}</div></td>
+<td><div class="header"><img border="0" src="{image-name}" align="absmiddle"> {header-text}</div></td>
 <tr>
 <td width="100%" height="100%">
 

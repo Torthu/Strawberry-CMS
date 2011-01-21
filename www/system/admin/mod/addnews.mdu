@@ -212,7 +212,7 @@ $added_time = time;
     $url = !empty($_POST['url']) ? straw_namespace(totranslit($_POST['url'])) : straw_namespace(totranslit($title));
     $approve_news = straw_get_rights('approve_news');
     $sticky_post = !empty($_POST['sticky_post']) ? 1 : 0;
-    $n_template = !empty($_POST['template']) ? $_POST['template'] : '';
+    $n_template = !empty($_POST['template']) ? cheker($_POST['template']) : '';
     $bookmark = !empty($_POST['bookmark']) ? 1 : 0;
 
 // мета заголовок, кейворды и описание, которые сохраняются из спец формы при добавлении текста

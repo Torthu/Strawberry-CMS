@@ -30,7 +30,7 @@ class cache {
 	 * @access public
 	 */
 	function get($file, $uniqid = '', $ext = ''){
-        if ($this->cache){
+            if ($this->cache){
 	        $this->file = $this->dir.$this->_get_folder($file).($uniqid ? '('.$uniqid.')' : '').($ext ? '.'.$ext : '').'.tmp';
 
 	        if (file_exists($this->file) and file_exists($this->file.'.md5') and (time() - @filemtime($this->file)) < $this->lifetime){
@@ -70,6 +70,8 @@ class cache {
 	function unserialize($file, $uniqid = '', $ext = ''){
 		if ($cache = $this->get($file, $uniqid, $ext)){
 			return unserialize($cache);
+		} else {
+		        return;
 		}
 	}
 
@@ -140,7 +142,7 @@ function _write($fopen = '', $fwrite = '', $clear = true, $chmod = 0777){
 	    $chicken = preg_replace('/^(['.preg_quote($dick, '/').']+)/', '', $chicken);
 	    $chicken = preg_replace('/(['.preg_quote($dick, '/').']+)/', $dick, $chicken);
 	    $chicken = preg_replace('/(['.preg_quote($dick, '/').']+)$/', '', $chicken);
-		return $chicken;
+	return $chicken;
 	}
 
 	/**

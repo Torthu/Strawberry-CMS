@@ -38,7 +38,7 @@ global $id, $post, $member;
        $buffer .= page_get_tree('-&nbsp;', '<option value="{id}">{prefix}{title}</option>', false);
     }
     $buffer .= '</select>';
-    $buffer .= '<br /><input id="postpassword" name="postpassword" type="text" value="'.(!empty($post['password']) ? $post['password'] : "").'" '.((is_admin() or $post['author']==$member['username']) ? "" : "disabled").'" style="display: '.(((!empty($post['type']) and $post['type'] != 'private') or empty($post['type'])) ? 'none' : '').'" title="'.t('Пароль').'">';
+    $buffer .= '<br /><input id="postpassword" name="postpassword" type="text" value="'.(!empty($post['password']) ? $post['password'] : "").'" '.((is_admin() or (!empty($post['author']) and $post['author']==$member['username'])) ? "" : "disabled").'" style="display: '.(((!empty($post['type']) and $post['type'] != 'private') or empty($post['type'])) ? 'none' : '').'" title="'.t('Пароль').'">';
     $buffer .= '</fieldset>';
 return $buffer;
 }
@@ -113,7 +113,7 @@ return $variables;
 add_action('head', 'postType_define', 18);
 function postType_define(){
 global $cache, $type, $_pages, $db, $config;
-    if (!$_pages = $cache->unserialize('_pages')){
+    if (!$_pages = $cache->unserialize('_pages')) {
     	$ptq = $db->sql_query("SELECT * FROM ".$config['dbprefix']."news WHERE type='page' ");
     	  while ($row = $db->sql_fetchrow($ptq)) {
 	     $_pages[$row['id']] = $row;

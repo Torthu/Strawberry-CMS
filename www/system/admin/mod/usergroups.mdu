@@ -390,15 +390,21 @@ $fields[1] = array_unique($fields[1]);
 $fields[2] = array_merge($fields['new'][2], $fields['edit'][2]);
 $fields[2] = array_unique($fields[2]);
 unset($fields[0], $fields['new'], $fields['edit']);
-foreach ($fields[2] as $k => $field){
+///////////////////////////////////////////////
+foreach ($fields[2] as $k => $field) {
 ?>
 
 <tr>
-<td <?php echo straw_that(); ?> style="padding: 5px;"><?php echo makePlusMinus($fields[1][$k]).' '.t('Разрешить установки поля "%field"', array('field' => $field)); ?>
+<td <?php echo straw_that(); ?> style="padding: 5px;"><?php echo makePlusMinus($fields[1][$k]).' '.t('Разрешить установки поля "%field"', array('field' => $field)); ?></td>
+</tr>
 <tr style="display: none;" id="<?php echo $fields[1][$k]; ?>">
-<td>
-<?php echo makeDropDown(array(t('Нет'), t('Да')), 'fields['.$fields[1][$k].']', ($permissions['fields'][$fields[1][$k]] !== '0' ? 1 : 0)); ?><br />
-<?php } ?>
+<td><?php echo makeDropDown(array(t('Нет'), t('Да')), 'fields['.$fields[1][$k].']', ((!empty($permissions['fields'][$fields[1][$k]]) and $permissions['fields'][$fields[1][$k]] !== '0') ? 1 : 0)); ?></td>
+</tr>
+
+<?php 
+} 
+///////////////////////////////////////////////
+?>
 
 </table>
 </div>

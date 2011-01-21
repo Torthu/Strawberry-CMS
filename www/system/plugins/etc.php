@@ -45,7 +45,7 @@ return $functions;
  */
 function cn_calendar($nf="", $mod_in = ""){
 global $cache, $year, $month, $day, $PHP_SELF, $config, $db;
-
+$post_arr = array();
     if (!$post_arr = $cache->get('calendar')) {
 $save = array();
 $cat = array();

@@ -44,11 +44,11 @@ ob_start();
 <br />
 <table border="0" cellpadding="0" cellspacing="10" id="maintable">
 <tr>
-<td id="header" colspan="2"><img border="0" src="admin/themes/<?php echo $skin_prefix; ?>/images/{image-name}.gif" align="absmiddle" vspace="5" hspace="5"> {header-text}</td>
+<td id="header" colspan="2"><img border="0" src="{image-name}" align="absmiddle" vspace="5" hspace="5"> {header-text}</td>
 </tr>
 
 <tr>
-<?php if ($is_logged_in){ ?>
+<?php if (!empty($is_logged_in)){ ?>
 <td class="admmenu"><?php echo options_menu_ap(); ?></td>
 <?php } ?>
 

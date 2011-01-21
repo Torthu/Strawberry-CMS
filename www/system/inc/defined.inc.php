@@ -60,7 +60,7 @@ $default = array('siteurl' => 'http://'.$_SERVER['SERVER_NAME'],
 'save_con' => array(), 'categories' => array(), 'sfields' => array(), 'users' => array(), 'usergroups' => array(), 'linkcats' => array(), 
 'member' => array(), 'tpl' => array(), 'post' => array(), 'gettext' => array(), 'links' => array(), 'rand' => 0, 'pin' => 0, 'error' => 0, 
 'robots' => 0, 'it_is_feed' => 0, 'add_way' => '', 'static' => array(), 'tr_lng' => array(), 'otpl' => array(), 'robots' => array(), 
-'version_name' => 'Strawberry', 'version_id' => '1.2.0', 'beta' => '4', 'alfa' => '1', 'rc' => '0');
+'version_name' => 'Strawberry', 'version_id' => '1.2b4', 'beta' => '4', 'alfa' => '1', 'rc' => '0');
 
 unregister_globals('_POST', '_GET', '_COOKIE', '_REQUEST', '_SERVER', '_ENV', '_FILES');
 foreach ($vars as $k => $v)    { $$k = (!empty($v) ? @htmlspecialchars($v) : ""); }
@@ -110,7 +110,8 @@ define('databases_directory', includes_directory.'/db');
 define('db_directory', data_directory.'/db');
 define('smile_directory', data_directory.'/emoticons');
 define('skins_directory', root_directory.'/admin');
-define('admin_skins_directory', skins_directory.'/themes');
+define('admin_directory', root_directory.'/admin');
+define('admin_skins_directory', admin_directory.'/themes');
 define('font_directory', data_directory.'/font');
 define('watermark_directory', data_directory.'/watermark');
 define('banner_directory', data_directory.'/banners');
@@ -258,8 +259,8 @@ if ($config['lang'] != 'ru') {
 
 ### Подключаем основные функции системы
 include_once languages_directory.'/'.$config['lang'].'/functions.php'; // языкатор //languager
-include_once includes_directory.'/functions_1.2.inc.php'; // функции версии 1.2 // functions v 1.2
 include_once includes_directory.'/functions.inc.php'; // функции версии 1.1.1 // functions v 1.1.1
+include_once includes_directory.'/functions_1.2.inc.php'; // функции версии 1.2 // functions v 1.2
 include_once databases_directory.'/mysql.inc.php'; // кладезь знаний: MySQL
 
 ### Путь относительно корня
@@ -292,7 +293,7 @@ include_once includes_directory.'/iconv.inc.php'; // utf-8 и обратно
 }
 
 include_once includes_directory.'/cache.inc.php'; // он делает кэш на сервере
-
+include_once includes_directory.'/counter.inc.php'; // Счетчик
 
 ### Конечно понятно, что надо, но может лучше встроить в конкретный запрос к этим папкам?
 /*
@@ -497,7 +498,7 @@ if (!empty($user_name) and !empty($cmd5_password) and !empty($ch_lgn) and empty(
 ### online ## счетчик с MySQL базой (c) Mr.Miksar
 strw_online();
 ############################## // online ###
-
+if (empty($ap) and !empty($config['stat']) and empty($sql_error_out)) strw_spesta();
 
 ### Замена темы сайта на выбранную пользователем
 if (!empty($_POST['sel_theme']) and !empty($config['use_sel_theme']) and empty($spider_here)) {

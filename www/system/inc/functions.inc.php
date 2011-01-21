@@ -72,11 +72,10 @@ $sql_error_out = "mysql";
 function is_admin() {
 global $member;
   if (!empty($member) and is_array($member)) {
-  $result = ($member['usergroup'] == 1) ? 1 : 0;
+   return (($member['usergroup'] == 1) ? 1 : 0);
   } else {
-  $result = 0;
+   return 0;
   }
-return $result;
 }
 
 
@@ -167,7 +166,6 @@ $output = "";
     foreach ($options as $value => $description){
       $output .= '<option value="'.$value.'"'.(($selected == $value) ? ' selected ' : '').'>'.$description.'</option>';
     }
-
 return '<select size="1" id="'.$name.'" name="'.$name.'" '.$dd_style.'>'.$output.'</select>';
 }
 
@@ -184,9 +182,7 @@ function flooder($ip, $id){
 global $config, $db;
 $row_flod_db = $db->sql_query("SELECT * FROM ".$config['dbprefix']."flood");
 while ($row=$db->sql_fetchrow($row_flod_db)) {
-
   #  foreach ($sql->select(array('table' => 'flood')) as $row)
-  
       if ($row['ip'] == $ip and $row['post_id'] == $id){
       
           if (($row['date'] + $config['flood_time']) > time){
@@ -194,11 +190,8 @@ while ($row=$db->sql_fetchrow($row_flod_db)) {
           } elseif (!empty($row['date']) and !empty($row['ip']) and !empty($row['post_id'])) {
              $db->sql_query("DELETE FROM ".$config['dbprefix']."flood WHERE date = '".$row['date']."' AND ip = '".$row['ip']."' AND post_id = '".$row['post_id']."' ");
           }
-          
         }
-        
     }
-
 return false;
 }
 
@@ -218,9 +211,8 @@ return false;
  * @param string $back
  */
 function msg($type, $title, $text, $back = ''){
-
   echoheader($type, $title);
-  echo '<table border="0" cellpading="0" cellspacing="0" width="100%" height="100%"><tr><td>'.$text.($back ? '<br><br><a href="'.$back.'">'.t('Вернуться назад').'</a>' : '').'</table>';
+  echo '<table border="0" cellpading="0" cellspacing="0" width="100%" height="100%"><tr><td>'.$text.(!empty($back) ? '<br><br><a href="'.$back.'">'.t('Вернуться назад').'</a>' : '').'</table>';
   echofooter();
   exit;
 }
@@ -235,21 +227,21 @@ function msg($type, $title, $text, $back = ''){
  * @param string $header_text
  */
 function echoheader($image, $header_text){
-global $PHP_SELF, $is_logged_in, $config, $skin_header, $skin_menu, $skin_prefix;
+global $is_logged_in, $config, $skin_header, $skin_menu, $skin_prefix;
 
-if (is_dir("setup")) $skin_header .= "<center><font color=\"red\" size=\"4\">".t('Удалите с сервера папку')." system/<u><b>setup</b></u></font></center>";
+if (is_dir(root_directory."/setup")) $skin_header .= "<center><font color=\"red\" size=\"4\">".t('Удалите с сервера папку')." ".sway("<u><b>setup</b></u>")."</font></center>";
 
-    if ($is_logged_in == true){
+    if (!empty($is_logged_in)){
       $skin_header = str_replace('{menu}', $skin_menu, $skin_header);
     } else {
       $skin_header = str_replace('{menu}', ' &nbsp; '.$config['version_name'], $skin_header);
     }
     
 $skin_prefix = $skin_prefix ? $skin_prefix : "default";
-if (is_file('admin/themes/'.$skin_prefix.'/images/'.$image.'.gif')) {
-$image = $image;
+if (is_file(admin_skins_directory.'/'.$skin_prefix.'/images/'.$image.'.gif')) {
+$image = sway("admin/themes/".$skin_prefix."/images/".$image.'.gif');
 } else {
-$image = "default";
+$image = sway("admin/themes/".$skin_prefix."/images/default.gif");
 }
     $skin_header = str_replace('{image-name}', $image, $skin_header);
     $skin_header = str_replace('{header-text}', $header_text, $skin_header);
@@ -259,21 +251,10 @@ $image = "default";
 
 /**
  * Выводит нижнюю часть шаблона ACP.
- *
  * @return void
  */
 function echofooter(){
-global $PHP_SELF, $is_logged_in, $config, $skin_footer, $skin_menu, $skin_prefix;
-$image = isset($image) ? $image : "";
-$header_text = isset($header_text) ? $header_text : "";
-    if ($is_logged_in == true){
-      $skin_footer = str_replace('{menu}', $skin_menu, $skin_footer);
-    } else {
-      $skin_footer = str_replace('{menu}', ' &nbsp; '.$config['version_name'], $skin_footer);
-    }
-
-    $skin_footer = str_replace('{image-name}', $skin_prefix.$image, $skin_footer);
-    $skin_footer = str_replace('{header-text}', $header_text, $skin_footer);
+global $is_logged_in, $config, $skin_footer, $skin_menu, $skin_prefix;
     $skin_footer = str_replace('{copyrights}', '<div style="font-size: 9px; text-transform: uppercase;"><a target="_blank" title="Original Strawberry 1.1.2" href="http://&#115;&#116;&#114;&#97;&#119;&#98;&#101;&#114;&#114;&#121;&#46;&#103;&#111;&#111;&#100;&#103;&#105;&#114;&#108;&#46;&#114;&#117;/" style="font-size: 9px;">'.$config['version_name'].' 1.1.2</a> powered by <a target="_blank" title="GoodGirl" href="http://goodgirl.ru/" style="font-size: 9px;">goodgirl.ru</a> &copy; 2006 - '.date('Y').'<br><a target="_blank" title="Strawberry 1.2.x" href="http://www.&#115;&#116;&#114;&#97;&#119;&#98;&#101;&#114;&#114;&#121;&#46;&#115;&#117;/" style="font-size: 9px;">Strawberry 1.2.x</a> powered by <a target="_blank" title="Miksar Group Corporation" href="http://www.&#109;&#103;&#99;&#111;&#114;&#112;&#46;&#114;&#117;/" style="font-size: 9px;">MGCorp.ru</a> &copy; 2009 - '.date('Y').'</div>', $skin_footer);
     echo $skin_footer;
 }
@@ -513,11 +494,9 @@ return ($result ? $result : array());
  * @return string
  */
 function chicken_dick($chicken, $dick = '/'){
-
   $chicken = preg_replace('/^(['.preg_quote($dick, '/').']+)/', '', $chicken);
-    $chicken = preg_replace('/(['.preg_quote($dick, '/').']+)/', $dick, $chicken);
-    $chicken = preg_replace('/(['.preg_quote($dick, '/').']+)$/', '', $chicken);
-
+  $chicken = preg_replace('/(['.preg_quote($dick, '/').']+)/', $dick, $chicken);
+  $chicken = preg_replace('/(['.preg_quote($dick, '/').']+)$/', '', $chicken);
 return $chicken;
 }
 
@@ -535,38 +514,30 @@ return $chicken;
  * @param bool $clear
  * @param int $chmod
  */
-function file_write($fopen = '', $fwrite = '', $clear = false, $chmod = 0777, $type = 'wb+'){
-
+function file_write($fopen = '', $fwrite = '', $clear = false, $chmod = '', $type = 'wb+', $crf = false){
+global $config;
   if (!empty($clear)) {
-    $fwrite = str_replace('  ', '', str_replace("\r\n", '', $fwrite));
+    $fwrite = str_replace(array("  ","\r\n"), "", $fwrite);
   }
-
-    /*
-    if (get_magic_quotes_gpc()){
-        $sourse = stripslashes($fwrite);
-    }
-    */
-
-    /*
+  $chmod = (!empty($chmod)) ? intval($chmod, 8) : intval($config['chm_file'], 8);
+// если папки нет, то создать такую...
+if (!empty($crf)) {
     $dir = explode('/', chicken_dick($fopen));
-
     if (count($dir) > 1){
       for ($i = 0; $i < (count($dir) - 1); $i++){
         $path .= $dir[$i].'/';
-
-        if (!is_dir($path)){
-          @mkdir($path);
-        }
+        if (!is_dir($path)){ @mkdir($path); @chmod($path, intval($config['chm_dir'], 8)); }
       }
     }
-    */
+}
 
+    @chmod($fopen, 0666);
     $fp = @fopen($fopen, $type);
     flock($fp, 2);
     fwrite($fp, $fwrite);
     flock($fp, 3);
     fclose($fp);
-    @chmod($fopen, $chmod);
+    if(!empty($chmod)) { @chmod($fopen, $chmod); } else { @chmod($fopen, 0644); }
 }
 
 
@@ -1001,9 +972,7 @@ return $cat_id;
  */
 function straw_that($return1 = 'class="enabled"', $return2 = 'class="disabled"', $every = 2){
 static $i = 0;
-
   $i++;
-
   if ($i%$every == 0){
     return $return1;
   } else {
@@ -1090,32 +1059,6 @@ return strtr($string, $trans_tbl);
  * @param string $str
  * @return string
  */
-/*function straw_namespace($str){
-global $sql, $modul, $db, $config, $nid;
- # foreach ($sql->select(array('table' => 'news')) as $row)
-$result = array();
-$row_news_db = $db->sql_query("SELECT * FROM ".$config['dbprefix']."news WHERE id!=".$nid." AND  url=".$str." ");
- while ($row=$db->sql_fetchrow($row_news_db)) {
-
-    if (@preg_match("/$str([0-9]+)?/i", $row['url'])){
-      $result[] = $row['id'];
-    }
-
-    if (@preg_match("/$str([0-9]+)?/i", $row['id'])){
-      $result[] = $row['id'];
-    }
-    
- }
-
-    $count = count($result);
-
-    if ($modul == 'addnews'){
-      $count++;
-    }
-
-return $str.((!empty($count) and $count != 1) ? ' '.$count : '');
-}*/
-
 function straw_namespace($str){
 global $sql, $modul, $db, $config, $nid;
 $result = array();
@@ -1133,6 +1076,7 @@ $count = 0;
   }
 return $str.(!empty($count) ? '-'.$count : '');
 }
+
 
 
 
@@ -1261,7 +1205,7 @@ global $usergroups, $member;
         $return = true;
       }
   } elseif ($section == 'fields'){
-    if (!empty($full) or $group['permissions'][$section][$mod] !== '0'){
+    if (!empty($full) or (!empty($group['permissions'][$section][$mod]) and $group['permissions'][$section][$mod] !== '0')){
       $return = true;
     }
   }
@@ -1289,7 +1233,6 @@ function write_ini_file($filename, $content){
   foreach ($content as $k => $v){
     if (is_array($v)){
       $result .= '['.$k.']'."\n";
-
       foreach ($v as $key => $value){
         $result .= $key.' = "'.$value.'"'."\n";
       }
@@ -1312,9 +1255,7 @@ return false;
  * @return string
  */
 function makePlusMinus($name){
-
   $result = '<a href="javascript:ShowOrHide(\''.$name.'\', \''.$name.'-plus\')" id="'.$name.'-plus" onclick="javascript:ShowOrHide(\''.$name.'-minus\')" title="'.t('Раскрыть опции').'">+</a><a href="javascript:ShowOrHide(\''.$name.'\', \''.$name.'-minus\')" id="'.$name.'-minus" style="display: none;" onclick="javascript:ShowOrHide(\''.$name.'-plus\')" title="'.t('Скрыть опции').'">-</a>';
-
 return $result;
 }
 
@@ -1374,7 +1315,7 @@ $fp = @fopen($filename, "w");
   $contents .= "\r\n?>";
 fwrite($fp, $contents);
 @flock($fp, LOCK_UN);
-@fclose($fp); 
+@fclose($fp);
 @chmod($filename,0555);
 return;
 }
@@ -1396,7 +1337,7 @@ $fp = @fopen(config_file, "w");
   $contents .= "\r\n?>";
 fwrite($fp, $contents);
 @flock($fp, LOCK_UN);
-@fclose($fp); 
+@fclose($fp);
 @chmod(config_file,0555);
 return;
 }

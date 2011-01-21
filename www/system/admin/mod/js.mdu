@@ -7,10 +7,6 @@ if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
 // ********************************************************************************
 if (!empty($action)){
 
-    if (!is_writable(js_file)){
-      @chmod(js_file, 0666);
-    }
-
 if (!empty($_POST['jswhere'])) {
 $jswhere = $_POST['jswhere'];
 $scripts = "";

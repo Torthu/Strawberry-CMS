@@ -183,9 +183,10 @@ showRow(t('Смена темы:'), t('Возможность пользователям менять оформление сайта')
 showRow(t('Убрать html комментарии'), t('Убирает из html кода все тэги лишних комментариев (кроме системных) &lt;!-- <i>комментарий</i> --&gt;'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[html_comment]', $config['html_comment']));
 showRow(t('Убрать html мусор'), t('Убирает из html кода всё лишнее, например двойные пробелы, пробелы в начале строк и др.'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[html_shlak]', $config['html_shlak']));
 showRow(t('Убрать переносы строк в html'), t('Убирает из html все переносы строк. Возможно, что <u>применение этой функции вызовет ошибку в некоторых JavaScript</u> сценариях которые вписаны в код страницы. Используйте подключение скриптов через JS Включения'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[html_nl]', $config['html_nl']));
-showRow(t('<a href="index.php?mod=rss">RSS потоки</a>'), t('Добавляет в мета данные rss потоки сайта'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[rss_potok]', $config['rss_potok']));
-showRow(t('<a href="index.php?mod=js">JS Включения</a>'), t('Использовать безопасное подключение скриптов'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[js_potok]', $config['js_potok']));
-showRow(t('<a href="index.php?mod=go_link">GO Link!</a>'), t('Использовать безопасные переходы по ссылкам'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[go_link]', $config['go_link']));
+showRow('<a href="index.php?mod=rss">'.t('RSS потоки').'</a>', t('Добавляет в мета данные rss потоки сайта'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[rss_potok]', $config['rss_potok']));
+showRow('<a href="index.php?mod=js">'.t('JS Включения').'</a>', t('Использовать безопасное подключение скриптов'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[js_potok]', $config['js_potok']));
+showRow('<a href="index.php?mod=go_link">'.t('GO Link!').'</a>', t('Использовать безопасные переходы по ссылкам'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[go_link]', $config['go_link']));
+showRow(t('Блокирование JS-ошибок'), t('Блокирование ошибок Java Script'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[js_er_bl]', $config['js_er_bl']));
 
 showRow(t('Время генерирования:'), t('В нижнем html комментарии выводится время генерирования странички'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[tload]', $config['tload']));
 showRow(t('Действие защиты:'), t('В нижнем html комментарии выводится действие защиты'), makeDropDown(array(t('Нет'), t('Да')), 'save_con[stepen]', $config['stepen']));

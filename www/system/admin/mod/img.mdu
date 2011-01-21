@@ -73,11 +73,7 @@ if (!empty($_FILES['image']['name'])){
 
              //Add watermark (text)
        if (!empty($_POST['watermark']) and !empty($_POST['watermark_text'])) {
-           if(!empty($_POST['watermark_font']) and $_POST['watermark_font'] == "none") {
-           @add_watermark($folder.'/'.$image, cheker($_POST['watermark_text']), ((!empty($_POST['hotspot1']) and is_numeric($_POST['hotspot1'])) ? $_POST['hotspot1'] : 0), ($_POST['textcolor'] ? cheker($_POST['textcolor']) : 'FFFFFF'), ((!empty($_POST['textsize']) and is_numeric($_POST['textsize'])) ? $_POST['textsize'] : '12'));
-           } else {
-           @add_watermark($folder.'/'.$image, cheker($_POST['watermark_text']), ((!empty($_POST['hotspot1']) and is_numeric($_POST['hotspot1'])) ? $_POST['hotspot1'] : 0), ($_POST['textcolor'] ? cheker($_POST['textcolor']) : 'FFFFFF'), ((!empty($_POST['textsize']) and is_numeric($_POST['textsize'])) ? $_POST['textsize'] : '12'), font_directory.'/'.$_POST['watermark_font']);
-           }
+           @add_watermark($folder.'/'.$image, cheker($_POST['watermark_text']), ((!empty($_POST['hotspot1']) and is_numeric($_POST['hotspot1'])) ? $_POST['hotspot1'] : 0), ($_POST['textcolor'] ? cheker($_POST['textcolor']) : 'FFFFFF'), ((!empty($_POST['textsize']) and is_numeric($_POST['textsize'])) ? $_POST['textsize'] : '12'), ((!empty($_POST['watermark_font']) and $_POST['watermark_font'] != "none") ? font_directory.'/'.$_POST['watermark_font'] : ""));
        }
        
              //Add watermark (image)
@@ -85,22 +81,22 @@ if (!empty($_FILES['image']['name'])){
            @mergePix($folder.'/'.$image, watermark_directory.'/'.$_POST['watermark_image'], $folder.'/'.$image, $_POST['hotspot2'], ((!empty($_POST['merge_transition']) and is_numeric($_POST['merge_transition'])) ? $_POST['merge_transition'] : '55'));
        }
 
-          if (!empty($_POST['thumb']) and !empty($make_thumb)){
-              @img_resize($folder.'/'.$image, $folder.'/thumbs/'.$image, $make_thumb);
-                 if (!empty($_POST['shadow'])) {
-                   @make_shadow($folder.'/thumbs/'.$image);
-                 }
-          }
+       if (!empty($_POST['thumb']) and !empty($make_thumb)){
+           @img_resize($folder.'/'.$image, $folder.'/thumbs/'.$image, $make_thumb);
+           if (!empty($_POST['shadow'])) {
+             @make_shadow($folder.'/thumbs/'.$image);
+           }
+       }
 
       }
       
       if (!empty($config['chm_dir'])) {
-      @chmod($folder, intval($config['chm_dir'], 8));
-      @chmod($folder.'/thumbs/', intval($config['chm_dir'], 8));
+        @chmod($folder, intval($config['chm_dir'], 8));
+        @chmod($folder.'/thumbs/', intval($config['chm_dir'], 8));
       }
       if (!empty($config['chm_file'])) {
-      @chmod($folder.'/'.$image, intval($config['chm_file'], 8));
-      @chmod($folder.'/thumbs/'.$image, intval($config['chm_file'], 8));
+        @chmod($folder.'/'.$image, intval($config['chm_file'], 8));
+        @chmod($folder.'/thumbs/'.$image, intval($config['chm_file'], 8));
       }
   }
  //   @header('Location: '.$PHP_SELF);

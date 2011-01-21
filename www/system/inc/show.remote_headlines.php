@@ -39,9 +39,9 @@ if ((!empty($nid) or !empty($id)) and (empty($static) or !empty($static['id'])))
                 // задаем условие формирования запроса
 $wheren = "";
 $where = array();
-      $where[] = run_filters('news-where', $wheren);
+      run_filters('news-where', $where);
 
-      $wheren = ' a.hidden=0 ';
+      $where[] = ' a.hidden=0 ';
 
                    if (!empty($user) or !empty($author)){
       $where[] = " a.author = '".(!empty($author) ? $author : $user)."'";

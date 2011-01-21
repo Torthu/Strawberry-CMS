@@ -5,7 +5,7 @@
 
  Packed by Mr.Miksar
  miksar@mail.ru
- (c) 2009
+ (c) 2011
 //////////////////////////*/
 
 
@@ -217,8 +217,11 @@ var ajax = new sack();
 Show load img while content is loading
 /////////////////////////*/
 function wload(obj, way) {
+if (! way) {
+way = "/";
+}
 	var e = document.getElementById("ajx"+obj); 
-	e.innerHTML = "<center><img src=\""+way+"/images/loading.gif\" alt=\"loading\"></center>";
+	e.innerHTML = "<div class=\"loading\"><img src=\""+way+"images/loading.gif\" alt=\"Loading...\"/></div>";
 }
 
 
@@ -227,6 +230,9 @@ function wload(obj, way) {
 Use this, when you use post method
 /////////////////////////*/
 function pload(ld, obj, way) {
+if (! way) {
+way = "/";
+}
 	var form = document.getElementById("form"+obj);
 	ajax.setVar("go", form.go.value);
 	ajax.setVar("act", form.act.value);
@@ -256,6 +262,9 @@ function pload(ld, obj, way) {
 Use this, when you use get method
 /////////////////////////*/
 function gload(ld, obj, go, act, id, cid, tip, mod, text, way) {
+if (! way) {
+way = "/";
+}
 	ajax.setVar("go", go);
 	ajax.setVar("act", act);
 	ajax.setVar("id", id);
@@ -264,7 +273,7 @@ function gload(ld, obj, go, act, id, cid, tip, mod, text, way) {
 	ajax.setVar("mod", mod);
 	ajax.setVar("text", text);
 	ajax.setVar("way", way);
-	ajax.requestFile = way+"/active.php";
+	ajax.requestFile = way+"active.php";
 	ajax.method = "GET";
 	ajax.element = "ajx"+obj;
 	if (ld == '1') {
@@ -279,8 +288,11 @@ function gload(ld, obj, go, act, id, cid, tip, mod, text, way) {
 Use this, if you don`t wont use ajax for reload captcha
 /////////////////////////*/
 function wcompleted(obj, tip, way){
+if (! way) {
+way = "/";
+}
 var e = document.getElementById('ajx' + obj); 
-var string = "<img src=\"" + way + "/active.php?go=1&amp;tip=" + tip + "&amp;time=" + new Date().getTime() + "\" border=\"1\" alt=\"security\" style=\"cursor: pointer;\">";
+var string = "<img src=\"" + way + "active.php?go=1&amp;tip=" + tip + "&amp;time=" + new Date().getTime() + "\" border=\"1\" alt=\"security\" style=\"cursor: pointer;\">";
 e.innerHTML = string;
 }
 
@@ -289,10 +301,13 @@ e.innerHTML = string;
 Use this, when you use reload captcha by ajax
 /////////////////////////*/
 function pinload(ld, obj, go, tip, way) {
+if (! way) {
+way = "/";
+}
         ajax.setVar("go", go);
 	ajax.setVar("tip", tip);
 	ajax.setVar("way", way);
-	ajax.requestFile = way+"/active.php";
+	ajax.requestFile = way+"active.php";
 	ajax.method = "GET";
 	ajax.element = "ajx"+obj;
 	if (ld == '1') {
@@ -356,11 +371,14 @@ document.forms['comment'].elements['sendcom'].disabled = true;
 
 
 function call_ajax(that, way, auth){
+if (! way) {
+way = "/system/";
+}
 document.forms['comment'].elements['sendcom'].disabled = true;
     
   new Ajax.Updater(
       {success: 'commentslist'},
-     way+ '/system/inc/show.add-comment.php',
+     way+ 'inc/show.add-comment.php',
       {
           insertion: Insertion.Top,
           onComplete: function(request) {

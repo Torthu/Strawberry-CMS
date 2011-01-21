@@ -17,6 +17,8 @@ $bl_out = "
 » <a href=\"".way("".$config['home_page']."?mod=search")."\" title=\"".t('Поиск на сайте')."\">".t('Поиск')."</a><br>
 » <a href=\"".way("".$config['home_page']."?mod=sitemap")."\" title=\"".t('Развернутая карта сайта')."\">".t('Карта сайта')."</a><br>
 » <a href=\"".way("".$config['home_page']."?mod=callback")."\" title=\"".t('Напишите нам письмо')."\">".t('Обратная связь')."</a><br>
+<hr />
+» <a href=\"http://update.strawberry.su/svn.php\" title=\"".t('SVN Strawberry 1.2')."\">".t('Strawberry SVN project')."</a><br>
 » <a href=\"http://strawberry.goodgirl.ru/forum/topic/3446/\" title=\"".t('Тема strawberry 1.2 на официальном сайте')."\">".t('Форум')." Strawberry 1.2.x</a><br>
 » <a href=\"http://forum.cutenewsru.com/viewtopic.php?f=15&amp;t=6707\" title=\"".t('Тема strawberry 1.2 на')." CuteNews.Ru\">".t('На форуме')." CuteNews.Ru</a><br>
 <hr />
@@ -26,6 +28,5 @@ $bl_out = "
 » <a href=\"http://strawberry.goodgirl.ru/forum/topic/1/\" title=\"".t('F.A.Q.')."\">".t('F.A.Q.')." - ".t('форум')."</a><br>
 <hr />
 » <a href=\"http://strawberry.goodgirl.ru/forum/topic/3542/\" title=\"".t('Выбор хостинга - обзор пользователей')."\">".t('Обзор хостинга')."</a><br>";
-
 
 ?>

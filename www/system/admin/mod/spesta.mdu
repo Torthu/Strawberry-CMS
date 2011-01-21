@@ -1,0 +1,371 @@
+<?php
+#_strawberry
+if (!defined("str_adm")) { header("Location: ../../../../index.php"); exit; }
+$adfile = "index";
+
+
+
+
+
+
+//////////////////////////////////////////////////////////
+function onl_nav() {
+	global $adfile;
+	echo "<center><h5>[ <a href=\"".$adfile.".php?mod=spesta\">".t('Обновить')."</a> | "
+	."<a href=\"".$adfile.".php?mod=online&amp;act=destroy\">".t('Очистить список')."</a> ]</h5></center>";
+}
+//////////////////////////////////////////////////////////
+
+
+
+
+
+function sp() {
+global $config, $db, $currentlang, $conf, $adfile, $modul, $lsort, $order, $number, $pnum, $lnk, $oskip, 
+$allrobots, $isreport, $spider_here, $host, $rss, $overload, $hosturl, $numse, $maxreport, $mailreport, 
+$mailaddress, $savereports, $zipreport, $showcounter, $robots, $flock, $version;
+
+if (empty($isreport)) {
+ header("Expires: Mon, 26 Jul 1997 05:00:00 GMT"); // Date in the past
+ header("Last-Modified: ".gmdate("D, d M Y H:i:s")." GMT"); // always modified
+ header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1
+ header("Cache-Control: post-check=0, pre-check=0", false);
+ header("Pragma: no-cache"); // HTTP/1.0 
+}
+
+echoheader('online', t('Онлайн посетители'));	
+if (!straw_get_rights($modul, 'read')) {
+msg('error', t('Ошибка'), t('Вам запрещён доступ к этому модулю!'));
+} else {
+if (straw_get_rights($modul, 'write')) { $yaw = 1; } else { $yaw = 0; }
+
+  if (!empty($config['online'])) {
+  //onl_nav();
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+$report = !empty($_GET['report']) ? cheker($_GET['report']) : "h";
+$month = !empty($_GET['month']) ? cheker($_GET['month']) : (!empty($_POST['month']) ? cheker($_POST['month']) : date("m.Y", time));
+$from = !empty($_GET['from']) ? intval($_GET['from']) : (!empty($_POST['from']) ? intval($_POST['from']) : 0);
+$what = !empty($_GET['what']) ? intval($_GET['what']) : (!empty($_POST['what']) ? intval($_POST['what']) : 0);
+$ut=0;$ht=0;$set=0;$hpt=0;$ot=0;$aut=0;$max1=0;$max2=0;$total=0;
+$max = !empty($_POST['max']) ? intval($_POST['max']) : 0;
+
+if (!empty($_POST['itemstoshow']) and $_POST['itemstoshow']=="OK") {
+  SP_fw(db_directory."/maxr.txt", $max);
+}
+
+$maxr=SP_fr(db_directory."/maxr.txt");
+if (empty($maxr)) $maxr=10;
+if (!empty($isreport)) $maxr=$maxreport;
+$conts=SP_fr(db_directory."/count.txt");
+$counts= explode("|",$conts); 
+
+// date|unique-1|today-2|total-3|search engines-4|other sites-5|homepage-6| text-7
+
+if (empty($isreport)) {
+
+?>
+
+
+<table width="100%" cellspacing="1" cellpadding="2">
+<tr><td>
+<a href="<?php echo sway("data/db/reports/"); ?>"">Архив отчетов</a>
+</td>
+<td align="right">
+
+<?php
+$sites=SP_file(db_directory."/sites.txt");
+for ($i=0; $i<count ($sites); $i++) {
+ $tmp=explode ("|",$sites[$i]);
+ $url=parse_url($_SERVER['REQUEST_URI']);
+  if (!stristr($tmp[1], $hosturl)) {
+    echo "<a href=".$tmp[1]."/?".$url['query'].">".$tmp[0]."</b></a>"; 
+  } else { 
+    echo "<b>".$tmp[0]."</b>";
+  } 
+ if ($i<count($sites)-1) echo " | ";
+}
+?>
+
+</td></tr>
+</table>
+
+<br>
+
+<form action="" method="post">
+<table width="100%" class="frm4" cellspacing="5" cellpadding="1">
+<tr>
+<td width="5"><img src="<?php echo sway("data/banners/spesta/spesta.png"); ?>" width="32" height="38" border="0" alt=""></td>
+<td valign="center" width="65%">
+
+&nbsp;&nbsp;Отчеты:<br>
+&nbsp;&nbsp;<a href="index.php?mod=spesta&amp;report=h&amp;month=<?php echo $month; ?>">Хиты</a> |
+<a href="index.php?mod=spesta&amp;report=r&amp;month=<?php echo $month; ?>">Откуда идут</a> |
+<a href="index.php?mod=spesta&amp;report=s&amp;month=<?php echo $month; ?>">Поисковые слова</a> |
+<a href="index.php?mod=spesta&amp;report=q&amp;month=<?php echo $month; ?>">Запрашиваемые страницы</a><br>
+&nbsp;&nbsp;<a href="index.php?mod=spesta&amp;report=l&amp;month=<?php echo $month; ?>">Клики на ссылки</a> |
+<a href="index.php?mod=spesta&amp;report=a&amp;month=<?php echo $month; ?>">Браузеры</a> |
+<a href="index.php?mod=spesta&amp;report=i&amp;month=<?php echo $month; ?>">IP-шники</a> |
+<a href="index.php?mod=spesta&amp;report=rsqlhai&amp;month=<?php echo $month; ?>">Все отчеты</a>
+
+</td><td width="35%">
+
+&nbsp;&nbsp;Показывать строк: <select name="max" class="frm4">
+<option value="10" <?php if ($maxr==10) echo "selected"; ?>>10
+<option value="20" <?php if ($maxr==20) echo "selected"; ?>>20
+<option value="30" <?php if ($maxr==30) echo "selected"; ?>>30
+<option value="50" <?php if ($maxr==50) echo "selected"; ?>>50
+<option value="75" <?php if ($maxr==75) echo "selected"; ?>>75
+<option value="100" <?php if ($maxr==100) echo "selected"; ?>>100
+<option value="150" <?php if ($maxr==150) echo "selected"; ?>>150
+<option value="200" <?php if ($maxr==200) echo "selected"; ?>>200
+<option value="300" <?php if ($maxr==300) echo "selected"; ?>>300
+<option value="500" <?php if ($maxr==500) echo "selected"; ?>>500
+<option value="750" <?php if ($maxr==750) echo "selected"; ?>>750
+<option value="1000" <?php if ($maxr==1000) echo "selected"; ?>>1000
+<option value="2000" <?php if ($maxr==2000) echo "selected"; ?>>2000
+<option value="3000" <?php if ($maxr==3000) echo "selected"; ?>>3000
+<option value="10000" <?php if ($maxr==10000) echo "selected"; ?>>10000
+</select>
+<input type="submit" value="OK" class="frm4" name="itemstoshow">
+</td></tr>
+</table>
+</form>
+
+<?php
+
+} else {
+
+echo "<a href=\"#1\">Откуда идут</a> |
+<a href=\"#2\">Поисковые слова</a> |
+<a href=\"#3\">Запрашиваемые страницы</a> |
+<a href=\"#4\">Клики на ссылки</a> |
+<a href=\"#5\">Браузеры</a> |
+<a href=\"#6\">IP-шники</a>";
+
+}
+
+
+if (!empty($month))  {
+if (stristr($report, "h")) {
+
+echo "<p><h1>Посетители и хиты</h1></p>";
+echo "<table width=\"100%\" cellspacing=\"7\" cellpadding=\"10\" class=\"frm4\" bgcolor=\"white\">".
+       "<tr><td valign=\"top\" class=\"frm5\">";
+
+if (empty($isreport)) {
+  echo "<b>Сегодня:</b><p>".
+  "Хиты: ".$counts[2]."<br>Первая страница сайта: ".$counts[6]."<br>Уникальные посетители: <b>".$counts[1]."</b><br>С других сайтов: ".$counts[5]."<br>С поисковиков: ".$counts[4]." ".
+  "[<small><u style=\"cursor:pointer;\" OnClick=\"gload('1', '_spesta_seo', '5'); return false;\">".t('Показать')."</u><sup style=\"cursor:pointer;color:red;\" OnClick=\"gload('0', '_spesta_seo', '404'); return false;\" title=\"".t('Закрыть')."\">X</sup></small>]";
+  if (getip() != "127.0.0.1") echo "<br><br><b>Yandex</b>:<br><img src=\"http://www.yandex.ru/cycounter?".$config['http_home']."\">";
+} else {
+  $time=time()-691200;
+  echo "<b>SpeSta Report.</b><p>From: ".date ("F j, Y (l)", $time);
+  $time=time()-86400;
+  echo "<br>To: ".date ("F j, Y (l)", $time);
+  echo "<p>Generated:<br> ".date ("r", time());
+}
+
+echo "</td><td valign=\"top\" width=\"600\" class=\"frm5\">"
+."<img src=\"".way("active.php?go=4")."\" width=\"600\" height=\"330\" alt=\"day graphic\">"
+."<p>".t('Недавние запросы от поисковых машин').":<br><small>[ <b>y</b> - yandex, <b>r</b> - rambler, <b>a</b> - aport, <b>g</b> - google, <b>h</b> - yahoo, <b>m</b> - mail.ru, <b>?</b> - other</small> ]<div id=\"ajx_spesta_seo\"></div></p>";
+echo "</td></tr></table>".(!empty($out) ? $out : "");
+}
+
+
+
+  if (stristr($report, "r")) {
+   $cfile=db_directory."/referers.txt";
+   $filterfile=db_directory."/filter.txt";
+   echo "<p><a name=\"1\"></a>".outt("Откуда идут", $maxr, '', '', $cfile, $filterfile);
+  }
+
+  if (stristr($report,"s")) {
+   $cfile=db_directory."/words.txt";
+   $filterfile=db_directory."/filter3.txt";
+   echo "<p><a name=\"2\"></a>".outt("Поисковые слова", $maxr, false, '', $cfile, $filterfile);
+  }
+
+  if (stristr($report,"q")) {
+   $cfile=db_directory."/request.txt";
+   $filterfile=db_directory."/filter2.txt";
+   echo "<p><a name=\"3\"></a>".outt("Запрашиваемые страницы", $maxr, '', '', $cfile, $filterfile);
+  }
+
+  if (stristr($report,"l")) {
+   $cfile=db_directory."/clicks.txt";
+   $filterfile=db_directory."/filter4.txt";
+   echo "<p><a name=\"4\"></a>".outt("Клики на ссылки", $maxr, '', '', $cfile, $filterfile);
+  }
+
+  if (stristr($report,"a")) {
+   $cfile=db_directory."/agents.txt";
+   $filterfile=db_directory."/filter5.txt";
+   echo "<p><a name=\"5\"></a>".outt("Браузеры", $maxr, false, '', $cfile, $filterfile);
+  }
+
+  if (stristr($report,"i")) {
+   $cfile=db_directory."/ip.txt";
+   $filterfile=db_directory."/filter6.txt";
+   echo "<p><a name=\"6\"></a>".outt("IP-шники", $maxr, false, true, $cfile, $filterfile);
+  }
+
+}
+
+
+if (($report=="h") or empty($report)) {
+###########################################
+##############################################
+echo "<table width=\"100%\" class=\"frm4\" cellpadding=\"20\" cellspacing=\"7\" border=\"0\">
+<tr>
+<td valign=\"top\" class=\"frm5\">";
+
+
+
+$f=@file(db_directory."/days.txt");
+$to=count($f);
+// $from=$to-14;
+
+if ($from<0) $from=0;
+
+echo "<table cellspacing=\"1\" cellpadding=\"4\" width=\"100%\" class=\"frm4\">";
+echo "<tr class=\"panel\">
+<td width=\"15%\"><b>Дата</b></td>
+<td width=\"15%\"><b>Посетители</b></td>
+<td width=\"30%\"><b>Хиты</b><br><small>[первая страница]</nobr></td>
+<td width=\"15%\"><b>Аудитория</b></td>
+<td width=\"25%\"><b><nobr>С других сайтов</b></nobr><br><nobr>С поисковиков</nobr></td>
+</tr>";
+
+for ($i=$from; $i<$to; $i++) {
+  $tmp=explode ("|", $f[$i]);
+  if (stristr ($tmp[0], $month)) {
+   if (($tmp[2])>$max2) $max2=$tmp[2];
+   if (($tmp[1])>$max1) $max1=$tmp[1];
+  }
+}
+
+for ($i=$from; $i<$to; $i++) {
+$tmp=explode ("|", $f[$i]);
+$mo[]=substr ($tmp[0], 3);
+
+if (stristr ($tmp[0], $month)) {
+$total++;
+$ut=$ut+$tmp[1];
+$ht=$ht+$tmp[2];
+$set=$set+$tmp[4];
+$hpt=$hpt+$tmp[6];
+$ot=$ot+$tmp[5];
+$aut=$aut+$tmp[1]-$tmp[4]-$tmp[5];
+
+$au=(($tmp[1]) - ($tmp[4]+$tmp[5]));
+if (($tmp[2])==$max2) $tmp[2]="<b>".$tmp[2]."</b>";
+if (($tmp[1])==$max1) $tmp[1]="<b>".$tmp[1]."</b>";
+
+$d= preg_replace ("/(\d{1,2}).(\d{1,2}).(19|20)(\d{2})/", "\\3\\4.\\2.\\1", $tmp[0]);
+if (file_exists(db_directory."/reports/".$d.".html")) $tmp[0]="<a href=\"".sway('data/db/reports/".$d.".html').">".$tmp[0]."</a>";
+echo "<tr ".straw_that().">
+<td>".$tmp[0]."</td>
+<td>".$tmp[1]."</td>
+<td>".$tmp[2]." [".trim($tmp[6])."]</td>
+<td>".$au."</td>
+<td>".$tmp[5]." / ".$tmp[4]."</td>
+</tr>";
+}
+
+
+// 20.02.2003|1216|5321|59618|81|153|836
+
+}
+
+echo "</table>";
+
+
+/////////////////////////////////////////////////////////
+
+echo "</td><td width=\"180\" valign=\"top\" class=\"frm5\">";
+
+/////////////////////////////////////////////////////////
+
+echo "<p><nobr><b>Средние значение:</b><p>Посетителей в день: ".@round ($ut/$total)."<br>";
+echo "Аудитория: ".@round ($aut/$total)." (".(number_format ((@round ($aut/$total)/@round ($ut/$total)),2)*100)."%) <br>";
+echo "С других сайтов: ".@round ($ot/$total)." (".(number_format ((@round ($ot/$total)/@round ($ut/$total)),2)*100)."%) <br>";
+echo "С поисковиков: ".@round ($set/$total)." (".(number_format ((@round ($set/$total)/@round ($ut/$total)),2)*100)."%) <br>";
+$pp= @round (($ht-$hpt)/$ut,2)+1;
+echo "<p>Просмотр страниц: ".$pp."<br>";
+echo "Хиты: ".@round ($ht/$total)."</p>";
+
+
+$ut=$ut+$tmp[1];
+$ht=$ht+$tmp[2];
+$set=$set+$tmp[4];
+$hpt=$hpt+$tmp[6];
+$ot=$ot+$tmp[5];
+$aut=$aut+$tmp[1]-$tmp[4]-$tmp[5];
+
+
+echo "<p><b>Месяцы:</b><br>";
+
+
+$mo=array_unique($mo);
+foreach ($mo as $key => $value) {
+ if ($value!=$month) {
+   echo "<div style=\"text-align:center;width:85px;height:20px;float:left;\"><a href=\"".sway("index.php?mod=spesta&amp;report=".$report."&amp;month=".$value)."\">$value</a></div>";
+ } else {
+   echo "<div style=\"text-align:center;width:85px;height:20px;float:left;\"><b>$value</b></div>";
+ } 
+}
+
+
+// 20.02.2003|1216|5321|59618|81|153|836
+
+echo "</p></td></tr></table>";
+
+##############################################
+###########################################
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+
+
+  } else {
+        echo "<table width=\"100%\"><tr><td align=\"center\">- ".t('в настоящий момент учет посетителей он-лайн отключен')." -</td></tr></table>";
+  }
+}
+echo on_page();
+echofooter();
+}
+
+
+
+
+
+
+
+
+
+////////////////////////////////////////////
+function sp_destroy() {
+	global $config, $db, $modul;
+}
+////////////////////////////////////////////
+
+
+
+
+switch($act) {
+	default:
+	sp();
+	break;
+	
+	case "destroy":
+	sp_destroy();
+	break;
+}
+
+
+?>

@@ -312,6 +312,8 @@ $pf="";
 $pd="";
 
 $fid = !empty($_GET['fid']) ? cheker($_GET['fid']) : (!empty($_POST['fid']) ? cheker($_POST['fid']) : "");
+$fid = preg_replace("#\.\.\/#i","",$fid);
+$fid = preg_replace("#\/\/#i","",$fid);
 $afid = !empty($fid) ? "/".$fid : "";
 $bfid = !empty($fid) ? $fid."/" : "";
 $adir = !empty($nid) ? "/".$nid : "";

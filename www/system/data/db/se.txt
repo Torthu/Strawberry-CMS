@@ -1,0 +1,16 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<title>ERROR 403</title>
+<link href="/css/style.css" rel="stylesheet" type="text/css" media="screen">
+<script type="text/javascript" src="/js/tooltip.js"></script>
+</head>
+<body>
+<table border="0" align="center" cellpadding="0" cellspacing="0" width="96%">
+<tr><td align="center" height="24" class="main">| <a href="http://www.strawberry.goodgirl.ru/" title="Strawberry 1.1.1 web site">Strawberry 1.1.1</a> | <a href="http://www.strawberry.su/" title="Strawberry 1.2.0 web site">Strawberry 1.2.0</a> |</td></tr>
+<tr><td height="19">
+<div class="header"><br><img border="0" src="/img/error.png" align="absmiddle" vspace="2" alt="Technical page"> Error page - 403</div>
+
+<table border="0" cellpading="0" cellspacing="10" width="100%">
+<tr><td valign="top">
+<h2>Type of error: 403</h2><div style="text-align:center;"><div style="width:50px;margin:10px;float: left;"><a href="/"><img src="/img/home.png"><br>Main page</a></div><div style="width:50px;margin:10px;float: left;"><a href="/svn.php"><img src="/img/rabbit_folder.png"><br>Catalog of files</a></div><div style="width:50px;margin:10px;float: left;"><a href="/files.php"><img src="/img/zip_brown.png"><br>Useful files</a></div><div style="width:50px;margin:10px;float: left;"><a href="/info.php"><img src="/img/info.gif"><br>Versions inform</a></div><div style="width:50px;margin:10px;float: left;"><a href="/admin.php"><img src="/img/internet.png"><br>Full Statistic</a></div></div></td></tr></table></td></tr><tr><td height="24" align="center" class="copyrights"><div style="font-size: 9px; text-transform: uppercase;"><a target="_blank" title="Original Strawberry 1.1.2" href="http://www.&#115;&#116;&#114;&#97;&#119;&#98;&#101;&#114;&#114;&#121;&#46;&#103;&#111;&#111;&#100;&#103;&#105;&#114;&#108;&#46;&#114;&#117;/" style="font-size: 9px;">Strawberry 1.1.2</a> powered by <a target="_blank" title="GoodGirl" href="http://&#103;&#111;&#111;&#100;&#103;&#105;&#114;&#108;&#46;&#114;&#117;/" style="font-size: 9px;">goodgirl.ru</a> &copy; 2006 - 2011<br><a target="_blank" title="Strawberry 1.2.x" href="http://www.&#115;&#116;&#114;&#97;&#119;&#98;&#101;&#114;&#114;&#121;&#46;&#115;&#117;/" style="font-size: 9px;">Strawberry 1.2.x</a> powered by <a target="_blank" title="Miksar Group Corporation" href="http://www.&#109;&#103;&#99;&#111;&#114;&#112;&#46;&#114;&#117;/" style="font-size: 9px;">MGCorp.ru</a> &copy; 2009 - 2011</div></td></tr></table></body></html>

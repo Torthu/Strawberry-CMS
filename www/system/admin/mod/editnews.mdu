@@ -852,7 +852,7 @@ $ñ_full = !empty($_POST['full_story']) ? strlen(replace_news('add', $_POST['full
   password = '".$pt_password."',
   template = '".$template."',
   bookmark = '".(!empty($_POST['bookmark']) ? 1 : 0)."'
-  where id = ".$_POST['id']." limit 1 ");
+  where id = ".intval($_POST['id'])." limit 1 ");
 
   $db->sql_query("update ".$config['dbprefix']."story set 
   short = '".replace_news('add', $_POST['short_story'])."', 
@@ -864,7 +864,7 @@ $ñ_full = !empty($_POST['full_story']) ? strlen(replace_news('add', $_POST['full
   add_comm = '".(!empty($_POST['endiscomments']) ? 'on' : 'no')."',
   stop_comm = '".(!empty($_POST['stopcomments']) ? 'on' : 'no')."',
   format = '".(!empty($_POST['fs_format']) ? $_POST['fs_format'] : 'html_with_br')."'
-  where post_id=".$_POST['id']." limit 1 ");
+  where post_id=".intval($_POST['id'])." limit 1 ");
 
 
 
